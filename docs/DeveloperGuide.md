@@ -333,8 +333,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Contact**: A saved record for a project mate, containing their name, contact details, and associated projects.
+* **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
+* **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
+* **Displayed contact list**: The contacts currently shown in LinkUp, including results of a search.
+* **Index**: A one-based number identifying a contact in the currently displayed contact list.
+* **Same-name disambiguation**: Using project information to distinguish contacts with identical or similar names.
+* **Mainstream OS**: Windows, Linux, Unix, or macOS.
 
 --------------------------------------------------------------------------------------------------------------------
 
