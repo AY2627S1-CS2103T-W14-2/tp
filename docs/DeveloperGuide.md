@@ -447,7 +447,7 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  **Environment:** The system shall run on Windows, Linux, Unix, or macOS with Java `25` or above installed.
+1.  **Environment:** The system shall run on all _mainstream OS_ with Java `25` or above installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
 4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
