@@ -283,16 +283,44 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …  | I want to …                                                            | So that I can…                                                    |
+|----------|---------|------------------------------------------------------------------------|-------------------------------------------------------------------|
+| `* * *`  | student | add a contact                                                          | save the details of a project mate                                |
+| `* * *`  | student | view all my contacts                                                   | see the people whose information I have saved                     |
+| `* * *`  | student | delete a contact                                                       | remove contacts I no longer need                                  |
+| `* * *`  | student | search for a contact by name                                           | quickly find someone                                              |
+| `* * *`  | student | associate a contact with a project                                     | remember where I know the person from                             |
+| `* * *`  | student | search for contacts by project                                         | find members of a particular project                              |
+| `* * *`  | student | distinguish contacts with the same name using their project information | identify the correct person                                      |
+| `* *`    | student | edit a contact's details                                               | keep my contacts' information up to date                          |
+| `* *`    | student | store a contact's phone number                                         | contact them by phone or messaging apps                           |
+| `* *`    | student | store a contact's email address                                        | contact them by email                                             |
+| `* *`    | student | store a contact's Telegram username                                    | contact them on Telegram                                          |
+| `* *`    | student | associate one contact with multiple projects                           | avoid duplicating entries for the same person                     |
+| `* *`    | student | view the projects associated with a contact                            | remember how I know them                                          |
+| `* *`    | student | remove a contact from a project without deleting the contact           | maintain accurate project information                            |
+| `* *`    | student | search using part of a person's name                                   | find someone without remembering their full name                  |
+| `* *`    | student | view all contacts belonging to the same project                        | quickly see my teammates                                          |
+| `* *`    | student | add notes about a contact                                              | remember useful information about them                            |
+| `* *`    | student | record a contact's role in a project                                   | remember their responsibilities                                  |
+| `* *`    | student | search for contacts by their role                                      | find the person responsible for a particular task                 |
+| `* *`    | student | see a contact's complete information                                   | verify that I have found the correct person                       |
+| `* *`    | student | detect duplicate contact information                                   | avoid accidentally saving the same person multiple times         |
+| `* *`    | student | be warned when two contacts have the same name                         | know that additional information may be needed to distinguish them |
+| `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
+| `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
+| `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
+| `*`      | student | search contacts using multiple criteria                                | narrow down ambiguous results                                    |
+| `*`      | student | tag contacts                                                           | organise them using categories meaningful to me                  |
+| `*`      | student | search contacts by tag                                                 | quickly retrieve a group of related contacts                     |
+| `*`      | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
+| `*`      | student | sort contacts by project                                               | see related contacts together                                    |
+| `*`      | student | view recently added contacts                                           | quickly find people I just met                                   |
+| `*`      | student | archive contacts from completed projects                               | prevent old contacts from cluttering my active contact list      |
+| `*`      | student | restore archived contacts                                              | reuse their information if I work with them again                |
+| `*`      | student | rename a project                                                       | keep project information accurate when project names change      |
+| `*`      | student | remove a project                                                       | prevent completed or incorrectly created projects from cluttering my records |
+| `*`      | student | view all projects I am tracking                                        | see how my contacts are organised                                |
 
 ### Use cases
 
