@@ -423,6 +423,7 @@ Use case ends.
 
 **MSS**
 
+1.  **Environment:** The system shall run on _mainstream OS_ with Java `25` or above installed.
 1. Student requests to list contacts.
 2. LinkUp displays the saved contacts with their indices, contact details, and projects.
 3. Student identifies the contact to remove and requests its deletion using its displayed index.
@@ -446,13 +447,14 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  **Environment:** The system shall run on Windows, Linux, Unix, or macOS with Java `25` or above installed.
+1.  **Environment:** The system shall run on all _mainstream OS_ with Java `25` or above installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
 4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
-5.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
-6.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
-7.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
+5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
+6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
+7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
+8.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
 
 ### Glossary
 
