@@ -270,73 +270,201 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is a student who works on multiple courses or projects and needs to manage
+  classmates, teammates, and other project contacts
+* needs to keep contact details such as names, phone numbers, email addresses,
+  Telegram usernames, and project tags together in one place
+* prefers a lightweight desktop application and is reasonably comfortable with
+  keyboard-driven CLI commands
+* values quick contact lookup and updates over navigating a feature-heavy
+  contacts application
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: LinkUp helps students quickly add, organize, and retrieve
+  project-related contacts and their details from one keyboard-driven address
+  book, reducing the need to search across separate course or project contact
+  lists.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …  | I want to …                                                            | So that I can…                                                    |
+|----------|---------|------------------------------------------------------------------------|-------------------------------------------------------------------|
+| `* * *`  | student | add a contact                                                          | save the details of a project mate                                |
+| `* * *`  | student | view all my contacts                                                   | see the people whose information I have saved                     |
+| `* * *`  | student | delete a contact                                                       | remove contacts I no longer need                                  |
+| `* * *`  | student | search for a contact by name                                           | quickly find someone                                              |
+| `* * *`  | student | associate a contact with a project                                     | remember where I know the person from                             |
+| `* * *`  | student | search for contacts by project                                         | find members of a particular project                              |
+| `* * *`  | student | distinguish contacts with the same name using their project information | identify the correct person                                      |
+| `* *`    | student | edit a contact's details                                               | keep my contacts' information up to date                          |
+| `* *`    | student | store a contact's phone number                                         | contact them by phone or messaging apps                           |
+| `* *`    | student | store a contact's email address                                        | contact them by email                                             |
+| `* *`    | student | store a contact's Telegram username                                    | contact them on Telegram                                          |
+| `* *`    | student | associate one contact with multiple projects                           | avoid duplicating entries for the same person                     |
+| `* *`    | student | view the projects associated with a contact                            | remember how I know them                                          |
+| `* *`    | student | remove a contact from a project without deleting the contact           | maintain accurate project information                            |
+| `* *`    | student | search using part of a person's name                                   | find someone without remembering their full name                  |
+| `* *`    | student | view all contacts belonging to the same project                        | quickly see my teammates                                          |
+| `* *`    | student | add notes about a contact                                              | remember useful information about them                            |
+| `* *`    | student | record a contact's role in a project                                   | remember their responsibilities                                  |
+| `* *`    | student | search for contacts by their role                                      | find the person responsible for a particular task                 |
+| `* *`    | student | see a contact's complete information                                   | verify that I have found the correct person                       |
+| `* *`    | student | detect duplicate contact information                                   | avoid accidentally saving the same person multiple times         |
+| `* *`    | student | be warned when two contacts have the same name                         | know that additional information may be needed to distinguish them |
+| `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
+| `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
+| `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
+| `*`      | student | search contacts using multiple criteria                                | narrow down ambiguous results                                    |
+| `*`      | student | tag contacts                                                           | organise them using categories meaningful to me                  |
+| `*`      | student | search contacts by tag                                                 | quickly retrieve a group of related contacts                     |
+| `*`      | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
+| `*`      | student | sort contacts by project                                               | see related contacts together                                    |
+| `*`      | student | view recently added contacts                                           | quickly find people I just met                                   |
+| `*`      | student | archive contacts from completed projects                               | prevent old contacts from cluttering my active contact list      |
+| `*`      | student | restore archived contacts                                              | reuse their information if I work with them again                |
+| `*`      | student | rename a project                                                       | keep project information accurate when project names change      |
+| `*`      | student | remove a project                                                       | prevent completed or incorrectly created projects from cluttering my records |
+| `*`      | student | view all projects I am tracking                                        | see how my contacts are organised                                |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+The following use cases describe the intended behaviour of LinkUp.
+For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
+The application is running. **MSS** stands for Main Success Scenario.
 
-**Use case: Delete a person**
+#### Use case: Find a project mate by name
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Student requests to search for contacts using a name keyword.
+2. LinkUp displays contacts whose names contain the keyword, ignoring case, together with their contact details and projects.
+3. Student uses the displayed project information and contact details to identify the intended project mate.
 
-    Use case ends.
+Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The keyword is empty or exceeds 60 characters after trimming surrounding spaces.
+
+  * 1a1. LinkUp displays an error message without changing saved contacts.
+
+  Use case resumes at step 1.
+
+* 2a. No contacts match the keyword.
+
+  * 2a1. LinkUp displays a message indicating that no contacts were found.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+#### Use case: Find contacts belonging to a project
 
-    * 3a1. AddressBook shows an error message.
+**MSS**
 
-      Use case resumes at step 2.
+1. Student requests to search for contacts using a project keyword.
+2. LinkUp displays contacts associated with projects whose names contain the keyword, ignoring case.
+3. Student reads the displayed contact details and project information to find the relevant project mates.
 
-*{More to be added}*
+Use case ends.
+
+**Extensions**
+
+* 1a. The keyword is empty or exceeds 40 characters after trimming surrounding spaces.
+
+  * 1a1. LinkUp displays an error message without changing saved contacts.
+
+  Use case resumes at step 1.
+
+* 2a. No contacts belong to a matching project.
+
+  * 2a1. LinkUp displays a message indicating that no contacts were found for the project keyword.
+
+  Use case ends.
+
+#### Use case: Associate an existing contact with a project
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student requests to associate a contact at a displayed index with a project, supplying the project name.
+4. LinkUp adds the project association to that contact, preserves its existing project associations, and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays an index error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3b. The project name is missing or invalid, or the project parameter is repeated.
+
+  * 3b1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3c. The contact is already associated with the same normalised project.
+
+  * 3c1. LinkUp displays a message indicating that the association already exists, without changing saved contacts.
+
+  Use case resumes at step 3.
+
+#### Use case: Delete a contact
+
+**MSS**
+
+1.  **Environment:** The system shall run on _mainstream OS_ with Java `25` or above installed.
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student identifies the contact to remove and requests its deletion using its displayed index.
+4. LinkUp deletes only the selected contact and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays an index error without deleting any contact.
+
+  Use case resumes at step 3.
 
 ### Non-Functional Requirements
 
-1.  **Environment:** The system shall run on _mainstream OS_ with Java `25` or above installed.
+1.  **Environment:** The system shall run on Windows, Linux, Unix, or macOS with Java `25` or above installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
 4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
-5.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
-6.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
-7.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
+5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
+6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
+7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
+8.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Contact**: A saved record for a project mate, containing their name, contact details, and associated projects.
+* **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
+* **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
+* **Displayed contact list**: The contacts currently shown in LinkUp, including results of a search.
+* **Index**: A one-based number identifying a contact in the currently displayed contact list.
+* **Same-name disambiguation**: Using project information to distinguish contacts with identical or similar names.
+* **Mainstream OS**: Windows, Linux, Unix, or macOS.
 
 --------------------------------------------------------------------------------------------------------------------
 

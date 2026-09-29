@@ -1,14 +1,24 @@
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+# LinkUp
 
-![Ui](docs/images/Ui.png)
+[![Java CI](https://github.com/se-edu/addressbook-level3/actions/workflows/gradle.yml/badge.svg)](https://github.com/se-edu/addressbook-level3/actions/workflows/gradle.yml)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+**LinkUp is a desktop address book for students who manage contacts across multiple projects and teams.**
+
+It helps students organise their project mates' contact details together with relevant project information. This makes it easier to retrieve the right contact quickly and distinguish between people with identical or similar names across different projects.
+
+## UI mockup
+
+The mockup below illustrates the planned LinkUp interface.
+
+![LinkUp UI mockup showing project mates' contact details and project labels](docs/images/Ui.png)
+
+## Documentation
+
+Visit the [LinkUp product website](https://ay2627s1-cs2103t-w14-2.github.io/tp/) for project documentation:
+
+- [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
+- [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
+- [About Us](https://ay2627s1-cs2103t-w14-2.github.io/tp/AboutUs.html)
+
+## Acknowledgement
+This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org)
