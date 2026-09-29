@@ -270,13 +270,19 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is a student who works on multiple courses or projects and needs to manage
+  classmates, teammates, and other project contacts
+* needs to keep contact details such as names, phone numbers, email addresses,
+  Telegram usernames, and project tags together in one place
+* prefers a lightweight desktop application and is reasonably comfortable with
+  keyboard-driven CLI commands
+* values quick contact lookup and updates over navigating a feature-heavy
+  contacts application
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: LinkUp helps students quickly add, organize, and retrieve
+  project-related contacts and their details from one keyboard-driven address
+  book, reducing the need to search across separate course or project contact
+  lists.
 
 
 ### User stories
