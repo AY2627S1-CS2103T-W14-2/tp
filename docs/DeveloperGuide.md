@@ -446,11 +446,13 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  **Environment:** The system shall run on Windows, Linux, Unix, or macOS with Java `25` or above installed.
+2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
+3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
+4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
+5.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
+6.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
+7.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
 
 ### Glossary
 

@@ -1,6 +1,6 @@
 # LinkUp
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+[![Java CI](https://github.com/se-edu/addressbook-level3/actions/workflows/gradle.yml/badge.svg)](https://github.com/se-edu/addressbook-level3/actions/workflows/gradle.yml)
 
 **LinkUp is a desktop address book for students who manage contacts across multiple projects and teams.**
 
@@ -19,3 +19,6 @@ Visit the [LinkUp product website](https://ay2627s1-cs2103t-w14-2.github.io/tp/)
 - [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
 - [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
 - [About Us](https://ay2627s1-cs2103t-w14-2.github.io/tp/AboutUs.html)
+
+## Acknowledgement
+This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org)
