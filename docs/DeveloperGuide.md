@@ -330,32 +330,119 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+The following use cases describe the intended behaviour of LinkUp.
+For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
+The application is running. **MSS** stands for Main Success Scenario.
 
-**Use case: Delete a person**
+#### UC01: Find a project mate by name
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Student requests to search for contacts using a name keyword.
+2. LinkUp displays contacts whose names contain the keyword, ignoring case, together with their contact details and projects.
+3. Student uses the displayed project information and contact details to identify the intended project mate.
 
-    Use case ends.
+Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The keyword is empty or exceeds 60 characters after trimming surrounding spaces.
+
+  * 1a1. LinkUp displays an error message without changing saved contacts.
+
+  Use case resumes at step 1.
+
+* 2a. No contacts match the keyword.
+
+  * 2a1. LinkUp displays a message indicating that no contacts were found.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+#### UC02: Find contacts belonging to a project
 
-    * 3a1. AddressBook shows an error message.
+**MSS**
 
-      Use case resumes at step 2.
+1. Student requests to search for contacts using a project keyword.
+2. LinkUp displays contacts associated with projects whose names contain the keyword, ignoring case.
+3. Student reads the displayed contact details and project information to find the relevant project mates.
 
-*{More to be added}*
+Use case ends.
+
+**Extensions**
+
+* 1a. The keyword is empty or exceeds 40 characters after trimming surrounding spaces.
+
+  * 1a1. LinkUp displays an error message without changing saved contacts.
+
+  Use case resumes at step 1.
+
+* 2a. No contacts belong to a matching project.
+
+  * 2a1. LinkUp displays a message indicating that no contacts were found for the project keyword.
+
+  Use case ends.
+
+#### UC03: Associate an existing contact with a project
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student requests to associate a contact at a displayed index with a project, supplying the project name.
+4. LinkUp adds the project association to that contact, preserves its existing project associations, and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays an index error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3b. The project name is missing or invalid, or the project parameter is repeated.
+
+  * 3b1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3c. The contact is already associated with the same normalised project.
+
+  * 3c1. LinkUp displays a message indicating that the association already exists, without changing saved contacts.
+
+  Use case resumes at step 3.
+
+#### UC04: Delete a contact
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student identifies the contact to remove and requests its deletion using its displayed index.
+4. LinkUp deletes only the selected contact and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays an index error without deleting any contact.
+
+  Use case resumes at step 3.
 
 ### Non-Functional Requirements
 
