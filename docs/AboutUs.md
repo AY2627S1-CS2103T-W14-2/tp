@@ -39,7 +39,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Jean Doe
+### Teng Ywee See
 
 <img src="images/tys2.png" width="200px">
 
