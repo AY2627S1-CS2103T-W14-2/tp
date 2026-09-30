@@ -334,7 +334,7 @@ The following use cases describe the intended behaviour of LinkUp.
 For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
 The application is running. **MSS** stands for Main Success Scenario.
 
-#### Use case: Find a project mate by name
+#### UC01: Find a project mate by name
 
 **MSS**
 
@@ -358,7 +358,7 @@ Use case ends.
 
   Use case ends.
 
-#### Use case: Find contacts belonging to a project
+#### UC02: Find contacts belonging to a project
 
 **MSS**
 
@@ -382,7 +382,7 @@ Use case ends.
 
   Use case ends.
 
-#### Use case: Associate an existing contact with a project
+#### UC03: Associate an existing contact with a project
 
 **MSS**
 
@@ -419,7 +419,7 @@ Use case ends.
 
   Use case resumes at step 3.
 
-#### Use case: Delete a contact
+#### UC04: Delete a contact
 
 **MSS**
 
