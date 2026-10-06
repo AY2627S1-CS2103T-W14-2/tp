@@ -26,7 +26,18 @@ public class DeleteCommandParserTest {
     }
 
     @Test
+    public void parse_validArgsWithSurroundingWhitespace_returnsDeleteCommand() {
+        assertParseSuccess(parser, "  1  ", new DeleteCommand(INDEX_FIRST_PERSON));
+    }
+
+    @Test
     public void parse_invalidArgs_throwsParseException() {
-        assertParseFailure(parser, "a", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE);
+        // missing, non-numeric, zero, negative, extra parameter, and integer overflow
+        String[] invalidArgs = {"", "a", "0", "-1", "1 2", "1 a", "99999999999"};
+
+        for (String invalidArg : invalidArgs) {
+            assertParseFailure(parser, invalidArg, expectedMessage);
+        }
     }
 }
