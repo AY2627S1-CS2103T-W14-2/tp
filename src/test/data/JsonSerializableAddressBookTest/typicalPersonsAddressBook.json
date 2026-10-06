@@ -6,6 +6,7 @@
     "email" : "alice@example.com",
     "telegramUsername" : "alice_pauline",
     "address" : "123, Jurong West Ave 6, #08-111",
+    "projects" : [ ],
     "tags" : [ "friends" ]
   }, {
     "name" : "Benson Meier",
@@ -13,6 +14,7 @@
     "email" : "johnd@example.com",
     "telegramUsername" : "benson_meier",
     "address" : "311, Clementi Ave 2, #02-25",
+    "projects" : [ "CS2103T", "Orbital" ],
     "tags" : [ "owesMoney", "friends" ]
   }, {
     "name" : "Carl Kurz",
@@ -20,6 +22,7 @@
     "email" : "heinz@example.com",
     "telegramUsername" : "carl_kurz",
     "address" : "wall street",
+    "projects" : [ ],
     "tags" : [ ]
   }, {
     "name" : "Daniel Meier",
@@ -27,6 +30,7 @@
     "email" : "cornelia@example.com",
     "telegramUsername" : "daniel_meier",
     "address" : "10th street",
+    "projects" : [ ],
     "tags" : [ "friends" ]
   }, {
     "name" : "Elle Meyer",
@@ -34,6 +38,7 @@
     "email" : "werner@example.com",
     "telegramUsername" : "elle_meyer",
     "address" : "michegan ave",
+    "projects" : [ ],
     "tags" : [ ]
   }, {
     "name" : "Fiona Kunz",
@@ -41,6 +46,7 @@
     "email" : "lydia@example.com",
     "telegramUsername" : "fiona_kunz",
     "address" : "little tokyo",
+    "projects" : [ ],
     "tags" : [ ]
   }, {
     "name" : "George Best",
@@ -48,6 +54,7 @@
     "email" : "anna@example.com",
     "telegramUsername" : "george_best",
     "address" : "4th street",
+    "projects" : [ ],
     "tags" : [ ]
   } ]
 }

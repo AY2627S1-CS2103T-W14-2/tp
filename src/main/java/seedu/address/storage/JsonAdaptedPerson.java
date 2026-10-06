@@ -16,6 +16,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
+import seedu.address.model.project.Project;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -30,6 +31,7 @@ class JsonAdaptedPerson {
     private final String email;
     private final String telegramUsername;
     private final String address;
+    private final List<JsonAdaptedProject> projects = new ArrayList<>();
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -38,12 +40,17 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("telegramUsername") String telegramUsername,
-            @JsonProperty("address") String address, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("address") String address,
+            @JsonProperty("projects") List<JsonAdaptedProject> projects,
+            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.telegramUsername = telegramUsername;
         this.address = address;
+        if (projects != null) {
+            this.projects.addAll(projects);
+        }
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -58,6 +65,9 @@ class JsonAdaptedPerson {
         email = source.getEmail().value;
         telegramUsername = source.getTelegramUsername().value;
         address = source.getAddress().value;
+        projects.addAll(source.getProjects().stream()
+                .map(JsonAdaptedProject::new)
+                .collect(Collectors.toList()));
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -69,6 +79,18 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        final List<Project> personProjects = new ArrayList<>();
+        for (JsonAdaptedProject project : projects) {
+            if (project == null) {
+                throw new IllegalValueException(Project.MESSAGE_CONSTRAINTS);
+            }
+            Project modelProject = project.toModelType();
+            if (personProjects.contains(modelProject)) {
+                throw new IllegalValueException(Person.MESSAGE_DUPLICATE_PROJECTS);
+            }
+            personProjects.add(modelProject);
+        }
+
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             personTags.add(tag.toModelType());
@@ -117,7 +139,8 @@ class JsonAdaptedPerson {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, modelAddress, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, modelAddress,
+                personProjects, modelTags);
     }
 
 }

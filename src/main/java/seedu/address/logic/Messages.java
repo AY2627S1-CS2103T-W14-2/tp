@@ -45,6 +45,12 @@ public class Messages {
             builder.append("; Telegram: ")
                     .append(person.getTelegramUsername());
         }
+        if (!person.getProjects().isEmpty()) {
+            builder.append("; Projects: ")
+                    .append(person.getProjects().stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", ")));
+        }
         builder.append("; Address: ")
                 .append(person.getAddress())
                 .append("; Tags: ");

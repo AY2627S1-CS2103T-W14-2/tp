@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,5 +23,17 @@ public class MessagesTest {
                 ALICE.getAddress(), ALICE.getTags());
 
         assertFalse(Messages.format(legacyPerson).contains("Telegram:"));
+    }
+
+    @Test
+    public void format_personWithProjects_includesProjectsInSavedOrder() {
+        String formattedPerson = Messages.format(BENSON);
+
+        assertTrue(formattedPerson.contains("; Projects: CS2103T, Orbital"));
+    }
+
+    @Test
+    public void format_personWithoutProjects_omitsProjectsField() {
+        assertFalse(Messages.format(ALICE).contains("Projects:"));
     }
 }
