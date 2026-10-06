@@ -31,7 +31,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T` : Adds a contact named `John Doe` to the Address Book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -80,18 +80,22 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/PROJECT] [t/TAG]... `
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A person can have one initial project or no project, and any number of tags, including zero.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
+
+The project is optional. A project name must contain 1–50 printable characters. Surrounding whitespace is removed,
+repeated internal whitespace is collapsed, and project names are compared case-insensitively. Only one `pr/` prefix
+is accepted by the `add` command. If `pr/` is provided, it must not be empty.
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01`
+* `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com tele/betsy_crowe a/Newgate Prison p/1234567 t/criminal`
 
 ### Listing all persons: `list`
@@ -198,7 +202,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com tele/james_ho a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/PROJECT] [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com tele/james_ho a/123, Clementi Rd, 1234665 pr/CS2103T t/friend t/colleague`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

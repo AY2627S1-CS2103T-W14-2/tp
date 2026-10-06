@@ -14,6 +14,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
+import seedu.address.model.project.Project;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -108,6 +109,20 @@ public class ParserUtil {
             throw new ParseException(TelegramUsername.MESSAGE_CONSTRAINTS);
         }
         return new TelegramUsername(telegramUsername);
+    }
+
+    /**
+     * Parses a {@code String projectName} into a {@code Project}.
+     * Surrounding whitespace is removed and repeated internal whitespace is collapsed.
+     *
+     * @throws ParseException if the given {@code projectName} is invalid.
+     */
+    public static Project parseProject(String projectName) throws ParseException {
+        requireNonNull(projectName);
+        if (!Project.isValidProjectName(projectName)) {
+            throw new ParseException(Project.MESSAGE_CONSTRAINTS);
+        }
+        return new Project(projectName);
     }
 
     /**
