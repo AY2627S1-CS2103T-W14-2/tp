@@ -105,6 +105,7 @@ public class FindProjectCommandIntegrationTest {
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
         for (String input : List.of("findproject", "findproject \u00a0\u2003",
+                "findproject \u00a0" + Character.toString(0x1c) + "\u00a0",
                 "findproject " + "x".repeat(41))) {
             assertThrows(ParseException.class, () -> logic.execute(input));
             assertEquals(List.of(bob, carl), logic.getFilteredPersonList());
@@ -121,5 +122,40 @@ public class FindProjectCommandIntegrationTest {
 
         assertEquals(List.of(newContact), logic.getFilteredPersonList());
         assertTrue(addressBookStorage.readAddressBook().orElseThrow().getPersonList().contains(newContact));
+    }
+
+    @Test
+    public void execute_maxLengthKeyword_matchesLongerProjectName() throws Exception {
+        String keyword = "a".repeat(40);
+        Person newContact = new PersonBuilder().withName("Dina").withProjects(keyword + "b".repeat(10)).build();
+        logic.execute(PersonUtil.getAddCommand(newContact));
+
+        logic.execute("findproject " + keyword);
+        assertEquals(List.of(newContact), logic.getFilteredPersonList());
+        assertThrows(ParseException.class, () -> logic.execute("findproject " + keyword + "b"));
+        assertEquals(List.of(newContact), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_punctuationInPhrase_matchesLiterally() throws Exception {
+        Person literal = new PersonBuilder().withName("Dina").withProjects("C++ [Team]/Alpha").build();
+        Person different = new PersonBuilder().withName("Ella").withProjects("C Team Alpha").build();
+        logic.execute(PersonUtil.getAddCommand(literal));
+        logic.execute(PersonUtil.getAddCommand(different));
+
+        logic.execute("findproject ++ [team]/");
+        assertEquals(List.of(literal), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_editAfterSearch_preservesProjectsAndUsesDisplayedIndex() throws Exception {
+        logic.execute("findproject team alpha");
+        logic.execute("edit 1 p/91234567");
+        Person editedBob = new PersonBuilder(bob).withPhone("91234567").build();
+
+        logic.execute("findproject team alpha");
+        assertEquals(List.of(editedBob, carl), logic.getFilteredPersonList());
+        assertEquals(List.of(alice, editedBob, carl, noProject), model.getAddressBook().getPersonList());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
     }
 }

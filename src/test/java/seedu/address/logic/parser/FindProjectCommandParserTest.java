@@ -26,6 +26,22 @@ public class FindProjectCommandParserTest {
     }
 
     @Test
+    public void parse_javaWhitespaceOnly_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindProjectCommand.MESSAGE_USAGE);
+        for (int codePoint = 0x1c; codePoint <= 0x1f; codePoint++) {
+            assertParseFailure(parser, "\u00a0" + Character.toString(codePoint) + "\u00a0", expectedMessage);
+        }
+    }
+
+    @Test
+    public void parse_javaWhitespaceAroundLimitLengthKeyword_ignoresSurroundingWhitespace() {
+        String keyword = "a".repeat(40);
+        String separator = Character.toString(0x1c);
+        assertParseSuccess(parser, "\u00a0" + separator + keyword + separator + "\u00a0",
+                new FindProjectCommand(new ProjectContainsKeywordPredicate(keyword)));
+    }
+
+    @Test
     public void parse_phrase_preservesWholePhrase() {
         FindProjectCommand expected = new FindProjectCommand(new ProjectContainsKeywordPredicate("team alpha"));
         assertParseSuccess(parser, "team alpha", expected);

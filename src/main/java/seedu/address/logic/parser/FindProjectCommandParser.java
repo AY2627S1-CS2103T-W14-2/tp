@@ -13,7 +13,9 @@ import seedu.address.model.person.ProjectContainsKeywordPredicate;
  * Parses a project search phrase and creates a {@code FindProjectCommand}.
  */
 public class FindProjectCommandParser implements Parser<FindProjectCommand> {
-    private static final Pattern SURROUNDING_WHITESPACE = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
+    // Project.normalize() collapses whitespace/separators, then strip() removes Java whitespace at the edges.
+    private static final Pattern SURROUNDING_WHITESPACE =
+            Pattern.compile("^[\\s\\p{Z}\\p{javaWhitespace}]+|[\\s\\p{Z}\\p{javaWhitespace}]+$");
 
     /**
      * Parses the whole argument as one phrase, validating its length before internal whitespace is collapsed.
