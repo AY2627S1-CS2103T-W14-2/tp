@@ -159,6 +159,27 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Project association implementation
+
+The `project INDEX pr/PROJECT` command implements UC03. `AddressBookParser` delegates to
+`ProjectCommandParser`, which parses the displayed index and requires exactly one project prefix.
+`ParserUtil.parseProject` reuses the shared `Project` validation and normalisation rules.
+
+`ProjectCommand` resolves the index against `Model.getFilteredPersonList()`, checks whether the
+normalised project already exists, and copies the contact's immutable project list before appending
+the new project. It constructs a replacement `Person` with all other fields preserved and calls
+`Model.setPerson`. Keeping the active predicate preserves the user's search context.
+
+Projects are stored as an ordered list to retain display order. Duplicate detection uses `Project.equals`,
+so casing and redundant whitespace do not create separate associations. Invalid indices and duplicate
+associations throw `CommandException` before any model mutation; malformed arguments throw `ParseException`.
+
+The existing `LogicManager` saves the updated address book through JSON storage after execution.
+No new storage format or UI component is required: both already support a contact's project list.
+Command tests cover filtered indices, preservation of fields and order, and duplicate rejection.
+Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
+filtered selection, rejected operations, and a JSON round trip.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation

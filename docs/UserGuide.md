@@ -98,6 +98,26 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com tele/betsy_crowe a/Newgate Prison p/1234567 t/criminal`
 
+### Associating an existing contact with a project: `project`
+
+Adds one project to an existing contact, preserving their other projects and contact details.
+
+Format: `project INDEX pr/PROJECT`
+
+* `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
+* Supply exactly one `pr/PROJECT`. Project names contain 1–50 characters after surrounding whitespace
+  is removed and repeated whitespace is collapsed. Control characters remaining after normalisation are rejected.
+* Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
+  `team   alpha` refer to the same project. Adding an existing association reports an error.
+* The new project is appended after existing projects. The current search filter is preserved.
+* Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
+  These input errors leave contacts unchanged.
+* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates a saved contact.
+
+Examples:
+* `project 2 pr/Orbital` adds Orbital to the second displayed contact.
+* `find Alice` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -208,4 +228,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
