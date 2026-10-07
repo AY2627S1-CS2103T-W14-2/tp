@@ -17,6 +17,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
+import seedu.address.model.project.Project;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -25,6 +26,7 @@ public class ParserUtilTest {
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TELEGRAM_USERNAME = "r@ch";
+    private static final String INVALID_PROJECT = " ";
     private static final String INVALID_TAG = "#friend";
 
     private static final String VALID_NAME = "Rachel Walker";
@@ -32,6 +34,7 @@ public class ParserUtilTest {
     private static final String VALID_ADDRESS = "123 Main Street #0505";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TELEGRAM_USERNAME = "rachel_walker";
+    private static final String VALID_PROJECT = "CS2103T Team Project";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
 
@@ -164,6 +167,23 @@ public class ParserUtilTest {
         TelegramUsername expectedTelegramUsername = new TelegramUsername(VALID_TELEGRAM_USERNAME);
         assertEquals(expectedTelegramUsername,
                 ParserUtil.parseTelegramUsername(WHITESPACE + "@Rachel_Walker" + WHITESPACE));
+    }
+
+    @Test
+    public void parseProject_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseProject(null));
+    }
+
+    @Test
+    public void parseProject_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseProject(INVALID_PROJECT));
+    }
+
+    @Test
+    public void parseProject_validValue_returnsNormalizedProject() throws Exception {
+        Project expectedProject = new Project(VALID_PROJECT);
+        assertEquals(expectedProject, ParserUtil.parseProject("  CS2103T   Team Project  "));
+        assertEquals(VALID_PROJECT, ParserUtil.parseProject("  CS2103T   Team Project  ").projectName);
     }
 
     @Test
