@@ -20,4 +20,12 @@ public class ClearCommand extends Command {
         model.setAddressBook(new AddressBook());
         return new CommandResult(MESSAGE_SUCCESS);
     }
+
+    /**
+     * Returns true as this command changes the address book.
+     */
+    @Override
+    public boolean isUndoable() {
+        return true;
+    }
 }

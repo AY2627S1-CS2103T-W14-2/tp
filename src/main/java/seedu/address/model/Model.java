@@ -68,4 +68,22 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Saves a copy of {@code previousState} for undo, replacing any existing saved state.
+     * @throws NullPointerException if {@code previousState} is null.
+     */
+    void saveUndoState(ReadOnlyAddressBook previousState);
+
+    /**
+     * Returns true if there is a saved address book state to restore.
+     */
+    boolean canUndo();
+
+    /**
+     * Restores the saved address book state and shows all persons.
+     * The saved state is discarded after undoing.
+     * @throws IllegalStateException if there is no saved state to restore.
+     */
+    void undo();
 }
