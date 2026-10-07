@@ -16,6 +16,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.TelegramUsername;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -23,12 +24,14 @@ public class ParserUtilTest {
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
+    private static final String INVALID_TELEGRAM_USERNAME = "r@ch";
     private static final String INVALID_TAG = "#friend";
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "123456";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
     private static final String VALID_EMAIL = "rachel@example.com";
+    private static final String VALID_TELEGRAM_USERNAME = "rachel_walker";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
 
@@ -144,6 +147,23 @@ public class ParserUtilTest {
         String emailWithWhitespace = WHITESPACE + VALID_EMAIL + WHITESPACE;
         Email expectedEmail = new Email(VALID_EMAIL);
         assertEquals(expectedEmail, ParserUtil.parseEmail(emailWithWhitespace));
+    }
+
+    @Test
+    public void parseTelegramUsername_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseTelegramUsername(null));
+    }
+
+    @Test
+    public void parseTelegramUsername_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseTelegramUsername(INVALID_TELEGRAM_USERNAME));
+    }
+
+    @Test
+    public void parseTelegramUsername_validValue_returnsNormalizedTelegramUsername() throws Exception {
+        TelegramUsername expectedTelegramUsername = new TelegramUsername(VALID_TELEGRAM_USERNAME);
+        assertEquals(expectedTelegramUsername,
+                ParserUtil.parseTelegramUsername(WHITESPACE + "@Rachel_Walker" + WHITESPACE));
     }
 
     @Test

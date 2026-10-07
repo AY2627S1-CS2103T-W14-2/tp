@@ -20,6 +20,7 @@ public class Person {
     private final Name name;
     private final Phone phone;
     private final Email email;
+    private final TelegramUsername telegramUsername;
 
     // Data fields
     private final Address address;
@@ -28,11 +29,13 @@ public class Person {
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername, Address address,
+            Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, telegramUsername, address, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.telegramUsername = telegramUsername;
         this.address = address;
         this.tags.addAll(tags);
     }
@@ -47,6 +50,10 @@ public class Person {
 
     public Email getEmail() {
         return email;
+    }
+
+    public TelegramUsername getTelegramUsername() {
+        return telegramUsername;
     }
 
     public Address getAddress() {
@@ -92,6 +99,7 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
+                && telegramUsername.equals(otherPerson.telegramUsername)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags);
     }
@@ -99,7 +107,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, telegramUsername, address, tags);
     }
 
     @Override
@@ -108,6 +116,7 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)
+                .add("telegramUsername", telegramUsername)
                 .add("address", address)
                 .add("tags", tags)
                 .toString();
