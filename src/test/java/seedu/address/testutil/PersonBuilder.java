@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.model.person.Address;
@@ -9,6 +10,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
+import seedu.address.model.project.Project;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -28,6 +30,7 @@ public class PersonBuilder {
     private Email email;
     private TelegramUsername telegramUsername;
     private Address address;
+    private List<Project> projects;
     private Set<Tag> tags;
 
     /**
@@ -39,6 +42,7 @@ public class PersonBuilder {
         email = new Email(DEFAULT_EMAIL);
         telegramUsername = new TelegramUsername(DEFAULT_TELEGRAM_USERNAME);
         address = new Address(DEFAULT_ADDRESS);
+        projects = List.of();
         tags = new HashSet<>();
     }
 
@@ -51,6 +55,7 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         telegramUsername = personToCopy.getTelegramUsername();
         address = personToCopy.getAddress();
+        projects = List.copyOf(personToCopy.getProjects());
         tags = new HashSet<>(personToCopy.getTags());
     }
 
@@ -102,8 +107,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Parses the project names into an ordered project list for the person being built.
+     */
+    public PersonBuilder withProjects(String... projectNames) {
+        projects = SampleDataUtil.getProjectList(projectNames);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, telegramUsername, address, tags);
+        return new Person(name, phone, email, telegramUsername, address, projects, tags);
     }
 
 }

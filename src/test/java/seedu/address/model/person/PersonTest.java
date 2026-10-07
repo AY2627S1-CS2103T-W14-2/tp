@@ -15,6 +15,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.project.Project;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -23,6 +24,20 @@ public class PersonTest {
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
+    }
+
+    @Test
+    public void getProjects_modifyList_throwsUnsupportedOperationException() {
+        Person person = new PersonBuilder().withProjects("CS2103T").build();
+
+        assertThrows(UnsupportedOperationException.class, () ->
+                person.getProjects().add(new Project("Orbital")));
+    }
+
+    @Test
+    public void constructor_duplicateProjectsIgnoringCase_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new PersonBuilder().withProjects("CS2103T", "cs2103t").build());
     }
 
     @Test
@@ -93,13 +108,23 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different projects -> returns false
+        editedAlice = new PersonBuilder(ALICE).withProjects("CS2103T").build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // different project order -> returns false
+        Person firstProjectOrder = new PersonBuilder(ALICE).withProjects("CS2103T", "Orbital").build();
+        Person secondProjectOrder = new PersonBuilder(ALICE).withProjects("Orbital", "CS2103T").build();
+        assertFalse(firstProjectOrder.equals(secondProjectOrder));
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", telegramUsername=" + ALICE.getTelegramUsername()
-                + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", address=" + ALICE.getAddress() + ", projects=" + ALICE.getProjects()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

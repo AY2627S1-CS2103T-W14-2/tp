@@ -1,13 +1,16 @@
 package seedu.address.model.person;
 
+import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.project.Project;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -15,6 +18,8 @@ import seedu.address.model.tag.Tag;
  * Guarantees: details are present and not null, field values are validated, immutable.
  */
 public class Person {
+
+    public static final String MESSAGE_DUPLICATE_PROJECTS = "A contact cannot contain duplicate projects";
 
     // Identity fields
     private final Name name;
@@ -24,6 +29,7 @@ public class Person {
 
     // Data fields
     private final Address address;
+    private final List<Project> projects;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
@@ -31,12 +37,23 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername, Address address,
             Set<Tag> tags) {
+        this(name, phone, email, telegramUsername, address, List.of(), tags);
+    }
+
+    /**
+     * Every field must be present and not null. Projects must not contain duplicates.
+     */
+    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername, Address address,
+            List<Project> projects, Set<Tag> tags) {
         requireAllNonNull(name, phone, email, telegramUsername, address, tags);
+        requireAllNonNull(projects);
+        checkArgument(new HashSet<>(projects).size() == projects.size(), MESSAGE_DUPLICATE_PROJECTS);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.telegramUsername = telegramUsername;
         this.address = address;
+        this.projects = List.copyOf(projects);
         this.tags.addAll(tags);
     }
 
@@ -58,6 +75,13 @@ public class Person {
 
     public Address getAddress() {
         return address;
+    }
+
+    /**
+     * Returns the projects in their saved display order.
+     */
+    public List<Project> getProjects() {
+        return projects;
     }
 
     /**
@@ -101,13 +125,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && telegramUsername.equals(otherPerson.telegramUsername)
                 && address.equals(otherPerson.address)
+                && projects.equals(otherPerson.projects)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, telegramUsername, address, tags);
+        return Objects.hash(name, phone, email, telegramUsername, address, projects, tags);
     }
 
     @Override
@@ -118,6 +143,7 @@ public class Person {
                 .add("email", email)
                 .add("telegramUsername", telegramUsername)
                 .add("address", address)
+                .add("projects", projects)
                 .add("tags", tags)
                 .toString();
     }
