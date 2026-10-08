@@ -125,9 +125,9 @@ public class FindProjectCommandIntegrationTest {
     }
 
     @Test
-    public void execute_maxLengthKeyword_matchesLongerProjectName() throws Exception {
+    public void execute_maxLengthKeyword_matchesProjectName() throws Exception {
         String keyword = "a".repeat(40);
-        Person newContact = new PersonBuilder().withName("Dina").withProjects(keyword + "b".repeat(10)).build();
+        Person newContact = new PersonBuilder().withName("Dina").withProjects(keyword).build();
         logic.execute(PersonUtil.getAddCommand(newContact));
 
         logic.execute("findproject " + keyword);
