@@ -18,8 +18,8 @@ public class ProjectCommandParserTest {
     public void parse_validInput_normalizesProject() {
         assertParseSuccess(parser, " 2 pr/ Team   Alpha ",
                 new ProjectCommand(Index.fromOneBased(2), new Project("Team Alpha")));
-        assertParseSuccess(parser, " 1 pr/" + "x".repeat(50),
-                new ProjectCommand(Index.fromOneBased(1), new Project("x".repeat(50))));
+        assertParseSuccess(parser, " 1 pr/" + "x".repeat(40),
+                new ProjectCommand(Index.fromOneBased(1), new Project("x".repeat(40))));
     }
 
     @Test
@@ -35,7 +35,7 @@ public class ProjectCommandParserTest {
     @Test
     public void parse_invalidProject_failure() {
         assertParseFailure(parser, "1 pr/   ", Project.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 pr/" + "x".repeat(51), Project.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 pr/" + "x".repeat(41), Project.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 pr/Team\u0000Alpha", Project.MESSAGE_CONSTRAINTS);
     }
 

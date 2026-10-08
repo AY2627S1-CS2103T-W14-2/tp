@@ -105,7 +105,7 @@ Adds one project to an existing contact, preserving their other projects and con
 Format: `project INDEX pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
-* Supply exactly one `pr/PROJECT`. Project names contain 1–50 characters after surrounding whitespace
+* Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace
   is removed and repeated whitespace is collapsed. Control characters remaining after normalisation are rejected.
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
