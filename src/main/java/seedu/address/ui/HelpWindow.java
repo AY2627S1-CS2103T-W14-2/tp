@@ -23,9 +23,9 @@ import seedu.address.commons.core.LogsCenter;
  */
 public class HelpWindow extends UiPart<Stage> {
 
-    public static final String USERGUIDE_URL = "https://se-education.org/addressbook-level3/UserGuide.html";
-    public static final String HELP_MESSAGE = "LinkUp MVP command reference\n\n"
-            + "COMMAND: add n/NAME p/PHONE e/EMAIL tg/TELEGRAM pr/PROJECT\n"
+    public static final String USERGUIDE_URL = "https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html";
+    public static final String HELP_MESSAGE = "LinkUp command reference\n\n"
+            + "COMMAND: add n/NAME p/PHONE e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/PROJECT] [t/TAG]\n"
             + "Save a contact with their phone, email, Telegram username and project.\n\n"
             + "COMMAND: list\n"
             + "Show all saved contacts and their projects.\n\n"
@@ -35,7 +35,7 @@ public class HelpWindow extends UiPart<Stage> {
             + "Search contacts by all or part of a name (case-insensitive).\n\n"
             + "COMMAND: project INDEX pr/PROJECT\n"
             + "Associate the contact at the given index with another project.\n\n"
-            + "COMMAND: findp PROJECT\n"
+            + "COMMAND: findproject KEYWORD\n"
             + "Search contacts by all or part of a project name (case-insensitive).\n\n"
             + "Refer to the user guide: " + USERGUIDE_URL;
 
@@ -59,7 +59,7 @@ public class HelpWindow extends UiPart<Stage> {
         container.getChildren().clear();
 
         VBox content = new VBox(12);
-        content.setPrefWidth(550);
+        content.setPrefWidth(600);
         String[] sections = HELP_MESSAGE.split("\n\n");
         for (int i = 0; i < sections.length - 1; i++) {
             content.getChildren().add(createHelpSection(sections[i]));
