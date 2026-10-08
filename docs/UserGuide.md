@@ -89,7 +89,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is optional. A project name must contain 1–50 printable characters. Surrounding whitespace is removed,
+The project is optional. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
 repeated internal whitespace is collapsed, and project names are compared case-insensitively. Only one `pr/` prefix
 is accepted by the `add` command. If `pr/` is provided, it must not be empty.
 </box>
