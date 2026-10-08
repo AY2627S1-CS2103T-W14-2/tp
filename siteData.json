@@ -52,6 +52,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "finding-contacts-by-project": "Finding contacts by project",
+        "project-association-implementation": "Project association implementation",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
@@ -64,7 +65,6 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "deleting-a-person": "Deleting a person",
-        "finding-contacts-by-project-2": "Finding contacts by project",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -114,6 +114,7 @@
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
         "adding-a-person-add": "Adding a person: add",
+        "associating-an-existing-contact-with-a-project-project": "Associating an existing contact with a project: project",
         "listing-all-persons-list": "Listing all persons: list",
         "editing-a-person-edit": "Editing a person: edit",
         "locating-persons-by-name-find": "Locating persons by name: find",
