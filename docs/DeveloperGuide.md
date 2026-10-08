@@ -186,6 +186,27 @@ The parser therefore validates the search phrase separately from `ParserUtil.par
 supports partial project names without treating individual words as alternatives. Reusing the model's existing
 filter avoids introducing a separate project index or changes to storage and the UI.
 
+### Project association implementation
+
+The `project INDEX pr/PROJECT` command implements UC03. `AddressBookParser` delegates to
+`ProjectCommandParser`, which parses the displayed index and requires exactly one project prefix.
+`ParserUtil.parseProject` reuses the shared `Project` validation and normalisation rules.
+
+`ProjectCommand` resolves the index against `Model.getFilteredPersonList()`, checks whether the
+normalised project already exists, and copies the contact's immutable project list before appending
+the new project. It constructs a replacement `Person` with all other fields preserved and calls
+`Model.setPerson`. Keeping the active predicate preserves the user's search context.
+
+Projects are stored as an ordered list to retain display order. Duplicate detection uses `Project.equals`,
+so casing and redundant whitespace do not create separate associations. Invalid indices and duplicate
+associations throw `CommandException` before any model mutation; malformed arguments throw `ParseException`.
+
+The existing `LogicManager` saves the updated address book through JSON storage after execution.
+No new storage format or UI component is required: both already support a contact's project list.
+Command tests cover filtered indices, preservation of fields and order, and duplicate rejection.
+Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
+filtered selection, rejected operations, and a JSON round trip.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -389,19 +410,17 @@ Use case ends.
 
 **MSS**
 
-1. Student requests to search for contacts using `findproject KEYWORD`.
-2. LinkUp displays contacts associated with projects whose names contain the whole keyword phrase, ignoring case
-   and normalising repeated whitespace. Each contact is shown once.
+1. Student requests to search for contacts using a project keyword.
+2. LinkUp displays contacts associated with projects whose names contain the keyword, ignoring case.
 3. Student reads the displayed contact details and project information to find the relevant project mates.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The keyword is empty or exceeds 40 Unicode code points after trimming surrounding whitespace
-  (before repeated internal whitespace is collapsed).
+* 1a. The keyword is empty or exceeds 40 characters after trimming surrounding spaces.
 
-  * 1a1. LinkUp displays an error message without changing saved contacts or the displayed results.
+  * 1a1. LinkUp displays an error message without changing saved contacts.
 
   Use case resumes at step 1.
 
@@ -541,33 +560,6 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
-
-### Finding contacts by project
-
-Use a disposable test data set for the deletion step. Start with contacts named Alice, Bob, and Carl, created in
-that order. Give Alice the project `Orbital`, Bob `CS2103T Team Alpha`, and Carl `CS2103T Team Beta` using the
-`pr/` prefix when adding them. Include another contact without a project.
-
-1. Run `findproject cs2103`.<br>
-   Expected: Bob and Carl are shown in that order with their contact details and project labels.
-   The result message is `Found 2 contact(s) matching the project keyword.`
-2. Run `findproject TEAM   ALPHA`.<br>
-   Expected: Only Bob is shown. Case and repeated whitespace do not affect matching.
-3. Run `findproject alpha team`.<br>
-   Expected: No contacts are shown, with `No contacts found for the project keyword.` Word order matters.
-4. Run `findproject orbital`, then `findproject cs2103`.<br>
-   Expected: Alice is shown first; the second search shows Bob and Carl, even though they were previously hidden.
-5. Run `findproject` with no keyword, then with a keyword consisting of 41 `x` characters.<br>
-   Expected: Both commands show an input error. Bob and Carl remain displayed and saved contacts are unchanged.
-   Repeat with 40 `x` characters: this is a valid search that returns no matches.
-6. Run `findproject team alpha`, then `delete 1`, then `list`.<br>
-   Expected: Bob is deleted; Alice, Carl, and the contact without a project remain.
-7. Run a search and restart the app.<br>
-   Expected: All remaining saved contacts load, including contacts excluded by the last search.
-
-For a contact with multiple associated projects, search for part of its second project name. The contact should
-appear. If several of its project names match the same keyword, it should still appear only once.
-Searching an empty address book should display the no-matches message without an error.
 
 ### Saving data
 
