@@ -20,7 +20,7 @@ public class ProjectTest {
         assertThrows(IllegalArgumentException.class, () -> new Project("   "));
         assertThrows(IllegalArgumentException.class, () -> new Project("\u00A0"));
         assertThrows(IllegalArgumentException.class, () -> new Project("CS2103T\u0085Project"));
-        assertThrows(IllegalArgumentException.class, () -> new Project("a".repeat(51)));
+        assertThrows(IllegalArgumentException.class, () -> new Project("a".repeat(41)));
     }
 
     @Test
@@ -37,10 +37,10 @@ public class ProjectTest {
         assertFalse(Project.isValidProjectName("   "));
         assertFalse(Project.isValidProjectName("\u00A0"));
         assertFalse(Project.isValidProjectName("CS2103T\u0085Project"));
-        assertFalse(Project.isValidProjectName("a".repeat(51)));
+        assertFalse(Project.isValidProjectName("a".repeat(41)));
 
         assertTrue(Project.isValidProjectName("A"));
-        assertTrue(Project.isValidProjectName("a".repeat(50)));
+        assertTrue(Project.isValidProjectName("a".repeat(40)));
         assertTrue(Project.isValidProjectName("CS2103T-W14-2"));
         assertTrue(Project.isValidProjectName("Hack&Roll 2026"));
     }
