@@ -89,7 +89,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is optional. A project name must contain 1–50 printable characters. Surrounding whitespace is removed,
+The project is optional. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
 repeated internal whitespace is collapsed, and project names are compared case-insensitively. Only one `pr/` prefix
 is accepted by the `add` command. If `pr/` is provided, it must not be empty.
 </box>
@@ -97,6 +97,26 @@ is accepted by the `add` command. If `pr/` is provided, it must not be empty.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com tele/betsy_crowe a/Newgate Prison p/1234567 t/criminal`
+
+### Associating an existing contact with a project: `project`
+
+Adds one project to an existing contact, preserving their other projects and contact details.
+
+Format: `project INDEX pr/PROJECT`
+
+* `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
+* Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace
+  is removed and repeated whitespace is collapsed. Control characters remaining after normalisation are rejected.
+* Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
+  `team   alpha` refer to the same project. Adding an existing association reports an error.
+* The new project is appended after existing projects. The current search filter is preserved.
+* Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
+  These input errors leave contacts unchanged.
+* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates a saved contact.
+
+Examples:
+* `project 2 pr/Orbital` adds Orbital to the second displayed contact.
+* `find Alice` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
 ### Listing all persons: `list`
 
@@ -136,6 +156,31 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+### Finding contacts by project: `findproject`
+
+Finds contacts associated with projects whose names contain the given phrase.
+
+Format: `findproject KEYWORD`
+
+* Matching is case-insensitive and partial: `cs2103` matches `CS2103T`.
+* The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
+  `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
+* Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
+* The keyword must contain 1–40 characters after trimming surrounding whitespace. Internal spaces count towards
+  this limit before they are collapsed. Each Unicode code point counts as one character.
+* Any associated project can match. Each contact appears once, with its contact details and projects, in the
+  existing contact order. Contacts with no projects are excluded.
+* Every search checks all saved contacts and replaces the previous search results. Use `list` to show all contacts again.
+* Matching contacts are displayed with the message `Found N contact(s) matching the project keyword.`
+  If nothing matches, the displayed list is empty and the message is `No contacts found for the project keyword.`
+* Blank or excessively long keywords produce an error and leave the current results and saved contacts unchanged.
+
+Examples:
+
+* `findproject cs2103` finds contacts in projects such as `CS2103T` and `CS2103T Team Alpha`.
+* `findproject team alpha` finds contacts whose project names contain the phrase `team alpha`, ignoring case.
+* `findproject orbital` followed by `delete 1` deletes the first contact in those search results.
 
 ### Deleting a person: `delete`
 
@@ -207,5 +252,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`

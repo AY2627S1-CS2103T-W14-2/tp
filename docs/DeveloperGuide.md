@@ -159,6 +159,54 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Finding contacts by project
+
+The `findproject KEYWORD` command implements UC02 using the existing filtered contact list.
+
+1. `AddressBookParser` routes `findproject` to `FindProjectCommandParser`.
+2. The parser removes surrounding whitespace, rejects a blank phrase, and checks the 40-character limit before
+   collapsing internal whitespace. Length is measured in Unicode code points, consistent with the project model.
+   The surrounding-whitespace rule covers the same whitespace and Unicode separator characters as `Project.normalize()`.
+3. `ProjectContainsKeywordPredicate` uses `Project.normalize()` and `Locale.ROOT` to normalise the search phrase
+   once. It checks whether any project returned by `Person.getProjects()` contains that whole phrase, ignoring case.
+4. `FindProjectCommand` passes the predicate to `Model.updateFilteredPersonList(...)` and returns the result count
+   or a specific no-matches message. The UI observes this list and displays the existing contact cards and indices.
+
+The predicate filters contacts rather than collecting a result for each matching project, so a contact appears at
+most once. Replacing the predicate searches the full underlying address book, even after another search has
+filtered the displayed list. `list` restores all contacts; `delete` continues to use the displayed indices.
+Search does not change contacts or project associations. `LogicManager` retains its normal save-after-command
+behaviour, saving the complete address book rather than just the search results. Invalid input fails during parsing,
+before the filter or saved data is changed.
+
+The search keyword limit is 40 characters, as specified in UC02; stored project names can contain up to 50 characters.
+The parser therefore validates the search phrase separately from `ParserUtil.parseProject()`.
+
+**Design choices:** A separate command preserves the existing name-search behaviour. Whole-phrase substring matching
+supports partial project names without treating individual words as alternatives. Reusing the model's existing
+filter avoids introducing a separate project index or changes to storage and the UI.
+
+### Project association implementation
+
+The `project INDEX pr/PROJECT` command implements UC03. `AddressBookParser` delegates to
+`ProjectCommandParser`, which parses the displayed index and requires exactly one project prefix.
+`ParserUtil.parseProject` reuses the shared `Project` validation and normalisation rules.
+
+`ProjectCommand` resolves the index against `Model.getFilteredPersonList()`, checks whether the
+normalised project already exists, and copies the contact's immutable project list before appending
+the new project. It constructs a replacement `Person` with all other fields preserved and calls
+`Model.setPerson`. Keeping the active predicate preserves the user's search context.
+
+Projects are stored as an ordered list to retain display order. Duplicate detection uses `Project.equals`,
+so casing and redundant whitespace do not create separate associations. Invalid indices and duplicate
+associations throw `CommandException` before any model mutation; malformed arguments throw `ParseException`.
+
+The existing `LogicManager` saves the updated address book through JSON storage after execution.
+No new storage format or UI component is required: both already support a contact's project list.
+Command tests cover filtered indices, preservation of fields and order, and duplicate rejection.
+Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
+filtered selection, rejected operations, and a JSON round trip.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
