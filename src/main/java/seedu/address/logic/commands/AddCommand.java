@@ -86,4 +86,12 @@ public class AddCommand extends Command {
                 .add("toAdd", toAdd)
                 .toString();
     }
+
+    /**
+     * Returns true as this command changes the address book.
+     */
+    @Override
+    public boolean isUndoable() {
+        return true;
+    }
 }

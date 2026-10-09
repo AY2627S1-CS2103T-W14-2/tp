@@ -238,4 +238,12 @@ public class EditCommand extends Command {
                     .toString();
         }
     }
+
+    /**
+     * Returns true as this command changes the address book.
+     */
+    @Override
+    public boolean isUndoable() {
+        return true;
+    }
 }

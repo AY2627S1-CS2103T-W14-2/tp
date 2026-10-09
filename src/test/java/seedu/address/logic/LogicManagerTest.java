@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -12,7 +14,9 @@ import static seedu.address.logic.commands.CommandTestUtil.PROJECT_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.TELEGRAM_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PROJECT_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -25,8 +29,10 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -37,6 +43,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PersonUtil;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -93,6 +100,110 @@ public class LogicManagerTest {
                 + TELEGRAM_DESC_AMY + ADDRESS_DESC_AMY + INVALID_PROJECT_DESC;
 
         assertParseException(addCommand, Project.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void execute_addThenUndo_restoresAndSavesPreviousState() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        logic.execute(PersonUtil.getAddCommand(person));
+        assertTrue(model.hasPerson(person));
+
+        CommandResult result = logic.execute("undo");
+
+        assertEquals(UndoCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(new AddressBook(), model.getAddressBook());
+        JsonAddressBookStorage savedData = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(new AddressBook(), savedData.readAddressBook().orElseThrow());
+        assertFalse(model.canUndo());
+        assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_editThenUndo_restoresContactDetails() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        model.addPerson(person);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        logic.execute("edit 1 n/Changed Name p/91234567 t/updated");
+        assertFalse(before.equals(model.getAddressBook()));
+        logic.execute("undo");
+
+        assertEquals(before, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_filteredDeleteThenUndo_restoresOrderAndShowsAllPersons() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        logic.execute("find Benson");
+        logic.execute("delete 1");
+        assertFalse(model.hasPerson(BENSON));
+        logic.execute("undo");
+
+        assertEquals(before, model.getAddressBook());
+        assertEquals(before.getPersonList(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_clearThenUndo_restoresAllContacts() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        logic.execute("clear");
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        logic.execute("undo");
+
+        assertEquals(before, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_twoChangesThenUndo_restoresOnlyLastChange() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE));
+        AddressBook afterFirstCommand = new AddressBook(model.getAddressBook());
+        logic.execute(PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build()));
+
+        logic.execute("undo");
+
+        assertEquals(afterFirstCommand, model.getAddressBook());
+        assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_failedCommands_preservesUndoState() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE));
+        assertThrows(CommandException.class, () -> logic.execute(PersonUtil.getAddCommand(ALICE)));
+        assertCommandException("delete 99", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseException("unknownCommand", MESSAGE_UNKNOWN_COMMAND);
+
+        logic.execute("undo");
+
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
+    public void execute_nonUndoableCommands_preservesUndoState() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute("find Alice");
+        logic.execute("list");
+        logic.execute("help");
+
+        logic.execute("undo");
+
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
+    public void execute_newChangeAfterUndo_canUndoNewChange() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute("undo");
+        logic.execute(PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build()));
+        logic.execute("undo");
+
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertFalse(model.canUndo());
     }
 
     @Test
@@ -195,5 +306,8 @@ public class LogicManagerTest {
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        assertTrue(model.canUndo());
+        model.undo();
+        assertEquals(new AddressBook(), model.getAddressBook());
     }
 }
