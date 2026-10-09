@@ -75,4 +75,12 @@ public class ProjectCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this).add("index", index).add("project", project).toString();
     }
+
+    /**
+     * Returns true as this command changes the address book.
+     */
+    @Override
+    public boolean isUndoable() {
+        return true;
+    }
 }

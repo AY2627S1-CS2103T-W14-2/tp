@@ -74,6 +74,68 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void canUndo_noSavedState_returnsFalse() {
+        assertFalse(modelManager.canUndo());
+    }
+
+    @Test
+    public void saveUndoState_nullState_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.saveUndoState(null));
+    }
+
+    @Test
+    public void saveUndoState_validState_copiesState() {
+        AddressBook previousState = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager.saveUndoState(previousState);
+        assertTrue(modelManager.canUndo());
+
+        previousState.removePerson(ALICE);
+        modelManager.undo();
+
+        assertEquals(List.of(ALICE, BENSON), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void saveUndoState_existingState_replacesState() {
+        modelManager.saveUndoState(new AddressBookBuilder().withPerson(ALICE).build());
+        modelManager.saveUndoState(new AddressBookBuilder().withPerson(BENSON).build());
+        modelManager.undo();
+
+        assertEquals(List.of(BENSON), modelManager.getAddressBook().getPersonList());
+        assertFalse(modelManager.canUndo());
+        assertThrows(IllegalStateException.class, () -> modelManager.undo());
+    }
+
+    @Test
+    public void undo_noSavedState_throwsIllegalStateException() {
+        modelManager.addPerson(ALICE);
+        assertThrows(IllegalStateException.class, () -> modelManager.undo());
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void undo_filteredList_restoresStateAndShowsAllPersons() {
+        AddressBook previousState = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager.setAddressBook(previousState);
+        modelManager.saveUndoState(modelManager.getAddressBook());
+        modelManager.deletePerson(ALICE);
+        modelManager.updateFilteredPersonList(person -> false);
+
+        modelManager.undo();
+
+        assertEquals(previousState, modelManager.getAddressBook());
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+        assertFalse(modelManager.canUndo());
+    }
+
+    @Test
+    public void constructor_savedAddressBook_doesNotRestoreUndoState() {
+        modelManager.saveUndoState(new AddressBook());
+        ModelManager reloadedModel = new ModelManager(modelManager.getAddressBook(), modelManager.getUserPrefs());
+        assertFalse(reloadedModel.canUndo());
+    }
+
+    @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         AddressBook differentAddressBook = new AddressBook();

@@ -202,6 +202,19 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Undo a command: `undo`
+
+Undo the last supported command. The supported commands are:
+* `add`
+* `delete`
+* `edit`
+* `clear`
+* `project`
+
+Only the most recent command can be undone.
+
+Format: `undo`
+
 ### Exiting the program: `exit`
 
 Exits the program.

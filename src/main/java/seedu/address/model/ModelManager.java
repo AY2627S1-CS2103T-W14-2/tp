@@ -21,6 +21,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private AddressBook undoSnapshot;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -126,4 +127,34 @@ public class ModelManager implements Model {
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
 
+    /**
+     * Saves a copy of {@code previousState} for undo, replacing any existing saved state.
+     */
+    @Override
+    public void saveUndoState(ReadOnlyAddressBook previousState) {
+        undoSnapshot = new AddressBook(previousState);
+    }
+
+    /**
+     * Returns true if there is a saved address book state to restore.
+     */
+    @Override
+    public boolean canUndo() {
+        return undoSnapshot != null;
+    }
+
+    /**
+     * Restores the saved address book state, discards it and shows all persons.
+     * @throws IllegalStateException if there is no saved state to restore.
+     */
+    @Override
+    public void undo() {
+        if (!canUndo()) {
+            throw new IllegalStateException("No command to undo");
+        }
+
+        addressBook.resetData(undoSnapshot);
+        undoSnapshot = null;
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+    }
 }
