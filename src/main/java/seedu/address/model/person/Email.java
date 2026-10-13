@@ -3,9 +3,12 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a Person's email in the address book.
- * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
+ * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}.
+ * The text is stored as typed, but emails are compared case-insensitively.
  */
 public class Email {
 
@@ -67,12 +70,19 @@ public class Email {
             return false;
         }
 
-        return value.equals(otherEmail.value);
+        return normalizedValue().equals(otherEmail.normalizedValue());
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return normalizedValue().hashCode();
+    }
+
+    /**
+     * Returns the lower-case form of this email, used only for comparison.
+     */
+    private String normalizedValue() {
+        return value.toLowerCase(Locale.ROOT);
     }
 
 }
