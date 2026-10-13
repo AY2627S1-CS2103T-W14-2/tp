@@ -1,0 +1,16 @@
+{
+  "_comment": "Same Person values as TypicalPersons#ALICE and ConflictTestUtil#ALICE_NAMESAKE",
+  "persons" : [ {
+    "name" : "Alice Pauline",
+    "phone" : "94351253",
+    "email" : "alice@example.com",
+    "telegramUsername" : "alice_pauline",
+    "projects" : [ ]
+  }, {
+    "name" : "Alice Pauline",
+    "phone" : "81112222",
+    "email" : "zoe.tan@example.com",
+    "telegramUsername" : "zoe_tan",
+    "projects" : [ "Orbital" ]
+  } ]
+}
