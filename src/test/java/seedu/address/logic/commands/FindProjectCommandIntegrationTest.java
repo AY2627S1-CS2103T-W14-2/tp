@@ -32,12 +32,12 @@ public class FindProjectCommandIntegrationTest {
     @TempDir
     public Path temporaryFolder;
 
-    private final Person alice = new PersonBuilder().withName("Alice").withProjects("Orbital").build();
-    private final Person bob = new PersonBuilder().withName("Bob")
+    private final Person alice = PersonBuilder.named("Alice").withProjects("Orbital").build();
+    private final Person bob = PersonBuilder.named("Bob")
             .withProjects("CS2103T Team Alpha", "CS2103T Team Beta").build();
-    private final Person carl = new PersonBuilder().withName("Carl")
+    private final Person carl = PersonBuilder.named("Carl")
             .withProjects("Orbital", "CS2103T Team Alpha").build();
-    private final Person noProject = new PersonBuilder().withName("Team Alpha").withProjects().build();
+    private final Person noProject = PersonBuilder.named("Team Alpha").withProjects().build();
 
     private Model model;
     private Logic logic;
@@ -116,7 +116,7 @@ public class FindProjectCommandIntegrationTest {
 
     @Test
     public void execute_addWithProjectThenSearch_findsNewContact() throws Exception {
-        Person newContact = new PersonBuilder().withName("Dina").withProjects("Orbital Team Delta").build();
+        Person newContact = PersonBuilder.named("Dina").withProjects("Orbital Team Delta").build();
         logic.execute(PersonUtil.getAddCommand(newContact));
         logic.execute("findproject TEAM DEL");
 
@@ -127,7 +127,7 @@ public class FindProjectCommandIntegrationTest {
     @Test
     public void execute_maxLengthKeyword_matchesMaxLengthProjectName() throws Exception {
         String keyword = "a".repeat(40);
-        Person newContact = new PersonBuilder().withName("Dina").withProjects(keyword).build();
+        Person newContact = PersonBuilder.named("Dina").withProjects(keyword).build();
         logic.execute(PersonUtil.getAddCommand(newContact));
 
         logic.execute("findproject " + keyword);
@@ -138,8 +138,8 @@ public class FindProjectCommandIntegrationTest {
 
     @Test
     public void execute_punctuationInPhrase_matchesLiterally() throws Exception {
-        Person literal = new PersonBuilder().withName("Dina").withProjects("C++ [Team]/Alpha").build();
-        Person different = new PersonBuilder().withName("Ella").withProjects("C Team Alpha").build();
+        Person literal = PersonBuilder.named("Dina").withProjects("C++ [Team]/Alpha").build();
+        Person different = PersonBuilder.named("Ella").withProjects("C Team Alpha").build();
         logic.execute(PersonUtil.getAddCommand(literal));
         logic.execute(PersonUtil.getAddCommand(different));
 

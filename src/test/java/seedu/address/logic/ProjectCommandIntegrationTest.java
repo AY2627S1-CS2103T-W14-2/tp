@@ -28,8 +28,8 @@ public class ProjectCommandIntegrationTest {
     @Test
     public void execute_filteredContact_persistsAssociationAndRejectsInvalidInput() throws Exception {
         Model model = new ModelManager();
-        Person alice = new PersonBuilder().withName("Alice").withProjects().build();
-        Person bob = new PersonBuilder().withName("Bob").withProjects("CS2103T").build();
+        Person alice = PersonBuilder.named("Alice").withProjects().build();
+        Person bob = PersonBuilder.named("Bob").withProjects("CS2103T").build();
         model.addPerson(alice);
         model.addPerson(bob);
         JsonAddressBookStorage addressStorage = new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json"));

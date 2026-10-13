@@ -5,6 +5,8 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,15 +14,15 @@ import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
 
 /**
- * A list of persons that enforces uniqueness between its elements and does not allow nulls.
- * A person is considered unique by comparing using {@code Person#isSamePerson(Person)}. As such, adding and updating of
- * persons uses Person#isSamePerson(Person) for equality so as to ensure that the person being added or updated is
- * unique in terms of identity in the UniquePersonList. However, the removal of a person uses Person#equals(Object) so
- * as to ensure that the person with exactly the same fields will be removed.
+ * A list of persons in which no two persons conflict, and which does not allow nulls.
+ * Two persons conflict if they share a phone number, email or Telegram username, as defined by
+ * {@link Person#conflictsWith(Person)}. Persons with the same name are allowed.
+ * Adding and updating persons checks for conflicts, while finding and removing a person uses
+ * {@link Person#equals(Object)}, so that the person with exactly the same fields is affected.
  *
  * Supports a minimal set of list operations.
  *
- * @see Person#isSamePerson(Person)
+ * @see Person#conflictsWith(Person)
  */
 public class UniquePersonList implements Iterable<Person> {
 
@@ -29,29 +31,40 @@ public class UniquePersonList implements Iterable<Person> {
             FXCollections.unmodifiableObservableList(internalList);
 
     /**
-     * Returns true if the list contains an equivalent person as the given argument.
+     * Returns the first conflict between {@code candidate} and a person in the list, if any.
      */
-    public boolean contains(Person toCheck) {
-        requireNonNull(toCheck);
-        return internalList.stream().anyMatch(toCheck::isSamePerson);
+    public Optional<ContactConflict> findConflict(Person candidate) {
+        requireNonNull(candidate);
+        return findFirstConflict(candidate, internalList.stream());
+    }
+
+    /**
+     * Returns the first conflict between {@code candidate} and a person in the list other than {@code excluded},
+     * if any. Use this when {@code candidate} is an edited version of {@code excluded}.
+     */
+    public Optional<ContactConflict> findConflict(Person candidate, Person excluded) {
+        requireAllNonNull(candidate, excluded);
+        return findFirstConflict(candidate, internalList.stream().filter(person -> !person.equals(excluded)));
     }
 
     /**
      * Adds a person to the list.
-     * The person must not already exist in the list.
+     * The person must not conflict with any person in the list.
+     *
+     * @throws DuplicatePersonException if {@code toAdd} conflicts with a person in the list.
      */
     public void add(Person toAdd) {
         requireNonNull(toAdd);
-        if (contains(toAdd)) {
-            throw new DuplicatePersonException();
-        }
+        throwIfPresent(findConflict(toAdd));
         internalList.add(toAdd);
     }
 
     /**
      * Replaces the person {@code target} in the list with {@code editedPerson}.
      * {@code target} must exist in the list.
-     * The person identity of {@code editedPerson} must not be the same as another existing person in the list.
+     * {@code editedPerson} must not conflict with any person in the list other than {@code target}.
+     *
+     * @throws DuplicatePersonException if {@code editedPerson} conflicts with another person in the list.
      */
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
@@ -61,10 +74,7 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
-        if (!target.isSamePerson(editedPerson) && contains(editedPerson)) {
-            throw new DuplicatePersonException();
-        }
-
+        throwIfPresent(findConflict(editedPerson, target));
         internalList.set(index, editedPerson);
     }
 
@@ -86,14 +96,13 @@ public class UniquePersonList implements Iterable<Person> {
 
     /**
      * Replaces the contents of this list with {@code persons}.
-     * {@code persons} must not contain duplicate persons.
+     * No two persons in {@code persons} may conflict.
+     *
+     * @throws DuplicatePersonException if two persons in {@code persons} conflict.
      */
     public void setPersons(List<Person> persons) {
         requireAllNonNull(persons);
-        if (!personsAreUnique(persons)) {
-            throw new DuplicatePersonException();
-        }
-
+        throwIfPresent(findConflictWithin(persons));
         internalList.setAll(persons);
     }
 
@@ -133,17 +142,26 @@ public class UniquePersonList implements Iterable<Person> {
         return internalList.toString();
     }
 
+    private static Optional<ContactConflict> findFirstConflict(Person candidate, Stream<Person> existingPersons) {
+        return existingPersons.map(candidate::findConflictWith).flatMap(Optional::stream).findFirst();
+    }
+
     /**
-     * Returns true if {@code persons} contains only unique persons.
+     * Returns the first conflict between two persons in {@code persons}, reported against the earlier person.
      */
-    private boolean personsAreUnique(List<Person> persons) {
-        for (int i = 0; i < persons.size() - 1; i++) {
-            for (int j = i + 1; j < persons.size(); j++) {
-                if (persons.get(i).isSamePerson(persons.get(j))) {
-                    return false;
-                }
+    private static Optional<ContactConflict> findConflictWithin(List<Person> persons) {
+        for (int i = 1; i < persons.size(); i++) {
+            Optional<ContactConflict> conflict = findFirstConflict(persons.get(i), persons.subList(0, i).stream());
+            if (conflict.isPresent()) {
+                return conflict;
             }
         }
-        return true;
+        return Optional.empty();
+    }
+
+    private static void throwIfPresent(Optional<ContactConflict> conflict) {
+        conflict.ifPresent(presentConflict -> {
+            throw new DuplicatePersonException(presentConflict);
+        });
     }
 }

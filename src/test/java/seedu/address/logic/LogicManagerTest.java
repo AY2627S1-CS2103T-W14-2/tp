@@ -125,7 +125,7 @@ public class LogicManagerTest {
     public void execute_addThenUndo_restoresAndSavesPreviousState() throws Exception {
         Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         logic.execute(PersonUtil.getAddCommand(person));
-        assertTrue(model.hasPerson(person));
+        assertTrue(model.getAddressBook().getPersonList().contains(person));
 
         CommandResult result = logic.execute("undo");
 
@@ -158,7 +158,7 @@ public class LogicManagerTest {
 
         logic.execute("find Benson");
         logic.execute("delete 1");
-        assertFalse(model.hasPerson(BENSON));
+        assertFalse(model.getAddressBook().getPersonList().contains(BENSON));
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());

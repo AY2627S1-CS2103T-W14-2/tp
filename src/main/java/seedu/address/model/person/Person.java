@@ -116,13 +116,6 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
-     */
-    public boolean isSamePerson(Person otherPerson) {
-        return otherPerson != null && otherPerson.getName().equals(getName());
-    }
-
-    /**
      * Returns true if both persons have identical fields.
      * Two contacts that are not equal may still conflict; see {@link #conflictsWith(Person)}.
      */

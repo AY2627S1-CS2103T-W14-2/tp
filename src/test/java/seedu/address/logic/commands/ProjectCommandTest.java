@@ -21,8 +21,8 @@ public class ProjectCommandTest {
 
     @Test
     public void execute_filteredContact_preservesFieldsOrderAndFilter() throws Exception {
-        Person first = new PersonBuilder().withName("Alice").build();
-        Person target = new PersonBuilder().withName("Bob").withProjects("CS2103T", "CS2101").build();
+        Person first = PersonBuilder.named("Alice").build();
+        Person target = PersonBuilder.named("Bob").withProjects("CS2103T", "CS2101").build();
         model.addPerson(first);
         model.addPerson(target);
         model.updateFilteredPersonList(person -> person.getName().equals(target.getName()));
@@ -57,8 +57,8 @@ public class ProjectCommandTest {
     public void execute_invalidDisplayedIndex_failureWithoutMutation() {
         assertCommandFailure(new ProjectCommand(Index.fromOneBased(1), project), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        model.addPerson(new PersonBuilder().withName("Alice").build());
-        model.addPerson(new PersonBuilder().withName("Bob").build());
+        model.addPerson(PersonBuilder.named("Alice").build());
+        model.addPerson(PersonBuilder.named("Bob").build());
         model.updateFilteredPersonList(person -> person.getName().fullName.equals("Bob"));
         assertCommandFailure(new ProjectCommand(Index.fromOneBased(2), project), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);

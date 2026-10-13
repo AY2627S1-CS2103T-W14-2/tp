@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -10,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.ContactConflict;
 import seedu.address.model.person.Person;
 
 /**
@@ -71,9 +73,15 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public boolean hasPerson(Person person) {
-        requireNonNull(person);
-        return addressBook.hasPerson(person);
+    public Optional<ContactConflict> findConflict(Person candidate) {
+        requireNonNull(candidate);
+        return addressBook.findConflict(candidate);
+    }
+
+    @Override
+    public Optional<ContactConflict> findConflict(Person candidate, Person excluded) {
+        requireAllNonNull(candidate, excluded);
+        return addressBook.findConflict(candidate, excluded);
     }
 
     @Override
