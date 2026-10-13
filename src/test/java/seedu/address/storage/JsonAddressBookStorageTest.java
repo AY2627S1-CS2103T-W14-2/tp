@@ -24,7 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
-import seedu.address.model.person.TelegramUsername;
 import seedu.address.testutil.AddressBookBuilder;
 
 public class JsonAddressBookStorageTest {
@@ -42,8 +41,9 @@ public class JsonAddressBookStorageTest {
                    "telegramUsername":"alex_tan","projects":["Team *()!%$#&","Orbital"],
                    "address":"NUS","tags":["friend"]},
                   {"name":"Wen Jie","phone":"87654321","email":"wen@example.com",
-                   "address":null,"tags":{"retired":"ignored"}},
-                  {"name":"Jordan Lee","phone":"81234567","email":"jordan@example.com"}
+                   "telegramUsername":"wen_jie","address":null,"tags":{"retired":"ignored"}},
+                  {"name":"Jordan Lee","phone":"81234567","email":"jordan@example.com",
+                   "telegramUsername":"jordan_lee"}
                 ]}
                 """;
         Files.writeString(file, legacy);
@@ -51,7 +51,6 @@ public class JsonAddressBookStorageTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
         ReadOnlyAddressBook contacts = storage.readAddressBook().orElseThrow();
         assertEquals(3, contacts.getPersonList().size());
-        assertEquals(TelegramUsername.EMPTY, contacts.getPersonList().get(1).getTelegramUsername());
         assertTrue(contacts.getPersonList().get(1).getProjects().isEmpty());
         assertEquals(List.of(), backupFiles()); // Loading alone does not migrate the file.
 

@@ -41,11 +41,9 @@ public class Messages {
                 .append("; Phone: ")
                 .append(person.getPhone())
                 .append("; Email: ")
-                .append(person.getEmail());
-        if (!person.getTelegramUsername().isEmpty()) {
-            builder.append("; Telegram: ")
-                    .append(person.getTelegramUsername());
-        }
+                .append(person.getEmail())
+                .append("; Telegram: ")
+                .append(person.getTelegramUsername());
         if (!person.getProjects().isEmpty()) {
             builder.append("; Projects: ")
                     .append(person.getProjects().stream()

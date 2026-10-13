@@ -99,11 +99,13 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_missingTelegramUsername_returnsLegacyPerson() throws Exception {
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, null,
-                VALID_PROJECTS);
-
-        assertEquals(TelegramUsername.EMPTY, person.toModelType().getTelegramUsername());
+    public void toModelType_nullOrBlankTelegramUsername_throwsIllegalValueException() {
+        String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, TelegramUsername.class.getSimpleName());
+        for (String missingUsername : new String[] {null, "", "  "}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, missingUsername,
+                    VALID_PROJECTS);
+            assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+        }
     }
 
     @Test

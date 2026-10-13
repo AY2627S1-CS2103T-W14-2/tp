@@ -77,7 +77,7 @@ public class Person {
 
     /**
      * Returns true if this person and {@code otherPerson} cannot both be saved, because they share a phone number,
-     * an email (ignoring case) or a non-empty Telegram username. Names and projects are never compared.
+     * an email (ignoring case) or a Telegram username (ignoring case). Names and projects are never compared.
      * This relation is symmetric but not transitive, so it is not an equivalence.
      */
     public boolean conflictsWith(Person otherPerson) {
@@ -97,17 +97,10 @@ public class Person {
         if (email.equals(existingPerson.email)) {
             return conflictOn(ContactConflict.Field.EMAIL, email, existingPerson);
         }
-        if (hasSameTelegramUsername(existingPerson)) {
+        if (telegramUsername.equals(existingPerson.telegramUsername)) {
             return conflictOn(ContactConflict.Field.TELEGRAM_USERNAME, telegramUsername, existingPerson);
         }
         return Optional.empty();
-    }
-
-    /**
-     * Returns true if both persons have the same Telegram username. An empty username never matches.
-     */
-    private boolean hasSameTelegramUsername(Person otherPerson) {
-        return !telegramUsername.isEmpty() && telegramUsername.equals(otherPerson.telegramUsername);
     }
 
     private static Optional<ContactConflict> conflictOn(ContactConflict.Field field, Object value,

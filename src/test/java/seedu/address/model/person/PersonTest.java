@@ -91,16 +91,6 @@ public class PersonTest {
     }
 
     @Test
-    public void conflictsWith_emptyTelegramUsername_returnsFalse() {
-        Person withoutTelegram = distinctFromAlex().withoutTelegramUsername().build();
-        Person otherWithoutTelegram = new PersonBuilder().withName("Charlotte Oliveiro").withPhone("93210283")
-                .withEmail("charlotte@example.com").withoutTelegramUsername().build();
-
-        assertConflictBothWays(ALEX, withoutTelegram, false);
-        assertConflictBothWays(withoutTelegram, otherWithoutTelegram, false);
-    }
-
-    @Test
     public void conflictsWith_self_returnsTrue() {
         assertTrue(ALEX.conflictsWith(ALEX));
     }

@@ -246,7 +246,9 @@ Format: `exit`
 AddressBook automatically saves data after every command. You do not need to save manually.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
-Telegram username or project still load. Before the first save that removes address or tags, LinkUp creates a
+project still load. Every contact must have a Telegram username: a file containing a contact without one cannot be
+loaded and is handled like any other invalid file (see [Editing the data file](#editing-the-data-file)). To keep such
+a contact, add a `"telegramUsername"` value for it in the data file. Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
 migration backups. Importing another old file creates a separate backup. If the backup cannot be written,

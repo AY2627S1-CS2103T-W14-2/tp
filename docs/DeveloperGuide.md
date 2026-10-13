@@ -162,7 +162,9 @@ have been removed from the model, contact cards, and JSON output. `AddCommandPar
 These delimiter sequences following a space remain reserved in add/edit input.
 
 `JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
-configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
+configuration. Missing projects default to an empty list. The Telegram username is mandatory, like the phone
+and email: a missing or blank value makes `JsonAdaptedPerson#toModelType` throw an `IllegalValueException`, so a
+file containing such a contact is rejected on load (and backed up, as described below). Before saving,
 `JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
 bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up malformed JSON before replacement.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
@@ -188,8 +190,8 @@ checks phone, email and Telegram username in that order and returns the first cl
 user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean form.
 
 * `Email#equals` and `Email#hashCode` compare the lower-cased (`Locale.ROOT`) text, while the email is stored and
-  displayed as typed. `TelegramUsername` is already normalised to lower case without `@` when it is constructed.
-  An empty Telegram username (`TelegramUsername.EMPTY`, used by legacy contacts) never matches.
+  displayed as typed. `TelegramUsername` is already normalised to lower case without `@` when it is constructed,
+  so its `equals` is case-insensitive too. Every contact has a Telegram username, so no empty value needs handling.
 * `UniquePersonList` checks every `add`, `setPerson` and `setPersons` call and throws `DuplicatePersonException`
   carrying the conflict message. `setPerson(target, editedPerson)` ignores `target`, so a contact never conflicts
   with its own old values, while a clash with any other contact is still caught.

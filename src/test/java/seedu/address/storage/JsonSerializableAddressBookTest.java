@@ -7,14 +7,13 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Email;
 import seedu.address.model.person.TelegramUsername;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.TypicalPersons;
@@ -33,8 +32,8 @@ public class JsonSerializableAddressBookTest {
             TEST_DATA_FOLDER.resolve("caseDifferentEmailAddressBook.json");
     private static final Path SAME_TELEGRAM_USERNAME_FILE =
             TEST_DATA_FOLDER.resolve("sameTelegramUsernameAddressBook.json");
-    private static final Path LEGACY_WITHOUT_TELEGRAM_FILE =
-            TEST_DATA_FOLDER.resolve("legacyWithoutTelegramAddressBook.json");
+    private static final Path MISSING_TELEGRAM_USERNAME_FILE =
+            TEST_DATA_FOLDER.resolve("missingTelegramUsernameAddressBook.json");
 
     @Test
     public void toModelType_typicalPersonsFile_success() throws Exception {
@@ -45,8 +44,7 @@ public class JsonSerializableAddressBookTest {
 
     @Test
     public void toModelType_invalidPersonFile_throwsIllegalValueException() throws Exception {
-        JsonSerializableAddressBook dataFromFile = readJsonFile(INVALID_PERSON_FILE);
-        assertThrows(IllegalValueException.class, dataFromFile::toModelType);
+        assertLoadFails(INVALID_PERSON_FILE, Email.MESSAGE_CONSTRAINTS);
     }
 
     @Test
@@ -80,12 +78,9 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_legacyContactsWithoutTelegram_success() throws Exception {
-        List<Person> persons = readAddressBook(LEGACY_WITHOUT_TELEGRAM_FILE).getPersonList();
-
-        assertEquals(2, persons.size());
-        assertEquals(TelegramUsername.EMPTY, persons.get(0).getTelegramUsername());
-        assertEquals(TelegramUsername.EMPTY, persons.get(1).getTelegramUsername());
+    public void toModelType_contactWithoutTelegramUsername_throwsIllegalValueException() throws Exception {
+        assertLoadFails(MISSING_TELEGRAM_USERNAME_FILE, String.format(JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT,
+                TelegramUsername.class.getSimpleName()));
     }
 
     private static JsonSerializableAddressBook readJsonFile(Path file) throws Exception {

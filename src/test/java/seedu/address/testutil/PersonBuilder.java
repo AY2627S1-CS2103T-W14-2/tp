@@ -95,14 +95,6 @@ public class PersonBuilder {
     }
 
     /**
-     * Gives the {@code Person} that we are building no Telegram username, as for legacy contacts.
-     */
-    public PersonBuilder withoutTelegramUsername() {
-        this.telegramUsername = TelegramUsername.EMPTY;
-        return this;
-    }
-
-    /**
      * Parses the project names into an ordered project list for the person being built.
      */
     public PersonBuilder withProjects(String... projectNames) {

@@ -99,15 +99,15 @@ class JsonAdaptedPerson {
         }
         final Email modelEmail = new Email(email);
 
-        final TelegramUsername modelTelegramUsername;
-        if (telegramUsername == null || telegramUsername.isEmpty()) {
-            modelTelegramUsername = TelegramUsername.EMPTY;
-        } else {
-            if (!TelegramUsername.isValidTelegramUsername(telegramUsername)) {
-                throw new IllegalValueException(TelegramUsername.MESSAGE_CONSTRAINTS);
-            }
-            modelTelegramUsername = new TelegramUsername(telegramUsername);
+        // A blank value is how older versions saved a contact without a Telegram username
+        if (telegramUsername == null || telegramUsername.isBlank()) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    TelegramUsername.class.getSimpleName()));
         }
+        if (!TelegramUsername.isValidTelegramUsername(telegramUsername)) {
+            throw new IllegalValueException(TelegramUsername.MESSAGE_CONSTRAINTS);
+        }
+        final TelegramUsername modelTelegramUsername = new TelegramUsername(telegramUsername);
 
         return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, personProjects);
     }

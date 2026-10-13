@@ -49,10 +49,7 @@ public class PersonCard extends UiPart<Region> {
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
-        String telegramUsernameText = person.getTelegramUsername().toString();
-        telegramUsername.setText(telegramUsernameText);
-        telegramUsername.setManaged(!telegramUsernameText.isEmpty());
-        telegramUsername.setVisible(!telegramUsernameText.isEmpty());
+        telegramUsername.setText(person.getTelegramUsername().toString());
         person.getProjects().forEach(project ->
                 projects.getChildren().add(new Label("Project: " + project.projectName)));
     }
