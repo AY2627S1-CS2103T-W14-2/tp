@@ -172,6 +172,41 @@ Regression tests cover legacy loading, the save/load round trip, exact backup co
 backup failure, and former-prefix rejection. Existing edit, project, search, and undo tests exercise the updated
 contact structure. Add still permits an omitted project in this increment; making it required is separate work.
 
+### Duplicate contact detection
+
+Two contacts **conflict** if they share a phone number, an email or a Telegram username. Names and projects are
+never compared, so contacts may share a name. The rule lives in one place, `Person#findConflictWith(Person)`, which
+checks phone, email and Telegram username in that order and returns the first clash as a `ContactConflict`
+(the clashing field, the value and the existing contact). `ContactConflict#getMessage()` builds the only
+user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean form.
+
+* `Email#equals` and `Email#hashCode` compare the lower-cased (`Locale.ROOT`) text, while the email is stored and
+  displayed as typed. `TelegramUsername` is already normalised to lower case without `@` when it is constructed.
+  An empty Telegram username (`TelegramUsername.EMPTY`, used by legacy contacts) never matches.
+* `UniquePersonList` checks every `add`, `setPerson` and `setPersons` call and throws `DuplicatePersonException`
+  carrying the conflict message. `setPerson(target, editedPerson)` ignores `target`, so a contact never conflicts
+  with its own old values, while a clash with any other contact is still caught.
+* `Model#findConflict(candidate)` and `Model#findConflict(candidate, excluded)` expose the check. `AddCommand` uses
+  the first; `EditCommand` passes the contact being edited as `excluded`. Both reject a conflict through
+  `Command#rejectIfConflicting`, before the model is changed. `JsonSerializableAddressBook` rethrows a conflict found
+  while loading as an `IllegalValueException` with the same message.
+* The relation is symmetric but not transitive: A may share a phone with B and B an email with C, while A and C do
+  not conflict. It is therefore not an equality. `Person#equals` remains the all-fields check used to find and
+  remove a contact, which keeps lookup working for contacts with the same name.
+
+**Alternatives considered:**
+
+* *Keep `isSamePerson`, redefined as "all fields equal".* This would still let two contacts share a phone or email
+  under different names, and it would duplicate `equals`. It was removed instead.
+* *Store emails in lower case.* This would also make comparison case-insensitive, but it would change what the user
+  typed in both the contact list and the data file. Comparing case-insensitively keeps the typed text.
+* *Warn about, rather than reject, a contact with the same name.* Names do not identify people, and a warning on
+  every same-name contact would add noise without preventing real duplicates.
+
+Tests build clashes with `ConflictTestUtil#clashesWith`. `EditCommandTest#UNIQUE_FIELD_EDITS` lists the editable
+unique fields; when another unique field becomes editable, adding one entry there tests that it is rejected on a
+clash and accepted when unchanged.
+
 ### Finding contacts by project
 
 The `findproject KEYWORD` command implements UC02 using the existing filtered contact list.
@@ -313,7 +348,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | search for contacts by their role                                      | find the person responsible for a particular task                 |
 | `* *`    | student | see a contact's complete information                                   | verify that I have found the correct person                       |
 | `* *`    | student | detect duplicate contact information                                   | avoid accidentally saving the same person multiple times         |
-| `* *`    | student | be warned when two contacts have the same name                         | know that additional information may be needed to distinguish them |
 | `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 | `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
@@ -443,6 +477,31 @@ Use case ends.
   * 3a1. LinkUp displays an index error without deleting any contact.
 
   Use case resumes at step 3.
+
+#### UC05: Add a contact
+
+**MSS**
+
+1. Student requests to add a contact, supplying a name, phone number, email, Telegram username and, optionally, a project.
+2. LinkUp saves the contact and displays a success message with its details.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. A required detail is missing or invalid.
+
+  * 1a1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 1.
+
+* 1b. The phone number, email or Telegram username is already used by another contact. Emails and Telegram
+  usernames are compared ignoring case; names and projects are not compared.
+
+  * 1b1. LinkUp names the first clashing detail, in the order phone number, email, Telegram username, and the
+    contact that uses it, without changing saved contacts.
+
+  Use case resumes at step 1.
 
 ### Non-Functional Requirements
 

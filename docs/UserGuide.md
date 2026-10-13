@@ -98,6 +98,22 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/1234567`
 
+<box type="info" seamless>
+
+**Duplicate contacts:** Each phone number, email and Telegram username can belong to only one contact.
+Emails and Telegram usernames are compared ignoring case, so `Alex@Example.com` and `alex@example.com` count as
+the same email. Contacts may share a name or a project. To tell contacts with the same name apart, compare their
+phone numbers, emails, Telegram usernames and projects in the contact list.
+
+If a detail is already used, LinkUp rejects the command, saves nothing, and names the clashing detail and contact:
+* `Phone number 91234567 is already used by Alex Yeoh. Please enter a different phone number.`
+* `Email alexyeoh@example.com is already used by Alex Yeoh. Please enter a different email.`
+* `Telegram username @alex_yeoh is already used by Alex Yeoh. Please enter a different Telegram username.`
+
+If several details clash, LinkUp reports the first one in the order phone number, email, Telegram username.
+Correct that detail and enter the command again.
+</box>
+
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
 
 ### Associating an existing contact with a project: `project`
@@ -135,6 +151,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* The new phone number and email must not belong to another contact, following the same
+  [duplicate-contact rule](#adding-a-person-add) as `add`, with the same error messages. You can keep a contact's
+  own phone number or email, and you can give a contact the same name as another contact.
 * Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
 
 Examples:
@@ -244,6 +263,8 @@ AddressBook data is saved automatically as a JSON file `[JAR file location]/data
 
 **Caution:**
 If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
+A file in which two contacts share a phone number, email or Telegram username breaks the
+[duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
