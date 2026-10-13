@@ -83,6 +83,13 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] `
 
 **Tip:** A person can have one initial project or no project.
 
+Names must contain 1–60 characters after surrounding spaces are removed. English letters, digits, spaces,
+apostrophes, hyphens, and periods are accepted; at least one English letter is required. The name keeps its
+capitalization for display.
+
+Emails need exactly one `@`, a non-empty local part, and at least two non-empty domain labels separated by dots.
+Whitespace is not allowed. Newly entered emails are stored in lowercase.
+
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
@@ -135,6 +142,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* Name and email inputs follow the same rules as `add`; edited emails are stored in lowercase.
 * Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
 
 Examples:
@@ -227,7 +235,8 @@ Format: `exit`
 AddressBook automatically saves data after every command. You do not need to save manually.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
-Telegram username or project still load. Before the first save that removes address or tags, LinkUp creates a
+Telegram username or project still load. Previously saved names and emails also retain their original spelling and
+case, even if they do not meet today's input rules. Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
 migration backups. Importing another old file creates a separate backup. If the backup cannot be written,

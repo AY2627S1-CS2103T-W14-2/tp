@@ -79,6 +79,23 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_newNameAndMixedCaseEmail_storesExpectedValues() {
+        Person expectedPerson = new PersonBuilder(BOB).withName("O'Connor-Smith Jr. 2")
+                .withEmail("alex!mail@example.com").build();
+
+        assertParseSuccess(parser, " n/O'Connor-Smith Jr. 2" + PHONE_DESC_BOB
+                + " e/Alex!Mail@Example.COM" + TELEGRAM_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_oldNameAndEmailInputs_rejectedForNewContact() {
+        assertParseFailure(parser, " n/12345" + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
+                Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/alex@example" + TELEGRAM_DESC_BOB,
+                Email.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_repeatedValue_failure() {
         String validExpectedPersonString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB;

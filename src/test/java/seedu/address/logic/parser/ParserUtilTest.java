@@ -57,6 +57,8 @@ public class ParserUtilTest {
     @Test
     public void parseName_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseName(INVALID_NAME));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("12345"));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("A".repeat(61)));
     }
 
     @Test
@@ -103,6 +105,8 @@ public class ParserUtilTest {
     @Test
     public void parseEmail_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseEmail(INVALID_EMAIL));
+        assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example"));
+        assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example..com"));
     }
 
     @Test
@@ -116,6 +120,11 @@ public class ParserUtilTest {
         String emailWithWhitespace = WHITESPACE + VALID_EMAIL + WHITESPACE;
         Email expectedEmail = new Email(VALID_EMAIL);
         assertEquals(expectedEmail, ParserUtil.parseEmail(emailWithWhitespace));
+    }
+
+    @Test
+    public void parseEmail_mixedCase_storesLowercase() throws Exception {
+        assertEquals("alex@example.com", ParserUtil.parseEmail("Alex@Example.COM").value);
     }
 
     @Test

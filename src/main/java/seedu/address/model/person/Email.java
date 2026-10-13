@@ -3,25 +3,19 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Arrays;
+import java.util.Locale;
+
 /**
  * Represents a Person's email in the address book.
- * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
+ * Guarantees: immutable; is valid for new input or was valid in an older saved contact.
  */
 public class Email {
 
+    public static final String MESSAGE_CONSTRAINTS = "Email must be in the format local@domain, with exactly one @, "
+            + "no whitespace, and at least two non-empty domain labels separated by dots.";
     private static final String SPECIAL_CHARACTERS = "+_.-";
-    public static final String MESSAGE_CONSTRAINTS = "Emails should be of the format local-part@domain "
-            + "and adhere to the following constraints:\n"
-            + "1. The local-part should only contain alphanumeric characters and these special characters, excluding "
-            + "the parentheses, (" + SPECIAL_CHARACTERS + "). The local-part may not start or end with any special "
-            + "characters.\n"
-            + "2. The local-part is followed by an '@' and then a domain name. The domain name is made up of domain "
-            + "labels separated by periods.\n"
-            + "The domain name must:\n"
-            + "    - end with a domain label at least 2 characters long\n"
-            + "    - have each domain label start and end with alphanumeric characters\n"
-            + "    - have each domain label consist of alphanumeric characters, separated only by hyphens, if any.";
-    // alphanumeric and special characters
+    // Previous AB3 rule, retained only to read contacts saved before the new input rule.
     private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
             + ALPHANUMERIC_NO_UNDERSCORE + ")*";
@@ -29,7 +23,7 @@ public class Email {
             + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
     private static final String DOMAIN_REGEX = "(" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
-    public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
+    private static final String LEGACY_VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
 
     public final String value;
 
@@ -39,16 +33,49 @@ public class Email {
      * @param email A valid email address.
      */
     public Email(String email) {
+        this(email, false);
+    }
+
+    private Email(String email, boolean fromStorage) {
         requireNonNull(email);
-        checkArgument(isValidEmail(email), MESSAGE_CONSTRAINTS);
-        value = email;
+        checkArgument(fromStorage ? isValidStoredEmail(email) : isValidEmail(email), MESSAGE_CONSTRAINTS);
+        value = fromStorage ? email : email.toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Restores a saved email without changing its case. Older contacts may have emails that are no longer accepted
+     * as new input.
+     */
+    public static Email fromStoredValue(String email) {
+        return new Email(email, true);
+    }
+
+    /**
+     * Returns true if the value can be restored from a current or older data file.
+     */
+    public static boolean isValidStoredEmail(String test) {
+        requireNonNull(test);
+        return isValidEmail(test) || test.matches(LEGACY_VALIDATION_REGEX);
     }
 
     /**
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return test.matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        int atIndex = test.indexOf('@');
+        if (atIndex < 1 || atIndex != test.lastIndexOf('@')
+                || test.codePoints().anyMatch(Email::isWhitespaceOrControl)) {
+            return false;
+        }
+        String domain = test.substring(atIndex + 1);
+        String[] labels = domain.split("\\.", -1);
+        return labels.length >= 2 && Arrays.stream(labels).allMatch(label -> !label.isEmpty());
+    }
+
+    private static boolean isWhitespaceOrControl(int codePoint) {
+        return Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint)
+                || Character.isISOControl(codePoint);
     }
 
     @Override
