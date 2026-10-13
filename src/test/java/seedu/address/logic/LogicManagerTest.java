@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
-import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PROJECT_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
@@ -20,6 +19,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +31,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -85,8 +86,8 @@ public class LogicManagerTest {
     @Test
     public void execute_addWithProject_success() throws Exception {
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY
-                + TELEGRAM_DESC_AMY + ADDRESS_DESC_AMY + PROJECT_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).withTags().build();
+                + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
 
@@ -97,9 +98,27 @@ public class LogicManagerTest {
     @Test
     public void execute_addWithBlankProject_throwsParseExceptionAndLeavesModelUnchanged() {
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY
-                + TELEGRAM_DESC_AMY + ADDRESS_DESC_AMY + INVALID_PROJECT_DESC;
+                + TELEGRAM_DESC_AMY + INVALID_PROJECT_DESC;
 
         assertParseException(addCommand, Project.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void execute_removedFields_leavesModelFileAndUndoHistoryUnchanged() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(AMY));
+        Path file = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+        for (String removedField : new String[] {" a/NUS", " t/friend", " a/", " t/"}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS, () ->
+                    logic.execute(PersonUtil.getAddCommand(ALICE) + removedField));
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS, () ->
+                    logic.execute("edit 1 n/Changed Name" + removedField));
+            assertEquals(before, model.getAddressBook());
+            assertEquals(savedData, Files.readString(file));
+        }
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
     }
 
     @Test
@@ -124,7 +143,7 @@ public class LogicManagerTest {
         model.addPerson(person);
         AddressBook before = new AddressBook(model.getAddressBook());
 
-        logic.execute("edit 1 n/Changed Name p/91234567 t/updated");
+        logic.execute("edit 1 n/Changed Name p/91234567");
         assertFalse(before.equals(model.getAddressBook()));
         logic.execute("undo");
 
@@ -301,8 +320,8 @@ public class LogicManagerTest {
 
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY + ADDRESS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+                + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).build();
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
