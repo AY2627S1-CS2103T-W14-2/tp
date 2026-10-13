@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -70,6 +71,42 @@ public class NameContainsKeywordsPredicateTest {
         predicate = new NameContainsKeywordsPredicate(List.of("12345", "alice@email.com", "Main", "Street"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345")
                 .withEmail("alice@email.com").withAddress("Main Street").build()));
+    }
+
+    @Test
+    public void test_partialKeywords_matchesAnywhereInName() {
+        for (String keyword : List.of("Al", "le", "ex", "LEX", "ta", "AN")) {
+            NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of(keyword));
+            assertTrue(predicate.test(new PersonBuilder().withName("Alex Tan").build()));
+        }
+    }
+
+    @Test
+    public void test_multiplePartialKeywords_matchesAnyKeyword() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("missing", "lex", "lex"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alex Tan").build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Bob Lee").build()));
+    }
+
+    @Test
+    public void test_nonNamePartialMatch_returnsFalse() {
+        NameContainsKeywordsPredicate predicate =
+                new NameContainsKeywordsPredicate(List.of("123", "mail", "reet", "user", "orb", "fri"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alex Tan").withPhone("12345678")
+                .withEmail("other@mail.com").withAddress("Main Street").withTelegramUsername("other_user")
+                .withProjects("Orbital").withTags("friend").build()));
+    }
+
+    @Test
+    public void test_turkishDefaultLocale_matchesIgnoringCase() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("i"));
+            assertTrue(predicate.test(new PersonBuilder().withName("ALICE").build()));
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 
     @Test
