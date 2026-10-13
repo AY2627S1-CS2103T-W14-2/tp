@@ -52,10 +52,6 @@ public class Messages {
                             .map(Object::toString)
                             .collect(Collectors.joining(", ")));
         }
-        builder.append("; Address: ")
-                .append(person.getAddress())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
         return builder.toString();
     }
 

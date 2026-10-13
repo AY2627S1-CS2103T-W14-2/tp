@@ -130,12 +130,6 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
-<box type="info" seamless>
-
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
-</box>
 
 
 ### Storage component
@@ -158,6 +152,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Removing retired contact fields
+
+`Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
+have been removed from the model, contact cards, and JSON output. `AddCommandParser` and
+`EditCommandParser` recognize the old `a/` and `t/` delimiters only to reject them with
+`ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS`; this prevents old arguments from becoming another field's value.
+These delimiter sequences following a space remain reserved in add/edit input.
+
+`JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
+configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
+`JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
+bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up malformed JSON before replacement.
+A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
+retired properties and create no further backup. Backup files are not part of command undo history.
+
+Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
+backup failure, and former-prefix rejection. Existing edit, project, search, and undo tests exercise the updated
+contact structure. Add still permits an omitted project in this increment; making it required is separate work.
 
 ### Finding contacts by project
 
@@ -261,7 +274,7 @@ _{Explain here how the data archiving feature will be implemented}_
 * is a student who works on multiple courses or projects and needs to manage
   classmates, teammates, and other project contacts
 * needs to keep contact details such as names, phone numbers, email addresses,
-  Telegram usernames, and project tags together in one place
+  Telegram usernames, and project associations together in one place
 * prefers a lightweight desktop application and is reasonably comfortable with
   keyboard-driven CLI commands
 * values quick contact lookup and updates over navigating a feature-heavy
@@ -305,8 +318,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
 | `*`      | student | search contacts using multiple criteria                                | narrow down ambiguous results                                    |
-| `*`      | student | tag contacts                                                           | organise them using categories meaningful to me                  |
-| `*`      | student | search contacts by tag                                                 | quickly retrieve a group of related contacts                     |
 | `*`      | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
 | `*`      | student | sort contacts by project                                               | see related contacts together                                    |
 | `*`      | student | view recently added contacts                                           | quickly find people I just met                                   |

@@ -31,7 +31,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe pr/CS2103T` : Adds a contact named `John Doe` to the Address Book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -53,10 +53,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
-
-* Items followed by `...` can appear zero or more times.<br>
-  For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `n/NAME [pr/PROJECT]` can be used as `n/John Doe pr/CS2103T` or as `n/John Doe`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -80,11 +77,11 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/PROJECT] [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] `
 
 <box type="tip" seamless>
 
-**Tip:** A person can have one initial project or no project, and any number of tags, including zero.
+**Tip:** A person can have one initial project or no project.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
@@ -92,11 +89,16 @@ optional, and uppercase letters are accepted. The username is stored in lowercas
 The project is optional. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
 repeated internal whitespace is collapsed, and project names are compared case-insensitively. Only one `pr/` prefix
 is accepted by the `add` command. If `pr/` is provided, it must not be empty.
+
+In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
+For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe a/John street, block 123, #01-01 pr/CS2103T`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com tele/betsy_crowe a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Doe p/98765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
+* `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/1234567`
+
+Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
 
 ### Associating an existing contact with a project: `project`
 
@@ -128,17 +130,16 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 2 n/Betsy Crower` Edits the name of the 2nd person to be `Betsy Crower`.
 
 ### Locating persons by name: `find`
 
@@ -225,6 +226,16 @@ Format: `exit`
 
 AddressBook automatically saves data after every command. You do not need to save manually.
 
+When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
+Telegram username or project still load. Before the first save that removes address or tags, LinkUp creates a
+backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
+the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
+migration backups. Importing another old file creates a separate backup. If the backup cannot be written,
+LinkUp reports a save error and leaves the original file untouched.
+
+To recover the old file, close LinkUp and copy the backup over the original data file. Keep the backup if you
+want to retain address/tag values: the updated app no longer displays or edits them.
+
 ### Editing the data file
 
 AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
@@ -260,10 +271,10 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME a/ADDRESS [pr/PROJECT] [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com tele/james_ho a/123, Clementi Rd, 1234665 pr/CS2103T t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
