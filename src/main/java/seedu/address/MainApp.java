@@ -80,10 +80,23 @@ public class MainApp extends Application {
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Will be starting with an empty AddressBook.");
+            backUpUnreadableAddressBook(storage);
             initialData = new AddressBook();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Preserves the unreadable data file before the next save replaces it with the empty address book.
+     */
+    private void backUpUnreadableAddressBook(Storage storage) {
+        try {
+            storage.backupAddressBook().ifPresent(backup ->
+                    logger.warning("The unreadable data file was copied to " + backup));
+        } catch (IOException e) {
+            logger.warning("Could not back up the unreadable data file: " + StringUtil.getDetails(e));
+        }
     }
 
     /**

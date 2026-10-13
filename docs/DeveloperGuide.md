@@ -168,6 +168,13 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
+A file that is well-formed but cannot be loaded, for example because two contacts conflict, has no retired
+fields and so is not covered by the migration backup. Instead, when `MainApp.initModelManager` catches the
+`DataLoadingException` and starts with an empty address book, it calls `Storage#backupAddressBook()`, which copies
+the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. A failed
+backup is logged and startup continues, as before. The backup is made only at startup, not on every read, so tests
+and other callers of `readAddressBook` do not create backup files.
+
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
 backup failure, and former-prefix rejection. Existing edit, project, search, and undo tests exercise the updated
 contact structure. Add still permits an omitted project in this increment; making it required is separate work.

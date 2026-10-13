@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,15 @@ public class StorageManagerTest {
         storageManager.saveAddressBook(original);
         ReadOnlyAddressBook retrieved = storageManager.readAddressBook().get();
         assertEquals(original, new AddressBook(retrieved));
+    }
+
+    @Test
+    public void backupAddressBook() throws Exception {
+        // Wiring only; backup behaviour is tested in JsonAddressBookStorageTest
+        assertEquals(Optional.empty(), storageManager.backupAddressBook());
+        storageManager.saveAddressBook(getTypicalAddressBook());
+        Path backup = storageManager.backupAddressBook().orElseThrow();
+        assertEquals(Files.readString(storageManager.getAddressBookFilePath()), Files.readString(backup));
     }
 
     @Test

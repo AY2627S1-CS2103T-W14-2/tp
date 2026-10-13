@@ -262,7 +262,11 @@ AddressBook data is saved automatically as a JSON file `[JAR file location]/data
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. Before
+starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`.
+The next command you run saves the empty address book over the original file (AddressBook saves after every command).
+To recover, close AddressBook, fix the problem in the backup, and copy it over the original data file. Still, we
+recommend backing up the file yourself before editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
 [duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.

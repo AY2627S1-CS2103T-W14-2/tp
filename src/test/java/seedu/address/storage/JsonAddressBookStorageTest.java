@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -172,6 +173,39 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void backupAddressBook_unloadableFile_copiesExactBytesBesideOriginal() throws Exception {
+        Path file = testFolder.resolve("clashing.json");
+        Files.copy(Paths.get("src", "test", "data", "JsonSerializableAddressBookTest",
+                "samePhoneDifferentNamesAddressBook.json"), file);
+        byte[] original = Files.readAllBytes(file);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+
+        Path backup = storage.backupAddressBook().orElseThrow();
+
+        assertEquals(file.toAbsolutePath().getParent(), backup.getParent());
+        assertTrue(backup.getFileName().toString().startsWith("clashing.json.unreadable-"));
+        assertTrue(backup.getFileName().toString().endsWith(".bak"));
+        assertArrayEquals(original, Files.readAllBytes(backup));
+        assertArrayEquals(original, Files.readAllBytes(file));
+    }
+
+    @Test
+    public void backupAddressBook_repeatedBackups_doNotOverwriteEachOther() throws Exception {
+        Path file = testFolder.resolve("data.json");
+        Files.writeString(file, "{}");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+
+        assertFalse(storage.backupAddressBook().equals(storage.backupAddressBook()));
+    }
+
+    @Test
+    public void backupAddressBook_missingFile_returnsEmpty() throws Exception {
+        assertEquals(Optional.empty(), new JsonAddressBookStorage(testFolder.resolve("missing.json"))
+                .backupAddressBook());
     }
 
     @Test
