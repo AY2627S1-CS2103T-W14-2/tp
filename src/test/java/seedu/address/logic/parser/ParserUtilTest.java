@@ -101,8 +101,8 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePhone_invalidCallingCode_throwsParseException() {
-        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+9991234567"));
+    public void parsePhone_unverifiedCallingCode_acceptsValidFormat() throws Exception {
+        assertEquals("+9991234567", ParserUtil.parsePhone("+9991234567").value);
     }
 
     @Test

@@ -32,16 +32,18 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertFalse(Phone.isValidPhone("9312 1534")); // no leading +
-        assertFalse(Phone.isValidPhone("+9991234567")); // unrecognized country calling code
+        assertFalse(Phone.isValidPhone("+0123456")); // international numbers cannot start with zero
+        assertFalse(Phone.isValidPhone("-+6591234567")); // + must come first
         assertFalse(Phone.isValidPhone("+65 9123x4567")); // unsupported character
         assertFalse(Phone.isValidPhone("+65\t91234567")); // internal tabs are not separators
         assertFalse(Phone.isValidPhone("+" + "6".repeat(16))); // too many digits
 
         // valid phone numbers
-        assertTrue(Phone.isValidPhone("+123")); // exactly 3 digits with recognized calling code
+        assertTrue(Phone.isValidPhone("+123")); // exactly 3 digits
         assertTrue(Phone.isValidPhone("+6591234567"));
         assertTrue(Phone.isValidPhone("+65 9123-4567")); // permitted separators
         assertTrue(Phone.isValidPhone("+60123457878"));
+        assertTrue(Phone.isValidPhone("+9991234567")); // calling codes are not checked
         assertTrue(Phone.isValidPhone("+1" + "2".repeat(14))); // upper length boundary
     }
 
@@ -54,7 +56,8 @@ public class PhoneTest {
     public void fromStoredValue_legacyLocalNumber_preservesOriginalValue() {
         assertEquals("91234567", Phone.fromStoredValue("91234567").value);
         assertEquals("+6591234567", Phone.fromStoredValue("+6591234567").value);
-        assertThrows(IllegalArgumentException.class, () -> Phone.fromStoredValue("+9991234567"));
+        assertEquals("+9991234567", Phone.fromStoredValue("+9991234567").value);
+        assertThrows(IllegalArgumentException.class, () -> Phone.fromStoredValue("+0123456"));
     }
 
     @Test

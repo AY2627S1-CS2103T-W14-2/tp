@@ -21,7 +21,7 @@ import seedu.address.model.project.Project;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+9991234";
+    private static final String INVALID_PHONE = "+0123456";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TELEGRAM_USERNAME = "invalid!";
     private static final String INVALID_PROJECT = " ";

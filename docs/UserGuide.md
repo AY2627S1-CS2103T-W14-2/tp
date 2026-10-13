@@ -83,10 +83,11 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] `
 
 **Tip:** A person can have one initial project or no project.
 
-For a new phone number, enter `+` followed by a recognized country calling code and a national number. You may
-include spaces or hyphens for readability; LinkUp removes them and stores the number as `+` followed by 3–15 digits.
-For example, `p/+65 9123-4567` is stored as `+6591234567`. Bare local numbers are rejected. LinkUp checks the
-calling code, but does not verify that the remaining national number is assigned or callable.
+For a new phone number, enter `+` followed by a country calling code and a national number. You may include spaces
+or hyphens after `+` for readability; LinkUp removes them and stores the number as `+` followed by 3–15 digits.
+The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is stored as `+6591234567`. Bare local
+numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
+number is assigned or callable.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.

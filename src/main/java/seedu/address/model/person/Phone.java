@@ -3,8 +3,6 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-
 /**
  * Represents a Person's phone number in the address book.
  * Guarantees: immutable; is a canonical international number or an unchanged legacy local number.
@@ -12,10 +10,10 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 public class Phone {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone number must start with +, include a valid country calling code, and contain 3-15 digits.";
-    private static final String INTERNATIONAL_REGEX = "\\+[0-9]{3,15}";
+            "Phone number must start with + and contain 3-15 digits, with a non-zero first digit. "
+                    + "Spaces and hyphens are allowed after +, e.g. +65 9123-4567.";
+    private static final String INTERNATIONAL_REGEX = "\\+[1-9][0-9]{2,14}";
     private static final String LEGACY_REGEX = "[0-9]{3,}";
-    private static final PhoneNumberUtil PHONE_NUMBER_UTIL = PhoneNumberUtil.getInstance();
 
     public final String value;
 
@@ -62,18 +60,11 @@ public class Phone {
      */
     public static boolean isValidPhone(String test) {
         requireNonNull(test);
-        String normalizedPhone = normalize(test);
-        if (!normalizedPhone.matches(INTERNATIONAL_REGEX)) {
+        if (!test.trim().startsWith("+")) {
             return false;
         }
-        String digits = normalizedPhone.substring(1);
-        for (int codeLength = 1; codeLength <= 3 && codeLength < digits.length(); codeLength++) {
-            int callingCode = Integer.parseInt(digits.substring(0, codeLength));
-            if (!PHONE_NUMBER_UTIL.getRegionCodesForCountryCode(callingCode).isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        String normalizedPhone = normalize(test);
+        return normalizedPhone.matches(INTERNATIONAL_REGEX);
     }
 
     @Override
