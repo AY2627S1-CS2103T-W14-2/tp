@@ -96,12 +96,15 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void saveUndoState_existingState_replacesState() {
+    public void saveUndoState_existingState_preservesEarlierState() {
         modelManager.saveUndoState(new AddressBookBuilder().withPerson(ALICE).build());
         modelManager.saveUndoState(new AddressBookBuilder().withPerson(BENSON).build());
         modelManager.undo();
 
         assertEquals(List.of(BENSON), modelManager.getAddressBook().getPersonList());
+        assertTrue(modelManager.canUndo());
+        modelManager.undo();
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
         assertFalse(modelManager.canUndo());
         assertThrows(IllegalStateException.class, () -> modelManager.undo());
     }

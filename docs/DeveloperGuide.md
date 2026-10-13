@@ -207,33 +207,30 @@ Command tests cover filtered indices, preservation of fields and order, and dupl
 Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
 filtered selection, rejected operations, and a JSON round trip.
 
-### Undo feature
-The existing **Implementation** section uses a feature heading, explains the command flow, 
-then describes key behavior and design choices. Here’s a paste-ready section for undo:
-
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that 
-supports undo. It supports `add`, `edit`, `delete`, `clear`, and `project`. Only one previous state is kept,
-so undo can be used once for each such command.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, and `project`.
+Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable 
 command, it copies the current address book before execution. If execution succeeds, `LogicManager`
-saves that copy through `Model.saveUndoState(...)`, replacing any previously saved state. Commands that
-are not undoable do not replace the snapshot. If a command fails, the snapshot is not updated.
+saves that copy through `Model.saveUndoState(...)`, pushing it onto `ModelManager`'s `Deque<AddressBook>`
+undo history. Commands that are not undoable and commands that fail do not change the history.
 
 `UndoCommand` checks `Model.canUndo()` before restoring anything. If a snapshot exists, `ModelManager.undo()`
-restores it with `AddressBook.resetData(...)`, clears the snapshot, and updates the filtered person list to
+restores the most recent snapshot with `AddressBook.resetData(...)`, removes only that snapshot from the
+history, and updates the filtered person list to
 show all contacts. The regular storage save then persists the restored address book. If no snapshot exists,
 the command reports `No command to undo.`
 
-The snapshot is held only in memory and is not persisted, so it is unavailable after restarting the application.
-A new undoable command replaces the previous snapshot, and an undo consumes the snapshot. Failed commands and 
-non-undoable commands preserve it.
+The history is held only in memory and is not persisted, so it is unavailable after restarting the application.
+A new undoable command after an undo adds a snapshot of the current state while preserving earlier history.
+There is no redo history or redo command.
 
 **Design choice:** The implementation copies the entire address book rather than storing command-specific 
 inverse data. This makes restoration straightforward and preserves contact details and ordering, at the cost 
-of keeping one full copy in memory.
+of keeping one full copy in memory for each command still available to undo.
 
 
 ### \[Proposed\] Data archiving

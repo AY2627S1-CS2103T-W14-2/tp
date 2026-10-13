@@ -14,7 +14,7 @@ public class UndoCommand extends Command {
     public static final String MESSAGE_FAILURE = "No command to undo.";
 
     /**
-     * Restores the saved address book state.
+     * Restores the most recent saved address book state.
      * @throws CommandException if there is no command to undo.
      */
     @Override
