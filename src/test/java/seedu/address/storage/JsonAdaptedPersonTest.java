@@ -21,7 +21,7 @@ import seedu.address.model.project.Project;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "+9991234";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TELEGRAM_USERNAME = "invalid!";
     private static final String INVALID_PROJECT = " ";
@@ -38,6 +38,14 @@ public class JsonAdaptedPersonTest {
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_legacyLocalPhone_preservesSavedValue() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, "91234567", VALID_EMAIL,
+                VALID_TELEGRAM_USERNAME, VALID_PROJECTS);
+
+        assertEquals("91234567", person.toModelType().getPhone().value);
     }
 
     @Test

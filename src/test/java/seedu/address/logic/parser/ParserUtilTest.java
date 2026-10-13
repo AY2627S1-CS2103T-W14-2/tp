@@ -16,13 +16,13 @@ import seedu.address.model.project.Project;
 
 public class ParserUtilTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "91234567";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TELEGRAM_USERNAME = "r@ch";
     private static final String INVALID_PROJECT = " ";
 
     private static final String VALID_NAME = "Rachel Walker";
-    private static final String VALID_PHONE = "123456";
+    private static final String VALID_PHONE = "+6591234567";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TELEGRAM_USERNAME = "rachel_walker";
     private static final String VALID_PROJECT = "CS2103T Team Project";
@@ -93,6 +93,16 @@ public class ParserUtilTest {
         String phoneWithWhitespace = WHITESPACE + VALID_PHONE + WHITESPACE;
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(phoneWithWhitespace));
+    }
+
+    @Test
+    public void parsePhone_separators_returnsCanonicalPhone() throws Exception {
+        assertEquals(VALID_PHONE, ParserUtil.parsePhone("+65 9123-4567").value);
+    }
+
+    @Test
+    public void parsePhone_invalidCallingCode_throwsParseException() {
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+9991234567"));
     }
 
     @Test
