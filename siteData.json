@@ -51,6 +51,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "removing-retired-contact-fields": "Removing retired contact fields",
         "finding-contacts-by-project": "Finding contacts by project",
         "project-association-implementation": "Project association implementation",
         "undo-feature": "Undo feature",

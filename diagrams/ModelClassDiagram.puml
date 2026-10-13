@@ -14,13 +14,11 @@ Class UserPrefs
 
 Class UniquePersonList
 Class Person
-Class Address
 Class Email
 Class Name
 Class Phone
 Class TelegramUsername
 Class Project
-Class Tag
 
 Class I #FFFFFF
 }
@@ -43,17 +41,14 @@ Person *--> Name
 Person *--> Phone
 Person *--> Email
 Person *--> TelegramUsername
-Person *--> Address
 Person *--> "0..* {ordered}" Project
-Person *--> "*" Tag
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
 
 Name -[hidden]right-> Phone
 Phone -[hidden]right-> TelegramUsername
-TelegramUsername -[hidden]right-> Address
-Address -[hidden]right-> Project
+TelegramUsername -[hidden]right-> Project
 Project -[hidden]right-> Email
 
 ModelManager --> "~* filtered" Person
