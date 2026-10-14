@@ -12,8 +12,14 @@ import java.util.Locale;
  */
 public class Email {
 
-    public static final String MESSAGE_CONSTRAINTS = "Email must be in the format local@domain, with exactly one @, "
-            + "no whitespace, and at least two non-empty domain labels separated by dots.";
+    public static final String MESSAGE_CONSTRAINTS = "Email must be in the format local@domain, with exactly one @. "
+            + "The local part may contain letters, digits, and common email symbols, with dots only between "
+            + "non-empty parts. The domain needs at least two dot-separated labels of letters, digits, or "
+            + "inner hyphens. Whitespace is not allowed.";
+    private static final String NEW_LOCAL_ATOM_REGEX = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
+    private static final String NEW_LOCAL_PART_REGEX = NEW_LOCAL_ATOM_REGEX
+            + "(\\." + NEW_LOCAL_ATOM_REGEX + ")*";
+    private static final String NEW_DOMAIN_LABEL_REGEX = "[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?";
     private static final String SPECIAL_CHARACTERS = "+_.-";
     // Previous AB3 rule, retained only to read contacts saved before the new input rule.
     private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
@@ -68,9 +74,13 @@ public class Email {
                 || test.codePoints().anyMatch(Email::isWhitespaceOrControl)) {
             return false;
         }
+        String localPart = test.substring(0, atIndex);
+        if (!localPart.matches(NEW_LOCAL_PART_REGEX)) {
+            return false;
+        }
         String domain = test.substring(atIndex + 1);
         String[] labels = domain.split("\\.", -1);
-        return labels.length >= 2 && Arrays.stream(labels).allMatch(label -> !label.isEmpty());
+        return labels.length >= 2 && Arrays.stream(labels).allMatch(label -> label.matches(NEW_DOMAIN_LABEL_REGEX));
     }
 
     private static boolean isWhitespaceOrControl(int codePoint) {

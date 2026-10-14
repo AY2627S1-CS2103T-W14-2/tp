@@ -87,8 +87,11 @@ Names must contain 1–60 characters after surrounding spaces are removed. Engli
 apostrophes, hyphens, and periods are accepted; at least one English letter is required. The name keeps its
 capitalization for display.
 
-Emails need exactly one `@`, a non-empty local part, and at least two non-empty domain labels separated by dots.
-Whitespace is not allowed. Newly entered emails are stored in lowercase.
+Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
+digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
+Domain labels contain English letters and digits, with hyphens allowed only inside a label. Whitespace, surrounding
+punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
+in lowercase.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.

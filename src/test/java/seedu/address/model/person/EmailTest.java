@@ -48,6 +48,17 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("peterjack@.example.com")); // domain name starts with a period
         assertFalse(Email.isValidEmail("peterjack@example.com.")); // domain name ends with a period
         assertFalse(Email.isValidEmail("peterjack@example..com")); // empty internal domain label
+        assertFalse(Email.isValidEmail("mailto:alex@example.com")); // URI prefix is not an email local part
+        assertFalse(Email.isValidEmail("alex@example.com,")); // punctuation copied after an address
+        assertFalse(Email.isValidEmail("alex@example.com;")); // punctuation copied after an address
+        assertFalse(Email.isValidEmail("<alex@example.com>")); // angle-bracket display format
+        assertFalse(Email.isValidEmail("alex(comment)@example.com")); // comments are unsupported
+        assertFalse(Email.isValidEmail("alex@-example.com")); // domain label starts with hyphen
+        assertFalse(Email.isValidEmail("alex@example-.com")); // domain label ends with hyphen
+        assertFalse(Email.isValidEmail("alex@exa_mple.com")); // underscore is not a domain character
+        assertFalse(Email.isValidEmail(".alex@example.com")); // leading local-part dot
+        assertFalse(Email.isValidEmail("alex.@example.com")); // trailing local-part dot
+        assertFalse(Email.isValidEmail("al..ex@example.com")); // repeated local-part dot
 
         // valid email
         assertTrue(Email.isValidEmail("PeterJack_1190@example.com")); // underscore in local part
@@ -56,6 +67,7 @@ public class EmailTest {
         assertTrue(Email.isValidEmail("PeterJack-1190@example.com")); // hyphen in local part
         assertTrue(Email.isValidEmail("a@b.c")); // minimal structure
         assertTrue(Email.isValidEmail("a!b@example.com")); // broader local part
+        assertTrue(Email.isValidEmail("alex+project@sub.example.com")); // common project alias
         assertTrue(Email.isValidEmail("123@145.com")); // numeric local part
         assertTrue(Email.isValidEmail("a1+be.d@example1.com")); // mixture of alphanumeric and special characters
         assertTrue(Email.isValidEmail("peter_jack@very-very-very-long-example.com")); // long domain name
