@@ -33,7 +33,7 @@ public class AddCommand extends Command {
             + PREFIX_TELEGRAM + "@john_doe "
             + PREFIX_PROJECT + "CS2103T";
 
-    public static final String MESSAGE_SUCCESS = "Added contact: %1$s%2$s.";
+    public static final String MESSAGE_SUCCESS = "Added contact: %1$s%2$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
     public static final String MESSAGE_PROJECT_REQUIRED = "Project is required. Use pr/PROJECT.";
 

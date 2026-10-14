@@ -37,7 +37,7 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals("Added contact: Amy Bee [CS2103T].", commandResult.getFeedbackToUser());
+        assertEquals("Added contact: Amy Bee [CS2103T]", commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
 
