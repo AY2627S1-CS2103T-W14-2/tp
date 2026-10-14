@@ -79,16 +79,35 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_formattedInternationalPhone_storesCanonicalValue() {
-        Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567").build();
-
-        assertParseSuccess(parser, NAME_DESC_BOB + " p/+65 9123-4567" + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
-                new AddCommand(expectedPerson));
+        Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567")
+                .withProjects(VALID_PROJECT_BOB).build();
+        assertParseSuccess(parser, NAME_DESC_BOB + " p/+65 9123-4567" + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
     }
 
     @Test
     public void parse_localPhone_rejectedForNewContact() {
-        assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
-                Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_newNameAndMixedCaseEmail_storesExpectedValues() {
+        Person expectedPerson = new PersonBuilder(BOB).withName("O'Connor-Smith Jr. 2")
+                .withEmail("alex!mail@example.com").withProjects(VALID_PROJECT_BOB).build();
+
+        assertParseSuccess(parser, " n/O'Connor-Smith Jr. 2" + PHONE_DESC_BOB
+                + " e/Alex!Mail@Example.COM" + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_oldNameAndEmailInputs_rejectedForNewContact() {
+        assertParseFailure(parser, " n/12345" + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/alex@example"
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                Email.MESSAGE_CONSTRAINTS);
     }
 
     @Test

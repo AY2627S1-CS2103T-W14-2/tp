@@ -74,6 +74,25 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAndSave_legacyNameAndEmail_preservesOriginalValues() throws Exception {
+        Path file = testFolder.resolve("legacy-contact.json");
+        Files.writeString(file, """
+                {"persons":[{"name":"12345 ","phone":"91234567","email":"Alex@Example"}]}
+                """);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        ReadOnlyAddressBook contacts = storage.readAddressBook().orElseThrow();
+
+        assertEquals("12345 ", contacts.getPersonList().getFirst().getName().fullName);
+        assertEquals("Alex@Example", contacts.getPersonList().getFirst().getEmail().value);
+
+        storage.saveAddressBook(contacts);
+        String saved = Files.readString(file);
+        assertTrue(saved.contains("\"name\" : \"12345 \""));
+        assertTrue(saved.contains("\"email\" : \"Alex@Example\""));
+        assertEquals(contacts, storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void save_backupFailure_leavesOriginalFileUntouched() throws Exception {
         Path file = testFolder.resolve("contacts.json");
         Files.writeString(file, "{\"persons\":[{\"address\":\"NUS\"}]}");

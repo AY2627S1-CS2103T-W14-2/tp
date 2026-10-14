@@ -88,6 +88,16 @@ The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is store
 numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
 number is assigned or callable.
 
+Names must contain 1–60 characters after surrounding spaces are removed. English letters, digits, spaces,
+apostrophes, hyphens, and periods are accepted; at least one English letter is required. The name keeps its
+capitalization for display.
+
+Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
+digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
+Domain labels contain English letters and digits, with hyphens allowed only inside a label. Whitespace, surrounding
+punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
+in lowercase.
+
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
@@ -142,6 +152,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
 * Existing values will be updated to the input values.
 * New phone inputs follow the same international format as `add`. Existing saved local numbers remain unchanged
   until edited.
+* Name and email inputs follow the same rules as `add`; edited emails are stored in lowercase.
 * Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
 
 Examples:
@@ -234,9 +245,10 @@ Format: `exit`
 AddressBook automatically saves data after every command. You do not need to save manually.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
-Telegram username or project still load. Previously saved local phone numbers also load unchanged. Before the
-first save that removes address or tags, LinkUp creates a backup beside the original file, named
-`<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
+Telegram username or project still load. Previously saved names and emails also retain their original spelling and
+case, even if they do not meet today's input rules. Previously saved local phone numbers also load unchanged.
+Before the first save that removes address or tags, LinkUp creates a
+backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
 migration backups. Importing another old file creates a separate backup. If the backup cannot be written,
 LinkUp reports a save error and leaves the original file untouched.

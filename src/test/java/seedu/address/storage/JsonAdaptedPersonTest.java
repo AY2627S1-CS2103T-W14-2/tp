@@ -49,6 +49,17 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_legacyNameAndEmail_preservesSavedValues() throws Exception {
+        String oldName = "12345 ";
+        String oldEmail = "Alex@Example";
+        JsonAdaptedPerson person = new JsonAdaptedPerson(oldName, VALID_PHONE, oldEmail,
+                VALID_TELEGRAM_USERNAME, VALID_PROJECTS);
+
+        assertEquals(oldName, person.toModelType().getName().fullName);
+        assertEquals(oldEmail, person.toModelType().getEmail().value);
+    }
+
+    @Test
     public void toModelType_invalidName_throwsIllegalValueException() {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_TELEGRAM_USERNAME,
