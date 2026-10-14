@@ -80,8 +80,11 @@ public class EditCommandParserTest {
     @Test
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, "1" + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS); // invalid name
+        assertParseFailure(parser, "1 n/12345", Name.MESSAGE_CONSTRAINTS); // previously allowed name
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS); // invalid phone
+        assertParseFailure(parser, "1 p/91234567", Phone.MESSAGE_CONSTRAINTS); // local phone needs country code
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
+        assertParseFailure(parser, "1 e/alex@example", Email.MESSAGE_CONSTRAINTS); // domain needs a dot
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -89,6 +92,13 @@ public class EditCommandParserTest {
         // multiple invalid values, but only the first invalid value is captured
         assertParseFailure(parser, "1" + INVALID_NAME_DESC + INVALID_EMAIL_DESC + VALID_PHONE_AMY,
                 Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_formattedInternationalPhone_storesCanonicalValue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("+6591234567").build();
+
+        assertParseSuccess(parser, "1 p/+65 9123-4567", new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test

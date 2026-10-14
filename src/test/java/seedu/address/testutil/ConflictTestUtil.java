@@ -37,24 +37,24 @@ public final class ConflictTestUtil {
      * Returns a builder for a person whose name and contact details are not used by any typical person.
      */
     public static PersonBuilder distinctFromTypicalPersons() {
-        return new PersonBuilder().withName("Zoe Tan").withPhone("81112222")
+        return new PersonBuilder().withName("Zoe Tan").withPhone("+6581112222")
                 .withEmail("zoe.tan@example.com").withTelegramUsername("zoe_tan");
     }
 
     /**
      * Returns one clash per unique contact detail: copies of {@code base}, each with one detail taken from
-     * {@code existing}. The email and Telegram username are copied in a different case, since they are compared
-     * case-insensitively.
+     * {@code existing}. The email and Telegram username are typed in a different case, since case must not hide a
+     * clash; the expected conflict reports the value as saved.
      */
     public static List<Clash> clashesWith(Person existing, Person base) {
         String phone = existing.getPhone().value;
-        String email = existing.getEmail().value.toUpperCase(Locale.ROOT);
+        Person emailClash = new PersonBuilder(base).withEmail(existing.getEmail().value.toUpperCase(Locale.ROOT))
+                .build();
         String telegramUsername = existing.getTelegramUsername().value;
         return List.of(
                 new Clash(new PersonBuilder(base).withPhone(phone).build(),
                         new ContactConflict(Field.PHONE, phone, existing)),
-                new Clash(new PersonBuilder(base).withEmail(email).build(),
-                        new ContactConflict(Field.EMAIL, email, existing)),
+                new Clash(emailClash, new ContactConflict(Field.EMAIL, emailClash.getEmail().value, existing)),
                 new Clash(new PersonBuilder(base).withTelegramUsername("@" + telegramUsername.toUpperCase(Locale.ROOT))
                         .build(), new ContactConflict(Field.TELEGRAM_USERNAME, "@" + telegramUsername, existing)));
     }

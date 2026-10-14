@@ -14,7 +14,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -42,7 +41,7 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                "Added contact: Amy Bee [CS2103T]",
                 expectedModel);
     }
 
@@ -52,12 +51,12 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(ALICE_NAMESAKE);
 
         assertCommandSuccess(new AddCommand(ALICE_NAMESAKE), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(ALICE_NAMESAKE)), expectedModel);
+                "Added contact: Alice Pauline [Orbital]", expectedModel);
     }
 
     @Test
     public void execute_samePerson_throwsCommandException() {
-        assertCommandFailure(new AddCommand(ALICE), model, "Phone number 94351253 is already used by Alice Pauline. "
+        assertCommandFailure(new AddCommand(ALICE), model, "Phone number +6594351253 is already used by Alice Pauline. "
                 + "Please enter a different phone number.");
     }
 
@@ -65,8 +64,8 @@ public class AddCommandIntegrationTest {
     public void execute_clashingPerson_throwsCommandExceptionAndKeepsUndoState() {
         // In the order of ConflictTestUtil#clashesWith: phone, email, Telegram username
         List<String> expectedMessages = List.of(
-                "Phone number 94351253 is already used by Alice Pauline. Please enter a different phone number.",
-                "Email ALICE@EXAMPLE.COM is already used by Alice Pauline. Please enter a different email.",
+                "Phone number +6594351253 is already used by Alice Pauline. Please enter a different phone number.",
+                "Email alice@example.com is already used by Alice Pauline. Please enter a different email.",
                 "Telegram username @alice_pauline is already used by Alice Pauline. "
                         + "Please enter a different Telegram username.");
         List<Clash> clashes = clashesWith(ALICE, BOB);

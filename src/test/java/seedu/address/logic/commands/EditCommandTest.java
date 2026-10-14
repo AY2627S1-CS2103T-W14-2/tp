@@ -202,7 +202,7 @@ public class EditCommandTest {
                 new EditPersonDescriptorBuilder().withEmail(upperCaseEmail).build());
 
         assertCommandFailure(editCommand, model,
-                new ContactConflict(Field.EMAIL, upperCaseEmail, secondPerson).getMessage());
+                new ContactConflict(Field.EMAIL, upperCaseEmail.toLowerCase(Locale.ROOT), secondPerson).getMessage());
     }
 
     @Test

@@ -187,8 +187,13 @@ checks phone, email and Telegram username in that order and returns the first cl
 (the clashing field, the value and the existing contact). `ContactConflict#getMessage()` builds the only
 user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean form.
 
-* `Email#equals` and `Email#hashCode` compare the lower-cased (`Locale.ROOT`) text, while the email is stored and
-  displayed as typed. `TelegramUsername` is already normalised to lower case without `@` when it is constructed.
+* Newly entered emails are stored in lower case, but emails saved by older versions keep their case. `Email#equals`
+  and `Email#hashCode` therefore compare the lower-cased (`Locale.ROOT`) text, so a saved `Bob@Example.com` still
+  clashes with a new `bob@example.com`. `TelegramUsername` is already normalised to lower case without `@` when it
+  is constructed.
+* Phones are compared in their saved form. New numbers are stored as `+` followed by digits, so spaces or hyphens
+  never hide a clash. A legacy local number such as `91234567` does not match `+6591234567`, because LinkUp never
+  infers a country code.
   An empty Telegram username (`TelegramUsername.EMPTY`, used by legacy contacts) never matches.
 * `UniquePersonList` checks every `add`, `setPerson` and `setPersons` call and throws `DuplicatePersonException`
   carrying the conflict message. `setPerson(target, editedPerson)` ignores `target`, so a contact never conflicts
@@ -205,8 +210,8 @@ user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean for
 
 * *Keep `isSamePerson`, redefined as "all fields equal".* This would still let two contacts share a phone or email
   under different names, and it would duplicate `equals`. It was removed instead.
-* *Store emails in lower case.* This would also make comparison case-insensitive, but it would change what the user
-  typed in both the contact list and the data file. Comparing case-insensitively keeps the typed text.
+* *Lower-case every saved email when loading.* This would make a case-sensitive comparison enough, but it would
+  silently rewrite emails saved by older versions. Comparing case-insensitively handles both old and new emails.
 * *Warn about, rather than reject, a contact with the same name.* Names do not identify people, and a warning on
   every same-name contact would add noise without preventing real duplicates.
 

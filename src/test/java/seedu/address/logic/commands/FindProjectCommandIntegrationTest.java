@@ -150,8 +150,8 @@ public class FindProjectCommandIntegrationTest {
     @Test
     public void execute_editAfterSearch_preservesProjectsAndUsesDisplayedIndex() throws Exception {
         logic.execute("findproject team alpha");
-        logic.execute("edit 1 p/91234567");
-        Person editedBob = new PersonBuilder(bob).withPhone("91234567").build();
+        logic.execute("edit 1 p/+6591234567");
+        Person editedBob = new PersonBuilder(bob).withPhone("+6591234567").build();
 
         logic.execute("findproject team alpha");
         assertEquals(List.of(editedBob, carl), logic.getFilteredPersonList());

@@ -30,7 +30,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PROJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TELEGRAM;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
@@ -76,6 +75,39 @@ public class AddCommandParserTest {
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
                 new AddCommand(expectedPerson));
 
+    }
+
+    @Test
+    public void parse_formattedInternationalPhone_storesCanonicalValue() {
+        Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567")
+                .withProjects(VALID_PROJECT_BOB).build();
+        assertParseSuccess(parser, NAME_DESC_BOB + " p/+65 9123-4567" + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_localPhone_rejectedForNewContact() {
+        assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_newNameAndMixedCaseEmail_storesExpectedValues() {
+        Person expectedPerson = new PersonBuilder(BOB).withName("O'Connor-Smith Jr. 2")
+                .withEmail("alex!mail@example.com").withProjects(VALID_PROJECT_BOB).build();
+
+        assertParseSuccess(parser, " n/O'Connor-Smith Jr. 2" + PHONE_DESC_BOB
+                + " e/Alex!Mail@Example.COM" + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_oldNameAndEmailInputs_rejectedForNewContact() {
+        assertParseFailure(parser, " n/12345" + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/alex@example"
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                Email.MESSAGE_CONSTRAINTS);
     }
 
     @Test
@@ -156,11 +188,9 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_optionalFieldsMissing_success() {
-        // zero projects
-        Person expectedPerson = new PersonBuilder(AMY).withProjects().build();
-        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY,
-                new AddCommand(expectedPerson));
+    public void parse_projectMissing_failure() {
+        assertParseFailure(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY,
+                AddCommand.MESSAGE_PROJECT_REQUIRED);
     }
 
     @Test
@@ -177,19 +207,23 @@ public class AddCommandParserTest {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
 
         // missing name prefix
-        assertParseFailure(parser, VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
+        assertParseFailure(parser, VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
+                + PROJECT_DESC_BOB,
                 expectedMessage);
 
         // missing phone prefix
-        assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
+        assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
+                + PROJECT_DESC_BOB,
                 expectedMessage);
 
         // missing email prefix
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + TELEGRAM_DESC_BOB,
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + TELEGRAM_DESC_BOB
+                + PROJECT_DESC_BOB,
                 expectedMessage);
 
         // missing Telegram username prefix
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + VALID_TELEGRAM_USERNAME_BOB,
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + VALID_TELEGRAM_USERNAME_BOB
+                + PROJECT_DESC_BOB,
                 expectedMessage);
 
         // all prefixes missing
@@ -201,18 +235,19 @@ public class AddCommandParserTest {
     public void parse_invalidValue_failure() {
         // invalid name
         assertParseFailure(parser, INVALID_NAME_DESC + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + TELEGRAM_DESC_BOB, Name.MESSAGE_CONSTRAINTS);
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Name.MESSAGE_CONSTRAINTS);
 
         // invalid phone
         assertParseFailure(parser, NAME_DESC_BOB + INVALID_PHONE_DESC + EMAIL_DESC_BOB
-                + TELEGRAM_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
 
         // invalid email
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_EMAIL_DESC
-                + TELEGRAM_DESC_BOB, Email.MESSAGE_CONSTRAINTS);
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Email.MESSAGE_CONSTRAINTS);
 
         // invalid Telegram username
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + INVALID_TELEGRAM_DESC,
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + INVALID_TELEGRAM_DESC
+                + PROJECT_DESC_BOB,
                 TelegramUsername.MESSAGE_CONSTRAINTS);
 
         // invalid project
@@ -220,12 +255,13 @@ public class AddCommandParserTest {
                 + INVALID_PROJECT_DESC, Project.MESSAGE_CONSTRAINTS);
 
         // two invalid values, only first invalid value reported
-        assertParseFailure(parser, INVALID_NAME_DESC + INVALID_PHONE_DESC + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB,
+        assertParseFailure(parser, INVALID_NAME_DESC + INVALID_PHONE_DESC + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
+                + PROJECT_DESC_BOB,
                 Name.MESSAGE_CONSTRAINTS);
 
         // non-empty preamble
         assertParseFailure(parser, PREAMBLE_NON_EMPTY + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + TELEGRAM_DESC_BOB,
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
     }
 }

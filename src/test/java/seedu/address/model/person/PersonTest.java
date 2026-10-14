@@ -123,7 +123,7 @@ public class PersonTest {
         Person sharesTelegram = distinctFromAlex().withTelegramUsername("@Alex_Yeoh").build();
 
         assertConflict(new ContactConflict(Field.PHONE, ALEX_PHONE, ALEX), sharesAll);
-        assertConflict(new ContactConflict(Field.EMAIL, "ALEX@example.com", ALEX), sharesEmailAndTelegram);
+        assertConflict(new ContactConflict(Field.EMAIL, "alex@example.com", ALEX), sharesEmailAndTelegram);
         assertConflict(new ContactConflict(Field.TELEGRAM_USERNAME, "@alex_yeoh", ALEX), sharesTelegram);
     }
 
