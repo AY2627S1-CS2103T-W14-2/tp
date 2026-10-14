@@ -81,6 +81,12 @@ public interface Model {
     boolean canUndo();
 
     /**
+     * Returns a copy of the next state to restore without consuming undo history.
+     * @throws IllegalStateException if there is no saved state to restore.
+     */
+    ReadOnlyAddressBook getUndoState();
+
+    /**
      * Restores the most recent saved address book state and shows all persons.
      * Only that saved state is discarded after undoing; earlier states remain available.
      * @throws IllegalStateException if there is no saved state to restore.

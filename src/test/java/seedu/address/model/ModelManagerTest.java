@@ -110,6 +110,26 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void getUndoState_noSavedState_throwsIllegalStateException() {
+        assertThrows(IllegalStateException.class, () -> modelManager.getUndoState());
+    }
+
+    @Test
+    public void getUndoState_returnsCopyAndPreservesHistory() {
+        AddressBook previousState = new AddressBookBuilder().withPerson(ALICE).build();
+        modelManager.saveUndoState(previousState);
+        AddressBook undoState = (AddressBook) modelManager.getUndoState();
+        assertEquals(previousState, undoState);
+        undoState.removePerson(ALICE);
+
+        assertTrue(modelManager.canUndo());
+        assertEquals(previousState, modelManager.getUndoState());
+        modelManager.undo();
+        assertEquals(previousState, modelManager.getAddressBook());
+        assertFalse(modelManager.canUndo());
+    }
+
+    @Test
     public void undo_noSavedState_throwsIllegalStateException() {
         modelManager.addPerson(ALICE);
         assertThrows(IllegalStateException.class, () -> modelManager.undo());

@@ -145,6 +145,14 @@ public class ModelManager implements Model {
         return !undoHistory.isEmpty();
     }
 
+    @Override
+    public ReadOnlyAddressBook getUndoState() {
+        if (!canUndo()) {
+            throw new IllegalStateException("No command to undo");
+        }
+        return new AddressBook(undoHistory.peek());
+    }
+
     /**
      * Restores the most recent saved address book state, discards it and shows all persons.
      * @throws IllegalStateException if there is no saved state to restore.
