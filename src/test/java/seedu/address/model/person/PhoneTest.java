@@ -34,6 +34,10 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("9312 1534")); // no leading +
         assertFalse(Phone.isValidPhone("+0123456")); // international numbers cannot start with zero
         assertFalse(Phone.isValidPhone("-+6591234567")); // + must come first
+        assertFalse(Phone.isValidPhone("+--6591234567")); // separator before first digit
+        assertFalse(Phone.isValidPhone("+ 6591234567")); // digit must immediately follow +
+        assertFalse(Phone.isValidPhone("+6591234567-")); // separator after last digit
+        assertFalse(Phone.isValidPhone("+12")); // too few digits even with +
         assertFalse(Phone.isValidPhone("+65 9123x4567")); // unsupported character
         assertFalse(Phone.isValidPhone("+65\t91234567")); // internal tabs are not separators
         assertFalse(Phone.isValidPhone("+" + "6".repeat(16))); // too many digits
@@ -42,6 +46,7 @@ public class PhoneTest {
         assertTrue(Phone.isValidPhone("+123")); // exactly 3 digits
         assertTrue(Phone.isValidPhone("+6591234567"));
         assertTrue(Phone.isValidPhone("+65 9123-4567")); // permitted separators
+        assertTrue(Phone.isValidPhone("  +65 9123-4567  ")); // surrounding spaces are trimmed
         assertTrue(Phone.isValidPhone("+60123457878"));
         assertTrue(Phone.isValidPhone("+9991234567")); // calling codes are not checked
         assertTrue(Phone.isValidPhone("+1" + "2".repeat(14))); // upper length boundary
@@ -78,5 +83,12 @@ public class PhoneTest {
 
         // different values -> returns false
         assertFalse(phone.equals(new Phone("+6591234568")));
+        assertFalse(phone.equals(Phone.fromStoredValue("91234567"))); // no inferred country code
+    }
+
+    @Test
+    public void fromStoredValue_formattedPhone_rejectedWithoutRewriting() {
+        assertThrows(IllegalArgumentException.class, () -> Phone.fromStoredValue("+65 9123-4567"));
+        assertThrows(IllegalArgumentException.class, () -> Phone.fromStoredValue(" +6591234567 "));
     }
 }

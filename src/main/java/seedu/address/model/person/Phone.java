@@ -11,7 +11,9 @@ public class Phone {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Phone number must start with + and contain 3-15 digits, with a non-zero first digit. "
-                    + "Spaces and hyphens are allowed after +, e.g. +65 9123-4567.";
+                    + "The + must be immediately followed by a digit; spaces and hyphens are allowed "
+                    + "only between digits, e.g. +65 9123-4567.";
+    private static final String INPUT_REGEX = "\\+[1-9][0-9 -]*[0-9]";
     private static final String INTERNATIONAL_REGEX = "\\+[1-9][0-9]{2,14}";
     private static final String LEGACY_REGEX = "[0-9]{3,}";
 
@@ -60,7 +62,7 @@ public class Phone {
      */
     public static boolean isValidPhone(String test) {
         requireNonNull(test);
-        if (!test.trim().startsWith("+")) {
+        if (!test.trim().matches(INPUT_REGEX)) {
             return false;
         }
         String normalizedPhone = normalize(test);

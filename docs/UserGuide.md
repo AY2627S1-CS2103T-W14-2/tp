@@ -82,8 +82,10 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 **Tip:** Every new contact must have one initial project. Contacts saved before this requirement may still have no project;
 use `project` to associate them with one later.
 
-For a new phone number, enter `+` followed by a country calling code and a national number. You may include spaces
-or hyphens after `+` for readability; LinkUp removes them and stores the number as `+` followed by 3–15 digits.
+For a new phone number, enter `+` followed by a country calling code and a national number. The `+` must be
+immediately followed by a digit, and the number must end in a digit after surrounding whitespace is trimmed.
+You may include spaces or hyphens between digits for readability; LinkUp removes them and stores the number
+as `+` followed by 3–15 digits. For example, `+--6591234567` and `+6591234567-` are rejected.
 The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is stored as `+6591234567`. Bare local
 numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
 number is assigned or callable.
@@ -94,7 +96,8 @@ capitalization for display.
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
-Domain labels contain English letters and digits, with hyphens allowed only inside a label. Whitespace, surrounding
+Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
+is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
 in lowercase.
 
@@ -259,6 +262,11 @@ want to retain address/tag values: the updated app no longer displays or edits t
 ### Editing the data file
 
 AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+
+In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
+hyphens. The command input `p/+65 9123-4567` is normalized before saving; that formatted string is not accepted
+directly in JSON. Older digit-only numbers such as `"91234567"` remain loadable and are preserved exactly.
+LinkUp does not infer a country code, so `91234567` and `+6591234567` are different stored phone values.
 
 <box type="warning" seamless>
 
