@@ -10,7 +10,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TELEGRAM;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import seedu.address.logic.commands.AddCommand;
@@ -43,6 +42,9 @@ public class AddCommandParser implements Parser<AddCommand> {
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
         }
+        if (argMultimap.getValue(PREFIX_PROJECT).isEmpty()) {
+            throw new ParseException(AddCommand.MESSAGE_PROJECT_REQUIRED);
+        }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_TELEGRAM,
                 PREFIX_PROJECT);
@@ -51,12 +53,9 @@ public class AddCommandParser implements Parser<AddCommand> {
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         TelegramUsername telegramUsername = ParserUtil.parseTelegramUsername(
                 argMultimap.getValue(PREFIX_TELEGRAM).get());
-        Optional<String> projectName = argMultimap.getValue(PREFIX_PROJECT);
-        List<Project> projects = projectName.isPresent()
-                ? List.of(ParserUtil.parseProject(projectName.get()))
-                : List.of();
+        Project project = ParserUtil.parseProject(argMultimap.getValue(PREFIX_PROJECT).get());
 
-        Person person = new Person(name, phone, email, telegramUsername, projects);
+        Person person = new Person(name, phone, email, telegramUsername, List.of(project));
 
         return new AddCommand(person);
     }

@@ -25,7 +25,7 @@ public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html";
     public static final String HELP_MESSAGE = "LinkUp command reference\n\n"
-            + "COMMAND: add n/NAME p/PHONE e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT]\n"
+            + "COMMAND: add n/NAME p/PHONE e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT\n"
             + "Save a contact with their phone, email, Telegram username and project. "
             + "Phone example: p/+6591234567.\n\n"
             + "COMMAND: list\n"

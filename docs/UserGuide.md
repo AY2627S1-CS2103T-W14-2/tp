@@ -53,7 +53,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [pr/PROJECT]` can be used as `n/John Doe pr/CS2103T` or as `n/John Doe`.
+  For example, `find KEYWORD [MORE_KEYWORDS]` accepts both `find Alice Bob` and `find Alice`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -68,8 +68,6 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 Shows a message explaining how to access the help page.
 
-![help message](images/helpMessage.png)
-
 Format: `help`
 
 
@@ -77,11 +75,12 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
 <box type="tip" seamless>
 
-**Tip:** A person can have one initial project or no project.
+**Tip:** Every new contact must have one initial project. Contacts saved before this requirement may still have no project;
+use `project` to associate them with one later.
 
 For a new phone number, enter `+` followed by a country calling code and a national number. You may include spaces
 or hyphens after `+` for readability; LinkUp removes them and stores the number as `+` followed by 3–15 digits.
@@ -92,9 +91,9 @@ number is assigned or callable.
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is optional. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
-repeated internal whitespace is collapsed, and project names are compared case-insensitively. Only one `pr/` prefix
-is accepted by the `add` command. If `pr/` is provided, it must not be empty.
+The project is required. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
+repeated internal whitespace is collapsed, and project names are compared case-insensitively. Supply exactly one
+non-empty `pr/PROJECT`. If `pr/` is missing, the command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
 For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
@@ -102,7 +101,7 @@ For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*
 
 Examples:
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
-* `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878`
+* `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
 
@@ -280,7 +279,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME [pr/PROJECT] ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
