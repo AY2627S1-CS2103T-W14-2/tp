@@ -58,7 +58,7 @@ public class ProjectContainsKeywordPredicateTest {
         assertFalse(predicate.test(new PersonBuilder().withProjects("CS2103T").build()));
         assertFalse(predicate.test(new PersonBuilder().withProjects().build()));
         assertFalse(predicate.test(new PersonBuilder().withName("Orbital")
-                .withEmail("orbital@example.com").withAddress("Orbital Road").withTags("orbital").build()));
+                .withEmail("orbital@example.com").build()));
     }
 
     @Test

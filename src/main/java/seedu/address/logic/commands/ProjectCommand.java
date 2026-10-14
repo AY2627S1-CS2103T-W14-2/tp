@@ -52,7 +52,7 @@ public class ProjectCommand extends Command {
         List<Project> projects = new ArrayList<>(original.getProjects());
         projects.add(project);
         Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getTelegramUsername(), original.getAddress(), projects, original.getTags());
+                original.getTelegramUsername(), projects);
         model.setPerson(original, updated);
         return new CommandResult(String.format(MESSAGE_SUCCESS, project, original.getName()));
     }

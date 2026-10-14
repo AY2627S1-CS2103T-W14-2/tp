@@ -19,8 +19,7 @@ public class MessagesTest {
 
     @Test
     public void format_legacyPersonWithoutTelegramUsername_omitsTelegramField() {
-        Person legacyPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), TelegramUsername.EMPTY,
-                ALICE.getAddress(), ALICE.getTags());
+        Person legacyPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), TelegramUsername.EMPTY);
 
         assertFalse(Messages.format(legacyPerson).contains("Telegram:"));
     }
