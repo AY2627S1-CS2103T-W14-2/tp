@@ -171,8 +171,11 @@ retired properties and create no further backup. Backup files are not part of co
 A file that is well-formed but cannot be loaded, for example because two contacts conflict, has no retired
 fields and so is not covered by the migration backup. Instead, when `MainApp.initModelManager` catches the
 `DataLoadingException` and starts with an empty address book, it calls `Storage#backupAddressBook()`, which copies
-the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. A failed
-backup is logged and startup continues, as before. The backup is made only at startup, not on every read, so tests
+the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. If the
+backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
+so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
+somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
+backup. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
