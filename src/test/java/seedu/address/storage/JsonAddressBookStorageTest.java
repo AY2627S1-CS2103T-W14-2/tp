@@ -48,6 +48,7 @@ public class JsonAddressBookStorageTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
         ReadOnlyAddressBook contacts = storage.readAddressBook().orElseThrow();
         assertEquals(3, contacts.getPersonList().size());
+        assertEquals("91234567", contacts.getPersonList().getFirst().getPhone().value);
         assertEquals(TelegramUsername.EMPTY, contacts.getPersonList().get(1).getTelegramUsername());
         assertTrue(contacts.getPersonList().get(1).getProjects().isEmpty());
         assertEquals(List.of(), backupFiles()); // Loading alone does not migrate the file.
@@ -58,6 +59,7 @@ public class JsonAddressBookStorageTest {
         assertArrayEquals(original, Files.readAllBytes(backup));
         assertFalse(Files.readString(file).contains("\"address\""));
         assertFalse(Files.readString(file).contains("\"tags\""));
+        assertTrue(Files.readString(file).contains("\"phone\" : \"91234567\""));
         assertEquals(contacts, storage.readAddressBook().orElseThrow());
 
         new JsonAddressBookStorage(file).saveAddressBook(contacts);
@@ -69,6 +71,25 @@ public class JsonAddressBookStorageTest {
         storage.saveAddressBook(storage.readAddressBook().orElseThrow());
         assertEquals(2, backupFiles().size());
         assertArrayEquals(original, Files.readAllBytes(backup));
+    }
+
+    @Test
+    public void readAndSave_legacyNameAndEmail_preservesOriginalValues() throws Exception {
+        Path file = testFolder.resolve("legacy-contact.json");
+        Files.writeString(file, """
+                {"persons":[{"name":"12345 ","phone":"91234567","email":"Alex@Example"}]}
+                """);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        ReadOnlyAddressBook contacts = storage.readAddressBook().orElseThrow();
+
+        assertEquals("12345 ", contacts.getPersonList().getFirst().getName().fullName);
+        assertEquals("Alex@Example", contacts.getPersonList().getFirst().getEmail().value);
+
+        storage.saveAddressBook(contacts);
+        String saved = Files.readString(file);
+        assertTrue(saved.contains("\"name\" : \"12345 \""));
+        assertTrue(saved.contains("\"email\" : \"Alex@Example\""));
+        assertEquals(contacts, storage.readAddressBook().orElseThrow());
     }
 
     @Test

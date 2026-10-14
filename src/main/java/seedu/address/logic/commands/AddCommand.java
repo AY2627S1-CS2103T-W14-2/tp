@@ -28,7 +28,7 @@ public class AddCommand extends Command {
             + PREFIX_PROJECT + "PROJECT\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
-            + PREFIX_PHONE + "98765432 "
+            + PREFIX_PHONE + "+6598765432 "
             + PREFIX_EMAIL + "johnd@example.com "
             + PREFIX_TELEGRAM + "@john_doe "
             + PREFIX_PROJECT + "CS2103T";

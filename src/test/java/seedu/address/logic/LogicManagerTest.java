@@ -161,7 +161,7 @@ public class LogicManagerTest {
         model.addPerson(person);
         AddressBook before = new AddressBook(model.getAddressBook());
 
-        logic.execute("edit 1 n/Changed Name p/91234567");
+        logic.execute("edit 1 n/Changed Name p/+6591234567");
         assertFalse(before.equals(model.getAddressBook()));
         logic.execute("undo");
 
