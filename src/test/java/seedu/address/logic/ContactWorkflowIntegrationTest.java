@@ -27,7 +27,7 @@ import seedu.address.testutil.PersonBuilder;
 /**
  * Exercises user workflows through the real parser, model and JSON storage in an isolated directory.
  */
-public class MvpWorkflowIntegrationTest {
+public class ContactWorkflowIntegrationTest {
     private static final String ADD_ALEX = "add n/Alex Tan p/+65 9123-4567 e/ALEX@Example.COM "
             + "tele/@Alex_Tan pr/ Team   Alpha";
     private static final String ADD_NAMESAKE = "add n/Alex Tan p/+65 8765-4321 e/OTHER@Example.COM "
