@@ -52,6 +52,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "removing-retired-contact-fields": "Removing retired contact fields",
+        "duplicate-contact-detection": "Duplicate contact detection",
         "finding-contacts-by-project": "Finding contacts by project",
         "project-association-implementation": "Project association implementation",
         "undo-command-implementation": "Undo command implementation",
