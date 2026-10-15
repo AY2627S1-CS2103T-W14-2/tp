@@ -8,7 +8,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PROJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TELEGRAM;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -34,7 +33,7 @@ public class AddCommand extends Command {
             + PREFIX_TELEGRAM + "@john_doe "
             + PREFIX_PROJECT + "CS2103T";
 
-    public static final String MESSAGE_SUCCESS = "New person added: %1$s";
+    public static final String MESSAGE_SUCCESS = "Added contact: %1$s%2$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
     public static final String MESSAGE_PROJECT_REQUIRED = "Project is required. Use pr/PROJECT.";
 
@@ -57,7 +56,8 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        String projectSuffix = toAdd.getProjects().isEmpty() ? "" : " [" + toAdd.getProjects().getFirst() + "]";
+        return new CommandResult(String.format(MESSAGE_SUCCESS, toAdd.getName(), projectSuffix));
     }
 
     @Override

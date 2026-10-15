@@ -116,6 +116,9 @@ Examples:
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
+After a successful add, LinkUp confirms the contact and its initial project, for example:
+`Added contact: John Doe [CS2103T]`
+
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
 
 ### Associating an existing contact with a project: `project`
