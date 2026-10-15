@@ -65,6 +65,12 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
+* Command words and prefixes are case-sensitive: use `findproject`, not `FindProject` or `findp`.
+  Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
+
+* `INDEX` always refers to the current displayed list, including search results. Check the index again after
+  adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
@@ -73,7 +79,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Opens a window containing a command reference and the User Guide link. Use its copy button to copy the link
+into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
@@ -138,8 +145,9 @@ If a detail is already used, LinkUp rejects the command, saves nothing, and name
 * `Email alexyeoh@example.com is already used by Alex Yeoh. Please enter a different email.`
 * `Telegram username @alex_yeoh is already used by Alex Yeoh. Please enter a different Telegram username.`
 
-If several details clash, LinkUp reports the first one in the order phone number, email, Telegram username.
-Correct that detail and enter the command again.
+LinkUp reports the first conflicting contact in saved order. If several details conflict with that contact,
+it reports the phone number first, then email, then Telegram username. Correct the reported detail and try again;
+another conflict may then be reported. Empty Telegram usernames on legacy contacts do not conflict.
 </box>
 
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
@@ -168,6 +176,9 @@ Examples:
 
 Shows a list of all persons in the address book.
 
+Clears the current search filter. Shows `Listed all contacts.` when contacts exist, or `No contacts saved yet.`
+when the list is empty.
+
 Format: `list`
 
 ### Editing a person: `edit`
@@ -179,6 +190,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* After a successful edit, LinkUp displays all contacts again. The previous search filter is cleared.
 * New phone inputs follow the same international format as `add`. Existing saved local numbers remain unchanged
   until edited.
 * Name and email inputs follow the same rules as `add`; edited emails are stored in lowercase.
@@ -186,6 +198,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
   [duplicate-contact rule](#adding-a-person-add) as `add`, with the same error messages. You can keep a contact's
   own phone number or email, and you can give a contact the same name as another contact.
 * Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
+* Only `n/`, `p/`, and `e/` are editable. Do not supply `tele/` or `pr/` to `edit`.
+  Replacing or removing a project association is not supported in this release.
 
 Examples:
 *  `edit 1 p/+6591234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `+6591234567` and `johndoe@example.com` respectively.
@@ -207,6 +221,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
 * No matches produces an empty list and the message `0 person(s) listed!`.
+* Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
 
 Examples:
@@ -249,6 +264,8 @@ Format: `delete INDEX`
 * Deletes the person at the specified `INDEX`.
 * The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
+* Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
@@ -257,6 +274,9 @@ Examples:
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
+
+This removes **all contacts**, including those hidden by a search filter, without a confirmation prompt.
+Use `undo` before closing the application if you need to restore them.
 
 Format: `clear`
 
@@ -270,11 +290,12 @@ Undo the last supported command. The supported commands are:
 * `project`
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
-Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Failed commands and
-unsupported commands do not affect the undo history.
+Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
+input or duplicate details do not affect the undo history. Commands such as `find`, `findproject`, `list`, and
+`help` do not add undo entries. A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
-If there are no commands left to undo, the application reports `No command to undo.`.
+If there are no commands left to undo, the application reports `No command to undo.`
 Redo is not supported.
 
 Format: `undo`
@@ -326,10 +347,6 @@ A file in which two contacts share a phone number, email or Telegram username br
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
@@ -359,3 +376,5 @@ Action     | Format, Examples
 **List**   | `list`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
+**Undo**   | `undo`
+**Exit**   | `exit`
