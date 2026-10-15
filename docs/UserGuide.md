@@ -20,12 +20,12 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 1. Install Java `25` and check that `java -version` reports version 25 in your terminal.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download `addressbook.jar` from the assets of the [LinkUp release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
+1. Download `LinkUp.jar` from the assets of the [LinkUp release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
    Download the JAR, not the source-code ZIP or TAR archive.
 
 1. Place the JAR in a folder where you have permission to create and update files.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar LinkUp.jar`.<br>
    Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
    if no data file exists, LinkUp supplies sample contacts.<br>
    ![Ui](images/Ui.png)
