@@ -1,6 +1,7 @@
 # LinkUp
 
 [![Java CI](https://github.com/AY2627S1-CS2103T-W14-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W14-2/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W14-2/tp/branch/master/graph/badge.svg)](https://app.codecov.io/gh/AY2627S1-CS2103T-W14-2/tp)
 
 **LinkUp is a desktop address book for students who manage contacts across multiple projects and teams.**
 

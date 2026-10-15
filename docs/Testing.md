@@ -31,6 +31,17 @@ You can run tests in two ways.
 
 ## Types of tests
 
+Run `./gradlew check coverage` (Windows: `.\gradlew.bat check coverage`) to run the full test suite,
+Checkstyle, and the coverage check. At least 95% of production source lines must be covered; no UI or startup
+classes are excluded. Branch coverage is reported separately and is not subject to this line-coverage threshold.
+The HTML report is at `build/reports/jacoco/coverage/html/index.html`; CI uploads the corresponding
+`build/reports/jacoco/coverage/coverage.xml` report to Codecov.
+
+The JavaFX tests need a graphical session and briefly open application windows. On Linux without a display,
+use `xvfb-run -a ./gradlew check coverage` after installing Xvfb. CI uses this command on Linux.
+Tests use temporary directories for contact data and preferences. Run the complete suite when checking coverage;
+a filtered test run alone is not expected to meet the project-wide threshold.
+
 This project has three types of tests:
 
 1. *Unit tests* target the lowest-level methods and classes.<br>
