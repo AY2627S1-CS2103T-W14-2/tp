@@ -70,7 +70,7 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
-     * Saves a copy of {@code previousState} for undo, replacing any existing saved state.
+     * Adds a copy of {@code previousState} to the undo history.
      * @throws NullPointerException if {@code previousState} is null.
      */
     void saveUndoState(ReadOnlyAddressBook previousState);
@@ -81,8 +81,14 @@ public interface Model {
     boolean canUndo();
 
     /**
-     * Restores the saved address book state and shows all persons.
-     * The saved state is discarded after undoing.
+     * Returns a copy of the next state to restore without consuming undo history.
+     * @throws IllegalStateException if there is no saved state to restore.
+     */
+    ReadOnlyAddressBook getUndoState();
+
+    /**
+     * Restores the most recent saved address book state and shows all persons.
+     * Only that saved state is discarded after undoing; earlier states remain available.
      * @throws IllegalStateException if there is no saved state to restore.
      */
     void undo();

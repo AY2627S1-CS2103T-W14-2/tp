@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -29,13 +30,31 @@ public class NameTest {
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName("12345")); // must contain a letter
+        assertFalse(Name.isValidName("Émile")); // only English letters are accepted for new input
+        assertFalse(Name.isValidName("A".repeat(61))); // exceeds the 60-character limit
+        assertFalse(Name.isValidName("A\tTan")); // tabs are not name spaces
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("12345")); // numbers only
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("O'Connor-Smith Jr. 2")); // permitted punctuation
+        assertTrue(Name.isValidName("A".repeat(60))); // upper length boundary
+        assertTrue(Name.isValidName("  Alex Tan  ")); // surrounding spaces are trimmed
+    }
+
+    @Test
+    public void constructor_trimsSurroundingSpaces_preservesCapitalization() {
+        assertEquals("Alex Tan", new Name("  Alex Tan  ").fullName);
+    }
+
+    @Test
+    public void fromStoredValue_oldValidName_preservesOriginalValue() {
+        assertEquals("12345 ", Name.fromStoredValue("12345 ").fullName);
+        assertEquals("A".repeat(61), Name.fromStoredValue("A".repeat(61)).fullName);
+        assertThrows(IllegalArgumentException.class, () -> Name.fromStoredValue("R@chel"));
     }
 
     @Test

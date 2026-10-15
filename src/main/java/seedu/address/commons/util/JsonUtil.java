@@ -17,11 +17,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 
 /**
  * Converts a Java object instance to JSON and vice versa
  */
 public class JsonUtil {
+
+    public static final String MESSAGE_NULL_CONTENT = "The file contains null instead of the expected data.";
 
     private static final Logger logger = LogsCenter.getLogger(JsonUtil.class);
 
@@ -46,7 +49,8 @@ public class JsonUtil {
      *
      * @param filePath cannot be null.
      * @param classOfObjectToDeserialize JSON file has to correspond to the structure in the class given here.
-     * @throws DataLoadingException if loading of the JSON file failed.
+     * @throws DataLoadingException if loading of the JSON file failed, including when the file contains only
+     *     {@code null}.
      */
     public static <T> Optional<T> readJsonFile(
             Path filePath, Class<T> classOfObjectToDeserialize) throws DataLoadingException {
@@ -66,6 +70,10 @@ public class JsonUtil {
             throw new DataLoadingException(e);
         }
 
+        if (jsonFile == null) {
+            logger.warning("JSON file " + filePath + " contains only null");
+            throw new DataLoadingException(new IllegalValueException(MESSAGE_NULL_CONTENT));
+        }
         return Optional.of(jsonFile);
     }
 

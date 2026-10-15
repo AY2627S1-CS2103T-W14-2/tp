@@ -3,15 +3,12 @@ package seedu.address.model.person;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.project.Project;
-import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
@@ -28,33 +25,28 @@ public class Person {
     private final TelegramUsername telegramUsername;
 
     // Data fields
-    private final Address address;
     private final List<Project> projects;
-    private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername, Address address,
-            Set<Tag> tags) {
-        this(name, phone, email, telegramUsername, address, List.of(), tags);
+    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername) {
+        this(name, phone, email, telegramUsername, List.of());
     }
 
     /**
      * Every field must be present and not null. Projects must not contain duplicates.
      */
-    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername, Address address,
-            List<Project> projects, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, telegramUsername, address, tags);
+    public Person(Name name, Phone phone, Email email, TelegramUsername telegramUsername,
+            List<Project> projects) {
+        requireAllNonNull(name, phone, email, telegramUsername);
         requireAllNonNull(projects);
         checkArgument(new HashSet<>(projects).size() == projects.size(), MESSAGE_DUPLICATE_PROJECTS);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.telegramUsername = telegramUsername;
-        this.address = address;
         this.projects = List.copyOf(projects);
-        this.tags.addAll(tags);
     }
 
     public Name getName() {
@@ -73,23 +65,11 @@ public class Person {
         return telegramUsername;
     }
 
-    public Address getAddress() {
-        return address;
-    }
-
     /**
      * Returns the projects in their saved display order.
      */
     public List<Project> getProjects() {
         return projects;
-    }
-
-    /**
-     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
-     * if modification is attempted.
-     */
-    public Set<Tag> getTags() {
-        return Collections.unmodifiableSet(tags);
     }
 
     /**
@@ -124,15 +104,13 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && telegramUsername.equals(otherPerson.telegramUsername)
-                && address.equals(otherPerson.address)
-                && projects.equals(otherPerson.projects)
-                && tags.equals(otherPerson.tags);
+                && projects.equals(otherPerson.projects);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, telegramUsername, address, projects, tags);
+        return Objects.hash(name, phone, email, telegramUsername, projects);
     }
 
     @Override
@@ -142,9 +120,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("telegramUsername", telegramUsername)
-                .add("address", address)
                 .add("projects", projects)
-                .add("tags", tags)
                 .toString();
     }
 
