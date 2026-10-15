@@ -141,7 +141,7 @@ the same email. Contacts may share a name or a project. To tell contacts with th
 phone numbers, emails, Telegram usernames and projects in the contact list.
 
 If a detail is already used, LinkUp rejects the command, saves nothing, and names the clashing detail and contact:
-* `Phone number 91234567 is already used by Alex Yeoh. Please enter a different phone number.`
+* `Phone number +6587438807 is already used by Alex Yeoh. Please enter a different phone number.`
 * `Email alexyeoh@example.com is already used by Alex Yeoh. Please enter a different email.`
 * `Telegram username @alex_yeoh is already used by Alex Yeoh. Please enter a different Telegram username.`
 
@@ -169,8 +169,8 @@ Format: `project INDEX pr/PROJECT`
 * Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates a saved contact.
 
 Examples:
-* `project 2 pr/Orbital` adds Orbital to the second displayed contact.
-* `find Alice` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
+* With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
+* `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
 ### Listing all persons: `list`
 
@@ -308,11 +308,21 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+LinkUp automatically attempts to save after each successfully executed command, including searches and `list`.
+Commands rejected during parsing or validation do not save. There is no separate save command.
+
+The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
+the data location. Window settings are saved separately in `preferences.json` in the launch folder.
+
+If a save error appears, the displayed contact list may already contain your change even though it was not saved.
+Keep the application open, correct the storage or permission problem, then run `list` to retry saving the current
+contacts. Do not repeat an `add` blindly, as the contact may already be in the list. If you want to reverse the change,
+use `undo` after fixing storage. An undo that cannot save leaves the contacts and undo history unchanged and can be retried.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
-case, even if they do not meet today's input rules. Previously saved local phone numbers also load unchanged.
+case when accepted by the legacy loading rules, even if they do not meet today's input rules.
+Previously saved local phone numbers also load unchanged.
 Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
@@ -324,7 +334,8 @@ want to retain address/tag values: the updated app no longer displays or edits t
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+Advanced users can edit `data/addressbook.json` in the launch folder. Close LinkUp first and make a copy of the
+file before editing. Changes must satisfy the saved-data validation and duplicate-contact rules.
 
 In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
 hyphens. The command input `p/+65 9123-4567` is normalized before saving; that formatted string is not accepted
@@ -334,17 +345,17 @@ LinkUp does not infer a country code, so `91234567` and `+6591234567` are differ
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. Before
+If your changes make the data file invalid, LinkUp starts with an empty contact list at the next run. Before
 starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`.
-The next command you run saves the empty address book over the original file (AddressBook saves after every command).
-To recover, close AddressBook, fix the problem in the backup, and copy it over the original data file. If the
-backup cannot be created (for example, because the disk is full or the folder is read-only), AddressBook shows an
+The next successfully executed command attempts to save the current contact list over the original file.
+To recover, close LinkUp, fix the problem in the backup, and copy it over the original data file. If the
+backup cannot be created (for example, because the disk is full or the folder is read-only), LinkUp shows an
 error and does not start, so that your data file is never overwritten. Copy the data file somewhere safe, fix the
-storage or permission problem, then start AddressBook again. Still, we recommend backing up the file yourself before
+storage or permission problem, then start LinkUp again. Still, we recommend backing up the file yourself before
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
 [duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
 --------------------------------------------------------------------------------------------------------------------
@@ -352,7 +363,16 @@ Furthermore, certain edits can cause the AddressBook to behave in unexpected way
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Close LinkUp on both computers. Copy `data/addressbook.json` from the old launch folder into the `data`
+folder in the new launch folder, backing up any existing destination file first. Launch LinkUp from that new folder.
+
+**Q**: Why do I see sample contacts instead of my saved contacts?<br>
+**A**: LinkUp supplies sample data when it cannot find a data file at the expected path. Check the status bar and
+launch it from the same folder you used previously. A different terminal folder means a different data location.
+
+**Q**: Why does a phone number from an old file fail when I type it into `edit`?<br>
+**A**: Legacy digit-only phone numbers remain loadable, but newly entered numbers require `+` and a country code.
+For example, enter `p/+6591234567` rather than `p/91234567`.
 
 --------------------------------------------------------------------------------------------------------------------
 
