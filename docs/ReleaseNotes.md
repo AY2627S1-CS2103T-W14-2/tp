@@ -27,9 +27,6 @@ associations, same-name support and more flexible search into a keyboard-driven 
   Duplicate associations are rejected.
 - **Session undo.** `undo` restores additions, deletions, clearing and project associations in reverse order.
   Existing partial edits can also be undone.
-- **Legacy-data recovery.** Older contact records can load without Telegram usernames or projects. LinkUp
-  preserves retired fields in a backup during migration and backs up unreadable contact data before starting
-  with an empty address book.
 - **Expanded command help.** The resizable help window provides a scrollable reference for all ten MVP
   commands and a copyable link to the User Guide.
 
