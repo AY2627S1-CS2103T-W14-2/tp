@@ -198,7 +198,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_twoChangesThenUndo_restoresChangesInReverseOrder() throws Exception {
-        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         AddressBook afterFirstCommand = new AddressBook(model.getAddressBook());
         logic.execute(PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build()));
 
@@ -216,7 +216,7 @@ public class LogicManagerTest {
         model.addPerson(BENSON);
         AddressBook[] previousStates = new AddressBook[5];
         String[] commands = {
-            PersonUtil.getAddCommand(ALICE),
+            PersonUtil.getAddCommand(ALICE_WITH_PROJECT),
             "edit 2 n/Changed Name",
             "project 2 pr/Undo Test",
             "delete 2",
@@ -240,10 +240,10 @@ public class LogicManagerTest {
 
     @Test
     public void execute_failedCommands_preservesUndoState() throws Exception {
-        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         AddressBook afterFirstCommand = new AddressBook(model.getAddressBook());
         logic.execute(PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build()));
-        assertThrows(CommandException.class, () -> logic.execute(PersonUtil.getAddCommand(ALICE)));
+        assertThrows(CommandException.class, () -> logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT)));
         assertCommandException("delete 99", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         assertParseException("unknownCommand", MESSAGE_UNKNOWN_COMMAND);
 
@@ -257,7 +257,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_nonUndoableCommands_preservesUndoState() throws Exception {
-        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         AddressBook afterFirstCommand = new AddressBook(model.getAddressBook());
         logic.execute(PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build()));
         logic.execute("find Alice");
@@ -274,7 +274,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_newChangeAfterUndo_canUndoNewChange() throws Exception {
-        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         AddressBook afterFirstCommand = new AddressBook(model.getAddressBook());
         logic.execute("edit 1 n/Changed Name");
         logic.execute("undo");
@@ -313,7 +313,7 @@ public class LogicManagerTest {
         };
         logic = new LogicManager(model, new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("undoFailurePrefs.json"))));
-        logic.execute(PersonUtil.getAddCommand(ALICE));
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         AddressBook afterFirstAdd = new AddressBook(model.getAddressBook());
         Person benson = new PersonBuilder(BENSON).withProjects("CS2103T").build();
         logic.execute(PersonUtil.getAddCommand(benson));
