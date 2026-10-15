@@ -137,6 +137,13 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void read_nullContent_throwsDataLoadingException() {
+        // Regression: these used to escape as NullPointerException, which MainApp does not catch
+        assertThrows(DataLoadingException.class, () -> readAddressBook("nullAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readAddressBook("nullPersonAddressBook.json"));
+    }
+
+    @Test
     public void readAddressBook_invalidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidPersonAddressBook.json"));
     }
