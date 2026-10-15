@@ -48,6 +48,7 @@ public class JsonAddressBookStorageTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
         ReadOnlyAddressBook contacts = storage.readAddressBook().orElseThrow();
         assertEquals(3, contacts.getPersonList().size());
+        assertEquals("91234567", contacts.getPersonList().getFirst().getPhone().value);
         assertEquals(TelegramUsername.EMPTY, contacts.getPersonList().get(1).getTelegramUsername());
         assertTrue(contacts.getPersonList().get(1).getProjects().isEmpty());
         assertEquals(List.of(), backupFiles()); // Loading alone does not migrate the file.
@@ -58,6 +59,7 @@ public class JsonAddressBookStorageTest {
         assertArrayEquals(original, Files.readAllBytes(backup));
         assertFalse(Files.readString(file).contains("\"address\""));
         assertFalse(Files.readString(file).contains("\"tags\""));
+        assertTrue(Files.readString(file).contains("\"phone\" : \"91234567\""));
         assertEquals(contacts, storage.readAddressBook().orElseThrow());
 
         new JsonAddressBookStorage(file).saveAddressBook(contacts);
