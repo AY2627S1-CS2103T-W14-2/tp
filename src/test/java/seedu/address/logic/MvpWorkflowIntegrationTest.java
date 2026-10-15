@@ -2,7 +2,9 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -10,6 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -77,6 +82,44 @@ public class MvpWorkflowIntegrationTest {
         assertEquals(List.of(ALEX, associated), logic.getFilteredPersonList());
         assertEquals("Listed all contacts.", logic.execute("list").getFeedbackToUser());
         assertSavedContacts(ALEX, associated);
+    }
+
+    @Test
+    public void execute_rejectedCommands_preserveFilterFileAndUndoHistory() throws Exception {
+        logic.execute(ADD_ALEX);
+        logic.execute(ADD_NAMESAKE);
+        logic.execute("findproject Orbital");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+
+        for (String command : List.of("add n/Third Person p/+6599999999 e/third@example.com tele/third_user",
+                "project 1 pr/", "project 1 pr/New pr/Other", "find " + "x".repeat(61),
+                "findproject " + "x".repeat(41))) {
+            assertThrows(ParseException.class, () -> logic.execute(command), command);
+            assertRejectedState(before, savedData);
+        }
+
+        for (String command : List.of(
+                "add n/Third Person p/+65 9123-4567 e/third@example.com tele/third_user pr/New",
+                "add n/Third Person p/+6599999999 e/ALEX@Example.COM tele/third_user pr/New",
+                "add n/Third Person p/+6599999999 e/third@example.com tele/@ALEX_TAN pr/New",
+                "edit 1 e/ALEX@Example.COM", "project 1 pr/ ORBITAL", "delete 2")) {
+            assertThrows(CommandException.class, () -> logic.execute(command), command);
+            assertRejectedState(before, savedData);
+        }
+
+        // Failed commands must neither replace nor consume the two successful add snapshots.
+        logic.execute("undo");
+        assertSavedContacts(ALEX);
+        logic.execute("undo");
+        assertSavedContacts();
+        assertFalse(model.canUndo());
+    }
+
+    private void assertRejectedState(AddressBook before, String savedData) throws Exception {
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(NAMESAKE), logic.getFilteredPersonList());
+        assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
     }
 
     private Logic createLogic(Model sessionModel, JsonAddressBookStorage sessionStorage) {
