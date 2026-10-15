@@ -16,7 +16,7 @@ import seedu.address.model.util.SampleDataUtil;
 public class PersonBuilder {
 
     public static final String DEFAULT_NAME = "Amy Bee";
-    public static final String DEFAULT_PHONE = "85355255";
+    public static final String DEFAULT_PHONE = "+6585355255";
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_TELEGRAM_USERNAME = "amy_bee";
 
@@ -31,7 +31,7 @@ public class PersonBuilder {
      */
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
-        phone = new Phone(DEFAULT_PHONE);
+        phone = Phone.fromStoredValue(DEFAULT_PHONE);
         email = new Email(DEFAULT_EMAIL);
         telegramUsername = new TelegramUsername(DEFAULT_TELEGRAM_USERNAME);
         projects = List.of();
@@ -60,7 +60,7 @@ public class PersonBuilder {
      * Sets the {@code Phone} of the {@code Person} that we are building.
      */
     public PersonBuilder withPhone(String phone) {
-        this.phone = new Phone(phone);
+        this.phone = Phone.fromStoredValue(phone);
         return this;
     }
 

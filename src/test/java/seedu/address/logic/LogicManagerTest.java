@@ -49,6 +49,7 @@ import seedu.address.testutil.PersonUtil;
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
+    private static final Person ALICE_WITH_PROJECT = new PersonBuilder(ALICE).withProjects("CS2103T").build();
 
     @TempDir
     public Path temporaryFolder;
@@ -91,8 +92,7 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
 
-        assertCommandSuccess(addCommand, String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
-                expectedModel);
+        assertCommandSuccess(addCommand, "Added contact: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
     }
 
     @Test
@@ -104,14 +104,32 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addWithoutProject_leavesModelFileAndUndoHistoryUnchanged() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
+        Path file = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+        String addWithoutProject = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY;
+
+        assertThrows(ParseException.class, AddCommand.MESSAGE_PROJECT_REQUIRED, () ->
+                logic.execute(addWithoutProject));
+        assertEquals(before, model.getAddressBook());
+        assertEquals(savedData, Files.readString(file));
+
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
     public void execute_removedFields_leavesModelFileAndUndoHistoryUnchanged() throws Exception {
-        logic.execute(PersonUtil.getAddCommand(AMY));
+        logic.execute(PersonUtil.getAddCommand(new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build()));
         Path file = temporaryFolder.resolve("addressBook.json");
         String savedData = Files.readString(file);
         AddressBook before = new AddressBook(model.getAddressBook());
         for (String removedField : new String[] {" a/NUS", " t/friend", " a/", " t/"}) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS, () ->
-                    logic.execute(PersonUtil.getAddCommand(ALICE) + removedField));
+                    logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT) + removedField));
             assertThrows(ParseException.class, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS, () ->
                     logic.execute("edit 1 n/Changed Name" + removedField));
             assertEquals(before, model.getAddressBook());
@@ -143,7 +161,7 @@ public class LogicManagerTest {
         model.addPerson(person);
         AddressBook before = new AddressBook(model.getAddressBook());
 
-        logic.execute("edit 1 n/Changed Name p/91234567");
+        logic.execute("edit 1 n/Changed Name p/+6591234567");
         assertFalse(before.equals(model.getAddressBook()));
         logic.execute("undo");
 
@@ -415,8 +433,8 @@ public class LogicManagerTest {
 
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).build();
+                + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);

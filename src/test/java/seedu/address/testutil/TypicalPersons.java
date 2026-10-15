@@ -23,36 +23,36 @@ public class TypicalPersons {
 
     public static final Person ALICE = new PersonBuilder().withName("Alice Pauline")
             .withEmail("alice@example.com")
-            .withPhone("94351253")
+            .withPhone("+6594351253")
             .withTelegramUsername("alice_pauline")
             .build();
     public static final Person BENSON = new PersonBuilder().withName("Benson Meier")
 
-            .withEmail("johnd@example.com").withPhone("98765432")
+            .withEmail("johnd@example.com").withPhone("+6598765432")
             .withTelegramUsername("benson_meier")
             .withProjects("CS2103T", "Orbital")
             .build();
-    public static final Person CARL = new PersonBuilder().withName("Carl Kurz").withPhone("95352563")
+    public static final Person CARL = new PersonBuilder().withName("Carl Kurz").withPhone("+6595352563")
             .withEmail("heinz@example.com").withTelegramUsername("carl_kurz")
             .build();
-    public static final Person DANIEL = new PersonBuilder().withName("Daniel Meier").withPhone("87652533")
+    public static final Person DANIEL = new PersonBuilder().withName("Daniel Meier").withPhone("+6587652533")
             .withEmail("cornelia@example.com").withTelegramUsername("daniel_meier")
             .build();
-    public static final Person ELLE = new PersonBuilder().withName("Elle Meyer").withPhone("9482224")
+    public static final Person ELLE = new PersonBuilder().withName("Elle Meyer").withPhone("+659482224")
             .withEmail("werner@example.com").withTelegramUsername("elle_meyer")
             .build();
-    public static final Person FIONA = new PersonBuilder().withName("Fiona Kunz").withPhone("9482427")
+    public static final Person FIONA = new PersonBuilder().withName("Fiona Kunz").withPhone("+659482427")
             .withEmail("lydia@example.com").withTelegramUsername("fiona_kunz")
             .build();
-    public static final Person GEORGE = new PersonBuilder().withName("George Best").withPhone("9482442")
+    public static final Person GEORGE = new PersonBuilder().withName("George Best").withPhone("+659482442")
             .withEmail("anna@example.com").withTelegramUsername("george_best")
             .build();
 
     // Manually added
-    public static final Person HOON = new PersonBuilder().withName("Hoon Meier").withPhone("8482424")
+    public static final Person HOON = new PersonBuilder().withName("Hoon Meier").withPhone("+658482424")
             .withEmail("stefan@example.com").withTelegramUsername("hoon_meier")
             .build();
-    public static final Person IDA = new PersonBuilder().withName("Ida Mueller").withPhone("8482131")
+    public static final Person IDA = new PersonBuilder().withName("Ida Mueller").withPhone("+658482131")
             .withEmail("hans@example.com").withTelegramUsername("ida_mueller")
             .build();
 
