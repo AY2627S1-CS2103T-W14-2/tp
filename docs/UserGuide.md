@@ -174,11 +174,18 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
 * Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Keywords are separated by whitespace. The entire search input must contain 1–60 Unicode code points after
+  trimming surrounding whitespace. Internal spaces count towards this limit, including repeated spaces.
+* Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
+  in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
+* No matches produces an empty list and the message `0 person(s) listed!`.
+* Blank or overlong input produces an error without changing the current results or saved contacts.
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find ale` returns contacts such as `Alex Tan` and `Alexander Lee`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 

@@ -335,16 +335,19 @@ The application is running. **MSS** stands for Main Success Scenario.
 **MSS**
 
 1. Student requests to search for contacts using a name keyword.
-2. LinkUp displays contacts whose names contain the keyword, ignoring case, together with their contact details and projects.
+2. LinkUp displays contacts whose names contain any whitespace-separated keyword, ignoring case and allowing
+   partial-word matches, together with their contact details and projects. Matching uses OR semantics and preserves
+   the existing contact order without duplicate results.
 3. Student uses the displayed project information and contact details to identify the intended project mate.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The keyword is empty or exceeds 60 characters after trimming surrounding spaces.
+* 1a. The search input is empty or exceeds 60 Unicode code points after trimming surrounding whitespace.
+  Internal whitespace counts towards the limit before splitting the input into keywords.
 
-  * 1a1. LinkUp displays an error message without changing saved contacts.
+  * 1a1. LinkUp displays an error message without changing saved contacts or the displayed results.
 
   Use case resumes at step 1.
 
