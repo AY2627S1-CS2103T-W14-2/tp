@@ -87,6 +87,15 @@ public class PersonBuilder {
     }
 
     /**
+     * Restores a saved email verbatim, including legacy spelling and case.
+     * Use {@link #withEmail(String)} for newly entered email values.
+     */
+    public PersonBuilder withStoredEmail(String email) {
+        this.email = Email.fromStoredValue(email);
+        return this;
+    }
+
+    /**
      * Sets the {@code TelegramUsername} of the {@code Person} that we are building.
      */
     public PersonBuilder withTelegramUsername(String telegramUsername) {
