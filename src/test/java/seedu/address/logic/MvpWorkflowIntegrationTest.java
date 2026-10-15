@@ -116,6 +116,41 @@ public class MvpWorkflowIntegrationTest {
         assertFalse(model.canUndo());
     }
 
+    @Test
+    public void execute_afterReload_undoOnlyRevertsChangesFromNewSession() throws Exception {
+        logic.execute(ADD_ALEX);
+        logic.execute(ADD_NAMESAKE);
+        logic.execute("project 2 pr/CS2103T");
+        Person savedNamesake = new PersonBuilder(NAMESAKE).withProjects("Orbital", "CS2103T").build();
+        reloadSession();
+        assertSavedContacts(ALEX, savedNamesake);
+
+        logic.execute("findproject cs2103");
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+        CommandException failure = assertThrows(CommandException.class, () -> logic.execute("undo"));
+        assertEquals("No command to undo.", failure.getMessage());
+        assertFalse(model.canUndo());
+        assertEquals(List.of(savedNamesake), logic.getFilteredPersonList());
+        assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+
+        logic.execute("project 1 pr/ New   Team");
+        Person updated = new PersonBuilder(NAMESAKE).withProjects("Orbital", "CS2103T", "New Team").build();
+        assertSavedContacts(ALEX, updated);
+        assertEquals(List.of(updated), logic.getFilteredPersonList());
+        logic.execute("undo");
+        assertSavedContacts(ALEX, savedNamesake);
+        assertEquals(List.of(ALEX, savedNamesake), logic.getFilteredPersonList());
+        assertFalse(model.canUndo());
+
+        // Reopening the file must retain the undone state, not the most recent project addition.
+        reloadSession();
+        logic.execute("findproject new team");
+        assertEquals(List.of(), logic.getFilteredPersonList());
+        logic.execute("list");
+        assertEquals(List.of(ALEX, savedNamesake), logic.getFilteredPersonList());
+        assertSavedContacts(ALEX, savedNamesake);
+    }
+
     private void assertRejectedState(AddressBook before, String savedData) throws Exception {
         assertEquals(before, model.getAddressBook());
         assertEquals(List.of(NAMESAKE), logic.getFilteredPersonList());
