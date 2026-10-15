@@ -101,7 +101,7 @@ public class JsonSerializableAddressBookTest {
         JsonSerializableAddressBook dataFromFile = readJsonFile(file);
         assertThrows(IllegalValueException.class, expectedMessage, dataFromFile::toModelType);
     }
-  
+
     @Test
     public void toModelType_nullPerson_throwsIllegalValueException() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(NULL_PERSON_FILE,
