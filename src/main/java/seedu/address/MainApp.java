@@ -34,7 +34,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V0.5.1";
+    public static final String VERSION = "V1.3";
 
     static final String MESSAGE_BACKUP_FAILED = "LinkUp could not load %1$s, and could not back it up (%2$s).\n\n"
             + "LinkUp will not start, so that the file is not overwritten. Copy the file somewhere safe, "
