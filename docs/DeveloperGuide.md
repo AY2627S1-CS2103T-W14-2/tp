@@ -270,33 +270,30 @@ Command tests cover filtered indices, preservation of fields and order, and dupl
 Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
 filtered selection, rejected operations, and a JSON round trip.
 
-### Undo feature
-The existing **Implementation** section uses a feature heading, explains the command flow, 
-then describes key behavior and design choices. Here’s a paste-ready section for undo:
-
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that 
-supports undo. It supports `add`, `edit`, `delete`, `clear`, and `project`. Only one previous state is kept,
-so undo can be used once for each such command.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, and `project`.
+Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable 
 command, it copies the current address book before execution. If execution succeeds, `LogicManager`
-saves that copy through `Model.saveUndoState(...)`, replacing any previously saved state. Commands that
-are not undoable do not replace the snapshot. If a command fails, the snapshot is not updated.
+saves that copy through `Model.saveUndoState(...)`, pushing it onto `ModelManager`'s `Deque<AddressBook>`
+undo history. Commands that are not undoable and commands that fail do not change the history.
 
 `UndoCommand` checks `Model.canUndo()` before restoring anything. If a snapshot exists, `ModelManager.undo()`
-restores it with `AddressBook.resetData(...)`, clears the snapshot, and updates the filtered person list to
+restores the most recent snapshot with `AddressBook.resetData(...)`, removes only that snapshot from the
+history, and updates the filtered person list to
 show all contacts. The regular storage save then persists the restored address book. If no snapshot exists,
 the command reports `No command to undo.`
 
-The snapshot is held only in memory and is not persisted, so it is unavailable after restarting the application.
-A new undoable command replaces the previous snapshot, and an undo consumes the snapshot. Failed commands and 
-non-undoable commands preserve it.
+The history is held only in memory and is not persisted, so it is unavailable after restarting the application.
+A new undoable command after an undo adds a snapshot of the current state while preserving earlier history.
+There is no redo history or redo command.
 
 **Design choice:** The implementation copies the entire address book rather than storing command-specific 
 inverse data. This makes restoration straightforward and preserves contact details and ordering, at the cost 
-of keeping one full copy in memory.
+of keeping one full copy in memory for each command still available to undo.
 
 
 ### \[Proposed\] Data archiving
@@ -387,16 +384,19 @@ The application is running. **MSS** stands for Main Success Scenario.
 **MSS**
 
 1. Student requests to search for contacts using a name keyword.
-2. LinkUp displays contacts whose names contain the keyword, ignoring case, together with their contact details and projects.
+2. LinkUp displays contacts whose names contain any whitespace-separated keyword, ignoring case and allowing
+   partial-word matches, together with their contact details and projects. Matching uses OR semantics and preserves
+   the existing contact order without duplicate results.
 3. Student uses the displayed project information and contact details to identify the intended project mate.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The keyword is empty or exceeds 60 characters after trimming surrounding spaces.
+* 1a. The search input is empty or exceeds 60 Unicode code points after trimming surrounding whitespace.
+  Internal whitespace counts towards the limit before splitting the input into keywords.
 
-  * 1a1. LinkUp displays an error message without changing saved contacts.
+  * 1a1. LinkUp displays an error message without changing saved contacts or the displayed results.
 
   Use case resumes at step 1.
 

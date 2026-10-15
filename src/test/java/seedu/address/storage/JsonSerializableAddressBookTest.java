@@ -35,6 +35,7 @@ public class JsonSerializableAddressBookTest {
             TEST_DATA_FOLDER.resolve("sameTelegramUsernameAddressBook.json");
     private static final Path LEGACY_WITHOUT_TELEGRAM_FILE =
             TEST_DATA_FOLDER.resolve("legacyWithoutTelegramAddressBook.json");
+    private static final Path NULL_PERSON_FILE = TEST_DATA_FOLDER.resolve("nullPersonAddressBook.json");
 
     @Test
     public void toModelType_typicalPersonsFile_success() throws Exception {
@@ -100,4 +101,13 @@ public class JsonSerializableAddressBookTest {
         JsonSerializableAddressBook dataFromFile = readJsonFile(file);
         assertThrows(IllegalValueException.class, expectedMessage, dataFromFile::toModelType);
     }
+  
+    @Test
+    public void toModelType_nullPerson_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(NULL_PERSON_FILE,
+                JsonSerializableAddressBook.class).get();
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_NULL_PERSON,
+                dataFromFile::toModelType);
+    }
+
 }

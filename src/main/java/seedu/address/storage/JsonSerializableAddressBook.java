@@ -21,6 +21,8 @@ import seedu.address.model.person.Person;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
+    public static final String MESSAGE_NULL_PERSON = "Persons list contains a null entry instead of a person.";
+
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
 
     /**
@@ -48,6 +50,9 @@ class JsonSerializableAddressBook {
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
+            if (jsonAdaptedPerson == null) {
+                throw new IllegalValueException(MESSAGE_NULL_PERSON);
+            }
             Person person = jsonAdaptedPerson.toModelType();
             Optional<ContactConflict> conflict = addressBook.findConflict(person);
             if (conflict.isPresent()) {
