@@ -18,7 +18,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/NGWEIJIEN35)]
 
 * Role: Developer
-* Responsibilities: TBD
+* Responsibilities: Contact management and input validation.
 
 ### Teoh Yi Le
 
@@ -34,7 +34,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/ttheang520.png" width="200px">
 
 [[github](https://github.com/TTHeang520)]
-[[portfolio](team/ttheang520.md)]
 
 * Role: Developer
 * Responsibilities: Data
