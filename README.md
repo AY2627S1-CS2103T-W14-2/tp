@@ -7,11 +7,30 @@
 
 It helps students organise their project mates' contact details together with relevant project information. This makes it easier to retrieve the right contact quickly and distinguish between people with identical or similar names across different projects.
 
-## UI mockup
+## Get started
 
-The mockup below illustrates the planned LinkUp interface.
+1. Install Java 25.
+2. Download `LinkUp.jar` from the [LinkUp releases](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
+3. Open a terminal in the folder containing the JAR and run `java -jar LinkUp.jar`.
+4. Try `list`, `find alex`, or `findproject cs2103` with the supplied sample contacts.
 
-![LinkUp UI mockup showing project mates' contact details and project labels](docs/images/Ui.png)
+LinkUp saves contacts under `data/addressbook.json` relative to the folder from which you launch it.
+See the [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html) for validation rules,
+duplicate-contact handling, and data recovery.
+
+## Features
+
+- Save names, international phone numbers, emails, Telegram usernames, and an initial project.
+- Allow identical names while rejecting shared phone numbers, emails, or Telegram usernames.
+- Find contacts by partial name keywords or a project-name phrase.
+- Associate additional projects, delete contacts by displayed index, and undo supported changes during the session.
+- Edit names, phone numbers, and emails. Editing Telegram usernames and replacing or removing projects are not supported.
+
+## UI
+
+The screenshot below shows the LinkUp interface.
+
+![LinkUp UI showing project mates' contact details and project labels](docs/images/Ui.png)
 
 ## Documentation
 
