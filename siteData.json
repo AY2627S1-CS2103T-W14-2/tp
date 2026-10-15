@@ -99,6 +99,24 @@
       "headingKeywords": {}
     },
     {
+      "src": "ReleaseNotes.md",
+      "title": "LinkUp v1.3 Release Notes",
+      "headings": {
+        "linkup-v1-3-mvp": "LinkUp v1.3 — MVP",
+        "what-s-new": "What's new",
+        "screenshots": "Screenshots",
+        "same-name-contacts": "Same-name contacts",
+        "duplicate-detail-detection": "Duplicate-detail detection",
+        "project-search": "Project search",
+        "deletion-and-undo": "Deletion and undo",
+        "getting-started": "Getting started",
+        "release-scope": "Release scope",
+        "known-issues": "Known issues",
+        "documentation": "Documentation"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "SettingUp.md",
       "title": "Setting up and getting started",
       "headings": {
@@ -129,7 +147,7 @@
         "adding-a-person-add": "Adding a person: add",
         "associating-an-existing-contact-with-a-project-project": "Associating an existing contact with a project: project",
         "listing-all-persons-list": "Listing all persons: list",
-        "editing-a-person-edit": "Editing a person: edit",
+        "editing-a-person-edit-outside-mvp-scope": "Editing a person: edit (outside MVP scope)",
         "locating-persons-by-name-find": "Locating persons by name: find",
         "finding-contacts-by-project-findproject": "Finding contacts by project: findproject",
         "deleting-a-person-delete": "Deleting a person: delete",
