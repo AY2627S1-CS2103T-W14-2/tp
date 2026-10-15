@@ -1,0 +1,8 @@
+{
+  "persons": [ {
+    "name": "Alice Pauline",
+    "phone": "94351253",
+    "email": "alice@example.com",
+    "telegramUsername": "alice_pauline"
+  }, null ]
+}

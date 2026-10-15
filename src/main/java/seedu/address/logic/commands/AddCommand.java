@@ -26,7 +26,7 @@ public class AddCommand extends Command {
             + PREFIX_PHONE + "PHONE "
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_TELEGRAM + "TELEGRAM_USERNAME "
-            + "[" + PREFIX_PROJECT + "PROJECT]\n"
+            + PREFIX_PROJECT + "PROJECT\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "
@@ -36,6 +36,7 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_PROJECT_REQUIRED = "Project is required. Use pr/PROJECT.";
 
     private final Person toAdd;
 
