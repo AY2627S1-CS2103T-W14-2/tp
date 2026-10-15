@@ -75,7 +75,7 @@ LinkUp confirms the deletion of the contact named `hi`.
 
 Running `undo` restores the contact, including their contact details and project association.
 
-![Undo confirmation and the restored contact hi](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-undo.png)
+![Undo confirmation and the restored contact hi](https://raw.githubusercontent.com/yileteoh/tp/51cd0e04c181727d62afe23aa3b640d6eb0efafe/docs/images/release-undo.png)
 
 ## Getting started
 
