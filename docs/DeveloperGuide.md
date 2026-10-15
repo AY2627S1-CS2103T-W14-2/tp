@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# LinkUp Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -13,7 +13,10 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+LinkUp builds on [se-edu AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
+The layered architecture, command infrastructure, and parts of this documentation originate from that project.
+The application uses JavaFX for its interface and Jackson for JSON storage; dependencies and versions are
+declared in `build.gradle`. Documentation is built with MarkBind.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -27,6 +30,14 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
+<box type="warning" seamless>
+
+**UML update deferred:** The diagrams in this guide are retained from the AB-3 baseline and have not been
+updated for the current LinkUp release. They illustrate the original architecture, but may show retired fields
+or omit LinkUp commands, projects, duplicate detection, and undo. Use the implementation descriptions and
+linked source code for current behaviour. Updating the UML is planned for a later iteration.
+</box>
+
 <puml src="diagrams/ArchitectureDiagram.puml" width="280" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
@@ -35,7 +46,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -67,13 +78,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -84,7 +95,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -102,7 +113,9 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
+1. When `Logic` is called upon to execute a command, it passes the text to `AddressBookParser`.
+   Commands with structured arguments use a matching parser (e.g., `DeleteCommandParser`); commands such as
+   `list`, `help`, and `undo` are constructed directly.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
@@ -113,11 +126,12 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* For commands with structured arguments, `AddressBookParser` creates an `XYZCommandParser` (`XYZ` stands for
+  the command name, e.g., `Add`). That parser validates arguments and returns an `XYZCommand` object as a `Command`.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
@@ -125,8 +139,11 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+* exposes a `FilteredList<Person>` backed by the address book's observable list. Changing its predicate updates
+  the displayed results without removing contacts from the underlying address book.
+* stores a `UserPrefs` object containing GUI settings. This is exposed to the
+  outside as a `ReadOnlyUserPrefs` object.
+* keeps undo snapshots in an in-memory `Deque<AddressBook>`; they are not stored in JSON.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -134,7 +151,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
@@ -153,6 +170,44 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Current command and contact model
+
+The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
+`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
+`undo`, `help`, and `exit`. Command words are case-sensitive.
+
+`AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
+It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
+`EditCommandParser` accepts only `n/`, `p/`, and `e/`, and requires at least one field.
+`EditCommand` preserves the Telegram username and projects when constructing the replacement contact.
+Editing Telegram usernames and replacing or removing projects are deferred to a later iteration.
+Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
+field's value, so callers must use the documented grammar.
+
+| Value class | Current new-input rule and normalisation |
+| --- | --- |
+| `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
+| `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
+| `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
+| `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
+
+`JsonAdaptedPerson` restores names, phones and emails through their stored-value validation paths, preserving
+legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
+projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
+
+### Name search and displayed indices
+
+`FindCommandParser` trims surrounding whitespace and rejects blank input or more than 60 Unicode code points
+before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compares lowercase text using
+`Locale.ROOT` and matches any keyword as a substring (OR semantics), including partial words.
+For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
+
+Both search commands replace the predicate on the full address book rather than searching only the previous
+results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
+`add`, `edit`, `list`, and successful `undo` show all contacts; `delete` and `project` retain the active filter.
+After a mutation, indices can change, so callers must read the current list before using another index.
+
 ### Removing retired contact fields
 
 `Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
@@ -168,8 +223,8 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
-A file that is well-formed but cannot be loaded, for example because two contacts conflict, has no retired
-fields and so is not covered by the migration backup. Instead, when `MainApp.initModelManager` catches the
+A file that is well-formed but cannot be loaded, for example because two contacts conflict, may have no retired
+fields and therefore may not qualify for the migration backup. When `MainApp.initModelManager` catches the
 `DataLoadingException` and starts with an empty address book, it calls `Storage#backupAddressBook()`, which copies
 the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. If the
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
@@ -180,7 +235,7 @@ and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
 backup failure, and former-prefix rejection. Existing edit, project, search, and undo tests exercise the updated
-contact structure. Add still permits an omitted project in this increment; making it required is separate work.
+contact structure. New `add` commands require an initial project; legacy contacts can still have an empty project list.
 
 ### Duplicate contact detection
 
@@ -242,7 +297,8 @@ Search does not change contacts or project associations. `LogicManager` retains 
 behaviour, saving the complete address book rather than just the search results. Invalid input fails during parsing,
 before the filter or saved data is changed.
 
-The search keyword limit is 40 characters, as specified in UC02; stored project names can contain up to 50 characters.
+Both the search keyword limit and the stored project-name limit are 40 Unicode code points. The search parser
+checks length before collapsing internal whitespace, whereas `Project` validates the normalised name.
 The parser therefore validates the search phrase separately from `ParserUtil.parseProject()`.
 
 **Design choices:** A separate command preserves the existing name-search behaviour. Whole-phrase substring matching
@@ -272,33 +328,50 @@ filtered selection, rejected operations, and a JSON round trip.
 
 ### Undo command implementation
 
-The `undo` command restores the address book to the state before the most recent successful command that 
+The `undo` command restores the address book to the state before the most recent successful command that
 supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, and `project`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
-When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable 
+When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
 command, it copies the current address book before execution. If execution succeeds, `LogicManager`
 saves that copy through `Model.saveUndoState(...)`, pushing it onto `ModelManager`'s `Deque<AddressBook>`
-undo history. Commands that are not undoable and commands that fail do not change the history.
+undo history. Commands that are not undoable and commands rejected during parsing or execution do not add history.
+An ordinary command can still change the model and add an undo snapshot before a storage save fails.
 
+For `undo` with available history, `LogicManager` first saves `Model.getUndoState()` to storage. If that save
+fails, the contact list, filter, and history remain unchanged, allowing the user to retry.
 `UndoCommand` checks `Model.canUndo()` before restoring anything. If a snapshot exists, `ModelManager.undo()`
 restores the most recent snapshot with `AddressBook.resetData(...)`, removes only that snapshot from the
 history, and updates the filtered person list to
-show all contacts. The regular storage save then persists the restored address book. If no snapshot exists,
+show all contacts. The restored data has already been saved; this path does not save a second time. If no snapshot exists,
 the command reports `No command to undo.`
 
 The history is held only in memory and is not persisted, so it is unavailable after restarting the application.
 A new undoable command after an undo adds a snapshot of the current state while preserving earlier history.
 There is no redo history or redo command.
 
-**Design choice:** The implementation copies the entire address book rather than storing command-specific 
-inverse data. This makes restoration straightforward and preserves contact details and ordering, at the cost 
+**Design choice:** The implementation copies the entire address book rather than storing command-specific
+inverse data. This makes restoration straightforward and preserves contact details and ordering, at the cost
 of keeping one full copy in memory for each command still available to undo.
 
 
-### \[Proposed\] Data archiving
+### Persistence and save failures
 
-_{Explain here how the data archiving feature will be implemented}_
+Apart from the special undo path above, `LogicManager` saves the complete address book after each command
+executes successfully, including `find`, `findproject`, and `list`. Parsing and validation failures do not save.
+The data path is `data/addressbook.json`, relative to the launch folder; `preferences.json` records GUI
+settings. Both paths are constants in `MainApp`. Shutdown saves preferences, not a separate copy of contact data.
+
+A failed save is reported as a `CommandException`, with a separate message for access-denied errors.
+Ordinary mutations are not rolled back on disk-write failure: the UI can contain an unsaved change and its
+undo snapshot. After fixing storage, a successful command such as `list` retries saving the current state.
+This differs from validation failure, which leaves contacts unchanged.
+
+### Deferred features
+
+Editing all contact fields, removing or renaming project associations, notes, roles, sorting, archiving,
+and redo are not implemented. The user stories below include backlog ideas; they are not claims about
+commands available in this release. No archiving design has been implemented yet.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -334,6 +407,12 @@ _{Explain here how the data archiving feature will be implemented}_
 
 
 ### User stories
+
+This table records both current capabilities and future ideas. The current release supports adding, listing,
+deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
+Editing is limited to name, phone, and email. New contacts require all five add fields; optional missing
+Telegram/project data is supported only when loading legacy files. Notes, roles, project removal, sorting,
+archiving, multi-criteria search, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -375,7 +454,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-The following use cases describe the intended behaviour of LinkUp.
+The following use cases describe the currently implemented workflows of LinkUp.
 For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
 The application is running. **MSS** stands for Main Success Scenario.
 
@@ -471,7 +550,6 @@ Use case ends.
 
 **MSS**
 
-1.  **Environment:** The system shall run on _mainstream OS_ with Java `25` or above installed.
 1. Student requests to list contacts.
 2. LinkUp displays the saved contacts with their indices, contact details, and projects.
 3. Student identifies the contact to remove and requests its deletion using its displayed index.
@@ -497,7 +575,7 @@ Use case ends.
 
 **MSS**
 
-1. Student requests to add a contact, supplying a name, phone number, email, Telegram username and, optionally, a project.
+1. Student requests to add a contact, supplying a name, phone number, email, Telegram username and one initial project.
 2. LinkUp saves the contact and displays a success message with its details.
 
 Use case ends.
@@ -520,14 +598,19 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  **Environment:** The system shall run on all _mainstream OS_ with Java `25` or above installed.
+These are design targets, not a claim that performance or usability benchmarks have been completed.
+CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
+
+1.  **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
 4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
 5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
 6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
 7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
-8.  **Persistence and reliability:** The system shall preserve saved contacts between application sessions and shall display a clear error message instead of crashing when the data file cannot be read.
+8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
+    file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
+    failures report an error but may leave unsaved changes in memory, as described above.
 
 ### Glossary
 
@@ -543,53 +626,100 @@ Use case ends.
 
 ## **Appendix: Instructions for manual testing**
 
-Given below are instructions to test the app manually.
+Use a separate writable test folder with Java 25 and a freshly built `LinkUp.jar`. These steps modify test
+contacts and files. Keep real contact data outside this folder. Record the commit, OS, Java version, commands,
+expected and actual results when reporting a failure. The cases below are a repeatable starting point for
+exploratory testing, not a claim that every platform has been manually tested.
 
-<box type="info" seamless>
+### Launch, shutdown and persistence
 
-**Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
-</box>
+1. From the empty test folder, run `java -jar LinkUp.jar` in a terminal. Expect sample contacts.
+2. Run `list`. Expect all sample contacts and `Listed all contacts.`; the command also saves the data.
+3. Resize and move the window, then run `exit`. Relaunch from the same folder. Expect the saved contacts and
+   window settings to return. Check `data/addressbook.json` and `preferences.json` in this folder.
+4. Run `undo` immediately after restart. Expect `No command to undo.` because history is session-only.
+5. Run `help`. Expect the help window; close it and continue entering commands in the main window.
 
-### Launch and shutdown
+### Prepare deterministic contacts
 
-1. Initial launch
+Run these commands in order in the test instance:
 
-   1. Download the JAR file and copy it into an empty folder.
+```text
+clear
+add n/Alex Tan p/+65 9123-4567 e/ALEX@Example.COM tele/@Alex_Tan pr/Team Alpha
+add n/Alex Tan p/+65 8765-4321 e/OTHER@Example.COM tele/@Other_Alex pr/Orbital
+add n/David Lim p/+65 8111-2222 e/david@example.com tele/david_lim pr/Team Beta
+```
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+Expect three contacts in that order, including two separate Alex Tan cards. Phones display without spaces or
+hyphens, emails are lowercase, and Telegram usernames display a leading `@`. Projects distinguish the namesakes.
 
-1. Saving window preferences
+### Search, index selection and editing
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+Run the following in order after preparing the contacts:
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+| Input | Expected result |
+| --- | --- |
+| `find LEX vid` | Three contacts: case-insensitive partial keywords use OR matching. |
+| `findproject team alpha` | Only the first Alex Tan. |
+| `find vid` | David Lim, proving search starts from the full address book. |
+| `edit 1 n/David Lee` | David is renamed; all three contacts are displayed again. |
+| `findproject Orbital` | Only the second Alex Tan, shown at index 1. |
+| `project 1 pr/Team Alpha` | Adds a second project to this Alex and retains the Orbital filter. |
+| `project 1 pr/ team   ALPHA` | Duplicate project error; associations unchanged. |
+| `findproject Team Alpha` | Both Alex contacts, once each. |
+| `findproject Alpha Team` | No matches: project search uses a whole phrase, not OR keywords. |
+| `find` | Format error; previous results remain unchanged. |
+| `list` | All three contacts return in saved order. |
+| `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
+| `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
+| `undo` | The deleted Alex returns, in original order; all contacts are shown. |
 
-1. _{ more test cases … }_
+Do not test Telegram or project replacement through `edit` as a supported workflow: only name, phone and email
+are editable. Use `project` to append a project.
 
-### Deleting a person
+### Validation and duplicate rejection
 
-1. Deleting a person while all persons are being shown
+Start with `list` after the preceding sequence. Each rejected command below must leave the contacts unchanged:
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+| Input | Expected result |
+| --- | --- |
+| `add n/New Person p/+6591234567 e/new@example.com tele/new_person pr/Test` | Phone conflict with the first Alex. |
+| `add n/New Person p/+6599998888 e/ALEX@EXAMPLE.COM tele/new_person pr/Test` | Email conflict, ignoring case. |
+| `add n/New Person p/+6599998888 e/new@example.com tele/@ALEX_TAN pr/Test` | Telegram conflict, ignoring case and `@`. |
+| `add n/New Person p/+6599998888 e/new@example.com tele/new_person` | Required-project error. |
+| `add n/New Person p/99998888 e/new@example.com tele/new_person pr/Test` | Invalid new phone: a leading `+` is required. |
+| `edit 3 e/other@example.com` | Email conflict with the second Alex. |
+| `edit 1 a/Old Address` | Address/tags are no longer supported. |
+| `edit 1 n/Alex Tan n/Another Name` | Duplicate-prefix error. |
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+For boundaries, try `find` with 60 and then 61 consecutive `x` characters, and `findproject` with 40 and
+then 41. The shorter query is accepted (with no matches); the longer one reports a length error without
+changing the current results. Run `list` to restore the displayed contacts. Then `project 1 pr/` with 40
+consecutive `x` characters succeeds, while 41 fails.
+Run `undo` after the accepted project change to restore the fixture.
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+### Undo and restart
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+1. Run `list`, then `clear`. Expect an empty list; `list` now reports `No contacts saved yet.`
+2. Run `undo`. Expect the three contacts to return. `list` has not consumed or added an undo entry.
+3. Run `edit 1 n/Alex Updated`, then `undo`. Expect the original name and all contacts.
+4. Run `exit` and relaunch from the same folder. Expect the restored contacts and `undo` to report no history.
 
-1. _{ more test cases … }_
+### Missing, unreadable and legacy files
 
-### Saving data
+Close the application before each file change, and keep a valid copy outside the test folder. Restore that
+valid copy before each scenario so the legacy tests start with contacts rather than the preceding empty file.
 
-1. Dealing with missing/corrupted data files
+| Scenario | Procedure and expected result |
+| --- | --- |
+| Missing data | Move `data/addressbook.json` out of the test folder. Relaunch: sample contacts appear. Run `list` to save them. |
+| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book. |
+| Legacy fields | In a valid saved contact, add `"address": "Old Address"` and `"tags": ["old"]`. Relaunch and run `list`: the saved contact omits these fields, and a sibling `.pre-v1.3-<unique suffix>.bak` preserves the original file. A second `list` creates no further migration backup. |
+| Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch: it loads without a Telegram username or project. New `add` commands still require both. |
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases … }_
+Backup and permission failures depend on the OS and account. Their automated coverage is in `MainAppTest`,
+`JsonAddressBookStorageTest`, and `LogicManagerTest`. If reproducing them manually, use only the test folder:
+when startup cannot back up unreadable data, expect an error dialog and no main window; when an ordinary save
+fails, expect an error even though the in-memory change may already be visible. Fix storage and run `list` to
+retry saving. A failed undo save must preserve contacts, the filter, and undo history so undo can be retried.

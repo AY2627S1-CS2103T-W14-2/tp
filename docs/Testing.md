@@ -45,8 +45,17 @@ a filtered test run alone does not measure coverage for the complete suite.
 This project has three types of tests:
 
 1. *Unit tests* target the lowest-level methods and classes.<br>
-   For example: `seedu.address.commons.StringUtilTest`
+   For example: `seedu.address.commons.util.StringUtilTest`
 1. *Integration tests* check how multiple code units work together; the individual units are assumed to work.<br>
    For example: `seedu.address.storage.StorageManagerTest`
 1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
    For example: `seedu.address.logic.LogicManagerTest`
+
+`ContactWorkflowIntegrationTest` exercises commands through the real parser, model and JSON storage in temporary
+directories. `SameNameContactsIntegrationTest` covers namesake workflows, and `ProjectCommandIntegrationTest`
+covers project association and persistence. UI tests in `seedu.address.ui` exercise JavaFX components;
+`MainAppTest` covers startup, shutdown, preferences and unreadable-data recovery.
+
+For a packaged-release smoke test, follow the [manual testing instructions](DeveloperGuide.md#appendix-instructions-for-manual-testing).
+Record which cases and platforms were actually exercised; automated test success does not imply every manual
+scenario or performance target has been verified.
