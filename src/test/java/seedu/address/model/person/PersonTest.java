@@ -81,8 +81,12 @@ public class PersonTest {
 
     @Test
     public void conflictsWith_emailDiffersOnlyInCase_returnsTrue() {
-        assertConflictBothWays(ALEX, distinctFromAlex().withEmail("ALEX@Example.com").build(), true);
-        assertConflictBothWays(ALEX, distinctFromAlex().withEmail("alex@EXAMPLE.COM").build(), true);
+        for (String storedEmail : List.of("ALEX@Example.com", "alex@EXAMPLE.COM")) {
+            Person legacyContact = distinctFromAlex().withStoredEmail(storedEmail).build();
+            assertEquals(storedEmail, legacyContact.getEmail().value);
+            assertFalse(ALEX.getEmail().value.equals(legacyContact.getEmail().value));
+            assertConflictBothWays(ALEX, legacyContact, true);
+        }
     }
 
     @Test
