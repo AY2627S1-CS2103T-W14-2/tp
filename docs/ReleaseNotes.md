@@ -65,7 +65,7 @@ folder using the packaged JAR. Record actual outcomes; do not infer these checks
 - [ ] Open help through `help`, the Help menu and F1. Resize it and scroll to `exit` and the user-guide button.
 - [ ] Exit and relaunch from the same folder; verify persisted contacts and that undo history has reset.
 - [ ] Exercise unreadable/legacy-data recovery using the documented test fixtures.
-- [ ] Paste the release-note draft below into the GitHub release description, including both screenshots.
+- [ ] Replace the pending screenshot placeholders, then paste the release-note draft into the GitHub release description.
 - [ ] Tag the verified team commit as `v1.3` and upload the `LinkUp.jar` built from that commit.
 - [ ] Download the uploaded release asset and check that it launches as `java -jar LinkUp.jar`.
 - [ ] Close completed issues, reschedule deferred work, and close the `v1.3` milestone after publication.
@@ -110,6 +110,36 @@ Name-search results retain the matching contacts' details and project informatio
 
 ![LinkUp name search showing Alex Yeoh and David Li](https://raw.githubusercontent.com/AY2627S1-CS2103T-W14-2/tp/7e84655a998bf23b65cff8f9e9e23072c83f1c09/docs/images/findAlexDavidResult.png)
 
+**Same-name contacts across projects**
+
+Two contacts named Alex Tan remain separate, with different contact details and project memberships.
+
+*Screenshot pending: `release-same-name.png`.*
+
+**Duplicate contact details are rejected**
+
+A conflicting phone number is rejected without adding a third contact, even when the new name is different.
+
+*Screenshot pending: `release-duplicate.png`.*
+
+**Project association and project search**
+
+Appending Team Alpha to the second Alex preserves Orbital. Searching for Team Alpha returns both contacts once.
+
+*Screenshot pending: `release-project-search.png`.*
+
+**Undo restores a deleted contact**
+
+Undo brings the deleted contact back with their original details and project associations.
+
+*Screenshots pending: `release-delete.png` and `release-undo.png`.*
+
+**Complete MVP command help**
+
+The resizable help window provides a scrollable reference for all ten MVP commands, with editing marked as deferred.
+
+*Screenshots pending: `release-help-top.png` and `release-help-bottom.png`.*
+
 ### Install and run
 
 **Requirements and launch:** Java 25 on Windows, macOS or Linux. Download the `LinkUp.jar` asset into a writable
@@ -130,3 +160,33 @@ save failures can leave unsaved changes visible: fix storage and run `list` to r
 The partial edit usage message still contains an outdated local-phone example; new phone input requires `+`.
 
 See the [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html) for command syntax and recovery steps.
+
+## Screenshot capture instructions (not part of the published notes)
+
+Use a separate folder with a copy of `LinkUp.jar` so these steps do not change real contacts. Launch it from
+that folder with `java -jar LinkUp.jar`. Keep the command result and relevant contact cards visible in each
+capture. Save the requested files under `docs/images/`; replace the pending text above with image embeds once
+the pictures are supplied. Do not publish the pending placeholders or this preparation section.
+
+Prepare two contacts in this disposable instance:
+
+```text
+clear
+add n/Alex Tan p/+6591234567 e/alex@example.com tele/alex_tan pr/Team Alpha
+add n/Alex Tan p/+6587654321 e/other@example.com tele/other_alex pr/Orbital
+```
+
+Then capture these views in order:
+
+| Filename | Action and what to show |
+| --- | --- |
+| `release-same-name.png` | Run `find Alex`. Show both Alex Tan cards, distinct phone/email/Telegram values and their different projects. |
+| `release-duplicate.png` | Run `add n/New Person p/+6591234567 e/new@example.com tele/new_person pr/Test`. Show the phone-conflict message and the unchanged two contacts. |
+| `release-project-search.png` | Run `project 2 pr/Team Alpha`, then `findproject Team Alpha`. Show both matching Alex cards; the second should display both Orbital and Team Alpha. |
+| `release-delete.png` | Run `delete 2`. Show the deletion message and only the first Alex remaining. |
+| `release-undo.png` | Run `undo`. Show the undo-success message and both Alex cards restored with their projects. |
+| `release-help-top.png` | Run `help`. Capture the top of the help window, including the title and add/search commands. |
+| `release-help-bottom.png` | Scroll down in the same help window. Show clear, undo, help, exit, the editing-scope note and guide button; enlarge the window if needed. |
+
+The two existing screenshots above can stay. These additional pictures illustrate specific behaviours rather
+than repeating the main-window overview. No edit screenshot is needed for the MVP.
