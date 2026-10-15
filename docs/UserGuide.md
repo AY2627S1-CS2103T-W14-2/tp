@@ -4,9 +4,11 @@
   pageNav: 3
 ---
 
-# AB-3 User Guide
+# LinkUp User Guide
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+LinkUp is a **desktop contact manager for students working across projects and teams**. Type commands to save
+contact details, associate project mates with projects, and find the right person by name or project. The contact
+list shows phone numbers, emails, Telegram usernames, and projects so you can distinguish people with the same name.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -15,15 +17,17 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
+1. Install Java `25` and check that `java -version` reports version 25 in your terminal.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download `addressbook.jar` from the assets of the [LinkUp release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
+   Download the JAR, not the source-code ZIP or TAR archive.
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Place the JAR in a folder where you have permission to create and update files.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
+   if no data file exists, LinkUp supplies sample contacts.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -31,15 +35,18 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T` : Adds John Doe with an initial project.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `find John` : Shows contacts whose names contain John.
 
-   * `clear` : Deletes all contacts.
+   * `findproject cs2103` : Shows contacts associated with matching projects.
 
    * `exit` : Exits the app.
 
 1. Refer to the [Features](#features) section below for details of each command.
+
+Examples in the feature sections are independent illustrations. Use the current displayed index and contact details
+that are not already saved. Repeating an `add` example produces a duplicate-contact error.
 
 --------------------------------------------------------------------------------------------------------------------
 
