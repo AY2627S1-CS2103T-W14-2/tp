@@ -5,16 +5,23 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
+import static seedu.address.testutil.ConflictTestUtil.clashesWith;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.ContactConflict;
+import seedu.address.model.person.ContactConflict.Field;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.ConflictTestUtil.Clash;
 
 public class ModelManagerTest {
 
@@ -53,19 +60,54 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> modelManager.hasPerson(null));
+    public void findConflict_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.findConflict(null));
+        assertThrows(NullPointerException.class, () -> modelManager.findConflict(ALICE, null));
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
-        assertFalse(modelManager.hasPerson(ALICE));
+    public void findConflict_personNotInAddressBook_returnsEmpty() {
+        assertEquals(Optional.empty(), modelManager.findConflict(ALICE));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
+    public void findConflict_personInAddressBook_returnsConflict() {
         modelManager.addPerson(ALICE);
-        assertTrue(modelManager.hasPerson(ALICE));
+        assertEquals(Optional.of(new ContactConflict(Field.PHONE, ALICE.getPhone().value, ALICE)),
+                modelManager.findConflict(ALICE));
+    }
+
+    @Test
+    public void findConflict_excludingOnlyClashingPerson_returnsEmpty() {
+        modelManager.addPerson(ALICE);
+        assertEquals(Optional.empty(), modelManager.findConflict(ALICE, ALICE));
+    }
+
+    @Test
+    public void addPerson_sameNameDistinctDetails_addsBoth() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(ALICE_NAMESAKE);
+        assertEquals(List.of(ALICE, ALICE_NAMESAKE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void addPerson_clashingPerson_throwsDuplicatePersonException() {
+        modelManager.addPerson(ALICE);
+        for (Clash clash : clashesWith(ALICE, BENSON)) {
+            assertThrows(DuplicatePersonException.class, clash.expectedMessage(), () ->
+                    modelManager.addPerson(clash.person()));
+        }
+    }
+
+    @Test
+    public void setPerson_editedPersonTakesAnotherPersonsDetail_throwsDuplicatePersonException() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        for (Clash clash : clashesWith(BENSON, ALICE)) {
+            assertThrows(DuplicatePersonException.class, clash.expectedMessage(), () ->
+                    modelManager.setPerson(ALICE, clash.person()));
+        }
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
     }
 
     @Test

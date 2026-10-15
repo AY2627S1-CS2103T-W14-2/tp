@@ -11,12 +11,31 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.person.ContactConflict.Field;
 import seedu.address.model.project.Project;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    private static final String ALEX_NAME = "Alex Yeoh";
+    private static final String ALEX_PHONE = "91234567";
+    private static final String ALEX_EMAIL = "alex@example.com";
+    private static final String ALEX_TELEGRAM_USERNAME = "alex_yeoh";
+    private static final String ALEX_PROJECT = "CS2103T";
+    private static final Person ALEX = new PersonBuilder().withName(ALEX_NAME).withPhone(ALEX_PHONE)
+            .withEmail(ALEX_EMAIL).withTelegramUsername(ALEX_TELEGRAM_USERNAME).withProjects(ALEX_PROJECT).build();
+
+    /** Each modifier makes exactly one contact detail the same as {@code ALEX}'s. */
+    private static final List<UnaryOperator<PersonBuilder>> CLASHES_WITH_ALEX = List.of(
+            builder -> builder.withPhone(ALEX_PHONE),
+            builder -> builder.withEmail(ALEX_EMAIL),
+            builder -> builder.withTelegramUsername(ALEX_TELEGRAM_USERNAME));
 
     @Test
     public void getProjects_modifyList_throwsUnsupportedOperationException() {
@@ -33,30 +52,96 @@ public class PersonTest {
     }
 
     @Test
-    public void isSamePerson() {
-        // same object -> returns true
-        assertTrue(ALICE.isSamePerson(ALICE));
+    public void conflictsWith_sameNameDifferentDetails_returnsFalse() {
+        assertConflictBothWays(ALEX, distinctFromAlex().withName(ALEX_NAME).build(), false);
+    }
 
-        // null -> returns false
-        assertFalse(ALICE.isSamePerson(null));
+    @Test
+    public void conflictsWith_sharedContactDetail_returnsTrue() {
+        for (UnaryOperator<PersonBuilder> clash : CLASHES_WITH_ALEX) {
+            // same name
+            assertConflictBothWays(ALEX, clash.apply(distinctFromAlex().withName(ALEX_NAME)).build(), true);
+            // different name
+            assertConflictBothWays(ALEX, clash.apply(distinctFromAlex()).build(), true);
+        }
+    }
 
-        // same name, all other attributes different -> returns true
-        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .build();
-        assertTrue(ALICE.isSamePerson(editedAlice));
+    @Test
+    public void conflictsWith_sameProjectDifferentDetails_returnsFalse() {
+        assertConflictBothWays(ALEX, distinctFromAlex().withProjects(ALEX_PROJECT).build(), false);
+        assertConflictBothWays(ALEX, distinctFromAlex().withName(ALEX_NAME).withProjects(ALEX_PROJECT).build(),
+                false);
+    }
 
-        // different name, all other attributes same -> returns false
-        editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
-        assertFalse(ALICE.isSamePerson(editedAlice));
+    @Test
+    public void conflictsWith_nameDiffersOnlyInCaseOrSpacing_returnsFalse() {
+        assertConflictBothWays(ALEX, distinctFromAlex().withName("alex yeoh").build(), false);
+        assertConflictBothWays(ALEX, distinctFromAlex().withName("Alex  Yeoh").build(), false);
+    }
 
-        // name differs in case, all other attributes same -> returns false
-        Person editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
-        assertFalse(BOB.isSamePerson(editedBob));
+    @Test
+    public void conflictsWith_emailDiffersOnlyInCase_returnsTrue() {
+        assertConflictBothWays(ALEX, distinctFromAlex().withEmail("ALEX@Example.com").build(), true);
+        assertConflictBothWays(ALEX, distinctFromAlex().withEmail("alex@EXAMPLE.COM").build(), true);
+    }
 
-        // surrounding spaces are removed from newly entered names -> returns true
-        String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
-        editedBob = new PersonBuilder(BOB).withName(nameWithTrailingSpaces).build();
-        assertTrue(BOB.isSamePerson(editedBob));
+    @Test
+    public void conflictsWith_telegramUsernameWithAtSignAndCase_returnsTrue() {
+        assertConflictBothWays(ALEX, distinctFromAlex().withTelegramUsername("@Alex_Yeoh").build(), true);
+    }
+
+    @Test
+    public void conflictsWith_emptyTelegramUsername_returnsFalse() {
+        Person withoutTelegram = distinctFromAlex().withoutTelegramUsername().build();
+        Person otherWithoutTelegram = new PersonBuilder().withName("Charlotte Oliveiro").withPhone("93210283")
+                .withEmail("charlotte@example.com").withoutTelegramUsername().build();
+
+        assertConflictBothWays(ALEX, withoutTelegram, false);
+        assertConflictBothWays(withoutTelegram, otherWithoutTelegram, false);
+    }
+
+    @Test
+    public void conflictsWith_self_returnsTrue() {
+        assertTrue(ALEX.conflictsWith(ALEX));
+    }
+
+    @Test
+    public void conflictsWith_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALEX.conflictsWith(null));
+    }
+
+    @Test
+    public void findConflictWith_noSharedDetail_returnsEmpty() {
+        assertEquals(Optional.empty(), distinctFromAlex().build().findConflictWith(ALEX));
+    }
+
+    @Test
+    public void findConflictWith_sharedDetails_reportsPhoneThenEmailThenTelegram() {
+        Person sharesAll = new PersonBuilder(ALEX).withName("Bernice Yu").withEmail("ALEX@example.com").build();
+        Person sharesEmailAndTelegram = distinctFromAlex().withEmail("ALEX@example.com")
+                .withTelegramUsername("alex_yeoh").build();
+        Person sharesTelegram = distinctFromAlex().withTelegramUsername("@Alex_Yeoh").build();
+
+        assertConflict(new ContactConflict(Field.PHONE, ALEX_PHONE, ALEX), sharesAll);
+        assertConflict(new ContactConflict(Field.EMAIL, "alex@example.com", ALEX), sharesEmailAndTelegram);
+        assertConflict(new ContactConflict(Field.TELEGRAM_USERNAME, "@alex_yeoh", ALEX), sharesTelegram);
+    }
+
+    /**
+     * Returns a builder for a person whose name and contact details all differ from {@code ALEX}'s.
+     */
+    private static PersonBuilder distinctFromAlex() {
+        return new PersonBuilder().withName("Bernice Yu").withPhone("82345678")
+                .withEmail("bernice@example.com").withTelegramUsername("bernice_yu");
+    }
+
+    private static void assertConflictBothWays(Person first, Person second, boolean isConflictExpected) {
+        assertEquals(isConflictExpected, first.conflictsWith(second));
+        assertEquals(isConflictExpected, second.conflictsWith(first));
+    }
+
+    private static void assertConflict(ContactConflict expected, Person candidate) {
+        assertEquals(Optional.of(expected), candidate.findConflictWith(ALEX));
     }
 
     @Test

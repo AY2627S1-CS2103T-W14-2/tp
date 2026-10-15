@@ -54,4 +54,12 @@ public interface Storage {
      */
     void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException;
 
+    /**
+     * Copies the AddressBook data file to a unique backup file beside it.
+     *
+     * @return the path of the backup, or an empty {@code Optional} if the data file does not exist.
+     * @throws IOException if the backup could not be written.
+     */
+    Optional<Path> backupAddressBook() throws IOException;
+
 }

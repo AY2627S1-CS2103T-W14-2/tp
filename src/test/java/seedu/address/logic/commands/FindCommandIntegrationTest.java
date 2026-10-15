@@ -31,9 +31,9 @@ public class FindCommandIntegrationTest {
     @TempDir
     public Path temporaryFolder;
 
-    private final Person bob = new PersonBuilder().withName("Bob Lee").withProjects("Orbital").build();
-    private final Person alex = new PersonBuilder().withName("Alex Tan").withProjects("CS2103T").build();
-    private final Person alexander = new PersonBuilder().withName("Alexander Lee")
+    private final Person bob = new PersonBuilder().named("Bob Lee").withProjects("Orbital").build();
+    private final Person alex = new PersonBuilder().named("Alex Tan").withProjects("CS2103T").build();
+    private final Person alexander = new PersonBuilder().named("Alexander Lee")
             .withProjects("Orbital", "CS2103T").build();
 
     private Model model;

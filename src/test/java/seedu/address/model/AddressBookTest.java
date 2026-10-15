@@ -1,15 +1,17 @@
 package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
+import static seedu.address.testutil.ConflictTestUtil.clashesWith;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BOB;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.testutil.ConflictTestUtil.Clash;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddressBookTest {
@@ -41,38 +44,60 @@ public class AddressBookTest {
     }
 
     @Test
-    public void resetData_withDuplicatePersons_throwsDuplicatePersonException() {
-        // Two persons with the same identity fields
-        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
-                .build();
-        List<Person> newPersons = List.of(ALICE, editedAlice);
-        AddressBookStub newData = new AddressBookStub(newPersons);
-
-        assertThrows(DuplicatePersonException.class, () -> addressBook.resetData(newData));
+    public void resetData_withClashingPersons_throwsDuplicatePersonException() {
+        for (Clash clash : clashesWith(ALICE, BOB)) {
+            AddressBookStub newData = new AddressBookStub(List.of(ALICE, clash.person()));
+            assertThrows(DuplicatePersonException.class, clash.expectedMessage(), () ->
+                    addressBook.resetData(newData));
+        }
     }
 
     @Test
-    public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> addressBook.hasPerson(null));
+    public void resetData_withSameNameDistinctDetails_replacesData() {
+        AddressBookStub newData = new AddressBookStub(List.of(ALICE, ALICE_NAMESAKE));
+        addressBook.resetData(newData);
+        assertEquals(List.of(ALICE, ALICE_NAMESAKE), addressBook.getPersonList());
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
-        assertFalse(addressBook.hasPerson(ALICE));
+    public void findConflict_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.findConflict(null));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
+    public void findConflict_personNotInAddressBook_returnsEmpty() {
+        assertEquals(Optional.empty(), addressBook.findConflict(ALICE));
+    }
+
+    @Test
+    public void findConflict_sameNameDistinctDetails_returnsEmpty() {
         addressBook.addPerson(ALICE);
-        assertTrue(addressBook.hasPerson(ALICE));
+        assertEquals(Optional.empty(), addressBook.findConflict(ALICE_NAMESAKE));
     }
 
     @Test
-    public void hasPerson_personWithSameIdentityFieldsInAddressBook_returnsTrue() {
+    public void findConflict_clashingPerson_returnsConflict() {
         addressBook.addPerson(ALICE);
-        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
-                .build();
-        assertTrue(addressBook.hasPerson(editedAlice));
+        for (Clash clash : clashesWith(ALICE, BOB)) {
+            assertEquals(Optional.of(clash.expectedConflict()), addressBook.findConflict(clash.person()));
+        }
+    }
+
+    @Test
+    public void findConflict_excludingClashingPerson_returnsEmpty() {
+        addressBook.addPerson(ALICE);
+        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
+        assertEquals(Optional.empty(), addressBook.findConflict(editedAlice, ALICE));
+    }
+
+    @Test
+    public void setPerson_editedPersonTakesAnotherPersonsDetail_throwsDuplicatePersonException() {
+        addressBook.addPerson(ALICE);
+        addressBook.addPerson(BOB);
+        for (Clash clash : clashesWith(BOB, ALICE)) {
+            assertThrows(DuplicatePersonException.class, clash.expectedMessage(), () ->
+                    addressBook.setPerson(ALICE, clash.person()));
+        }
     }
 
     @Test

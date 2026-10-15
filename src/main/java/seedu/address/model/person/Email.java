@@ -9,6 +9,8 @@ import java.util.Locale;
 /**
  * Represents a Person's email in the address book.
  * Guarantees: immutable; is valid for new input or was valid in an older saved contact.
+ * Newly entered emails are stored in lowercase and saved emails keep their case; all emails are compared
+ * case-insensitively.
  */
 public class Email {
 
@@ -104,12 +106,19 @@ public class Email {
             return false;
         }
 
-        return value.equals(otherEmail.value);
+        return normalizedValue().equals(otherEmail.normalizedValue());
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return normalizedValue().hashCode();
+    }
+
+    /**
+     * Returns the lower-case form of this email, used only for comparison.
+     */
+    private String normalizedValue() {
+        return value.toLowerCase(Locale.ROOT);
     }
 
 }

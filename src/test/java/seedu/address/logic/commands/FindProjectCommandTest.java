@@ -30,9 +30,9 @@ public class FindProjectCommandTest {
 
     @Test
     public void execute_matchingProjects_listsEachContactOnceInOriginalOrder() {
-        Person alice = new PersonBuilder().withName("Alice").withProjects("CS2103T", "CS2103T Team Alpha").build();
-        Person bob = new PersonBuilder().withName("Bob").withProjects("Orbital", "CS2103T Team Beta").build();
-        Person carl = new PersonBuilder().withName("Carl").withProjects("Orbital").build();
+        Person alice = PersonBuilder.named("Alice").withProjects("CS2103T", "CS2103T Team Alpha").build();
+        Person bob = PersonBuilder.named("Bob").withProjects("Orbital", "CS2103T Team Beta").build();
+        Person carl = PersonBuilder.named("Carl").withProjects("Orbital").build();
         Model model = new ModelManager();
         model.addPerson(alice);
         model.addPerson(bob);

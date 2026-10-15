@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import java.util.List;
+import java.util.Locale;
 
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -49,6 +50,19 @@ public class PersonBuilder {
     }
 
     /**
+     * Creates a {@code PersonBuilder} named {@code name}, whose phone, email and Telegram username are derived from
+     * {@code name}. Persons built this way with different names do not share contact details, so they can be added
+     * to the same address book.
+     */
+    public static PersonBuilder named(String name) {
+        String key = name.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+        String phone = "+65" + (10_000_000 + Math.floorMod(key.hashCode(), 90_000_000));
+        String telegramUsername = key + "_user";
+        return new PersonBuilder().withName(name).withPhone(phone).withEmail(key + "@example.com")
+                .withTelegramUsername(telegramUsername.substring(0, Math.min(telegramUsername.length(), 32)));
+    }
+
+    /**
      * Sets the {@code Name} of the {@code Person} that we are building.
      */
     public PersonBuilder withName(String name) {
@@ -77,6 +91,14 @@ public class PersonBuilder {
      */
     public PersonBuilder withTelegramUsername(String telegramUsername) {
         this.telegramUsername = new TelegramUsername(telegramUsername);
+        return this;
+    }
+
+    /**
+     * Gives the {@code Person} that we are building no Telegram username, as for legacy contacts.
+     */
+    public PersonBuilder withoutTelegramUsername() {
+        this.telegramUsername = TelegramUsername.EMPTY;
         return this;
     }
 

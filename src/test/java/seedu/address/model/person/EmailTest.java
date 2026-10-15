@@ -106,4 +106,17 @@ public class EmailTest {
         // different values -> returns false
         assertFalse(email.equals(new Email("other.valid@email.com")));
     }
+
+    @Test
+    public void equals_savedEmailInDifferentCase_returnsTrue() {
+        // saved emails keep their case, so comparison must still ignore it
+        assertEquals(Email.fromStoredValue("Bob@Example.com"), new Email("bob@example.com"));
+        // upper-case domain only
+        assertEquals(new Email("bob@example.com"), Email.fromStoredValue("bob@EXAMPLE.COM"));
+    }
+
+    @Test
+    public void hashCode_savedEmailInDifferentCase_isConsistentWithEquals() {
+        assertEquals(Email.fromStoredValue("Bob@Example.com").hashCode(), new Email("bob@EXAMPLE.com").hashCode());
+    }
 }

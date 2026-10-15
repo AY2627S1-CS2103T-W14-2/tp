@@ -1,0 +1,15 @@
+{
+  "persons" : [ {
+    "name" : "Alice Pauline",
+    "phone" : "94351253",
+    "email" : "alice@example.com",
+    "telegramUsername" : "alice_pauline",
+    "projects" : [ ]
+  }, {
+    "name" : "Bob Choo",
+    "phone" : "22222222",
+    "email" : "Alice@Example.COM",
+    "telegramUsername" : "bob_choo",
+    "projects" : [ ]
+  } ]
+}

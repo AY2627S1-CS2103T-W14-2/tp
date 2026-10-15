@@ -13,6 +13,8 @@ import static seedu.address.logic.commands.CommandTestUtil.PROJECT_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.TELEGRAM_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PROJECT_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
+import static seedu.address.testutil.ConflictTestUtil.clashesWith;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -43,6 +45,8 @@ import seedu.address.model.project.Project;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.ConflictTestUtil.Clash;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
 
@@ -140,10 +144,41 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addSameNameContact_savesBothAndUndoRestoresPair() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
+        logic.execute(PersonUtil.getAddCommand(ALICE_NAMESAKE));
+        AddressBook pair = new AddressBookBuilder().withPerson(ALICE_WITH_PROJECT).withPerson(ALICE_NAMESAKE).build();
+        JsonAddressBookStorage savedData = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(pair, model.getAddressBook());
+        assertEquals(pair, savedData.readAddressBook().orElseThrow());
+
+        logic.execute("delete 2");
+        logic.execute("undo");
+
+        assertEquals(pair, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_addClashingContact_leavesModelFileAndUndoHistoryUnchanged() throws Exception {
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
+        Path file = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        for (Clash clash : clashesWith(ALICE, ALICE_NAMESAKE)) {
+            assertCommandException(PersonUtil.getAddCommand(clash.person()), clash.expectedMessage());
+            assertEquals(before, model.getAddressBook());
+            assertEquals(savedData, Files.readString(file));
+        }
+        logic.execute("undo"); // undoes the first add, not a rejected one
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
     public void execute_addThenUndo_restoresAndSavesPreviousState() throws Exception {
         Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         logic.execute(PersonUtil.getAddCommand(person));
-        assertTrue(model.hasPerson(person));
+        assertTrue(model.getAddressBook().getPersonList().contains(person));
 
         CommandResult result = logic.execute("undo");
 
@@ -176,7 +211,7 @@ public class LogicManagerTest {
 
         logic.execute("find Benson");
         logic.execute("delete 1");
-        assertFalse(model.hasPerson(BENSON));
+        assertFalse(model.getAddressBook().getPersonList().contains(BENSON));
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());

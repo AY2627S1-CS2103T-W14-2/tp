@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -91,6 +92,24 @@ public class JsonAddressBookStorage {
         backupLegacyData(filePath);
         FileUtil.createIfMissing(filePath);
         JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
+    }
+
+    /**
+     * Copies the data file to a unique sibling backup file, so that a file that could not be loaded is not lost
+     * when the next save replaces it.
+     *
+     * @return the path of the backup, or an empty {@code Optional} if the data file does not exist.
+     * @throws IOException if the backup could not be written.
+     */
+    public Optional<Path> backupAddressBook() throws IOException {
+        if (!Files.exists(filePath)) {
+            return Optional.empty();
+        }
+        Path backup = Files.createTempFile(filePath.toAbsolutePath().getParent(),
+                filePath.getFileName() + ".unreadable-", ".bak");
+        Files.copy(filePath, backup, StandardCopyOption.REPLACE_EXISTING);
+        logger.info("Preserved unreadable contact data in " + backup);
+        return Optional.of(backup);
     }
 
     /**

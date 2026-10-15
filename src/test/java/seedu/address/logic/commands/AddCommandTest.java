@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
+import static seedu.address.testutil.ConflictTestUtil.clashesWith;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -20,7 +23,9 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.person.ContactConflict;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.ConflictTestUtil.Clash;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -42,12 +47,32 @@ public class AddCommandTest {
     }
 
     @Test
-    public void execute_duplicatePerson_throwsCommandException() {
+    public void execute_samePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
         AddCommand addCommand = new AddCommand(validPerson);
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
+        String expectedMessage = validPerson.findConflictWith(validPerson).orElseThrow().getMessage();
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        assertThrows(CommandException.class, expectedMessage, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_clashingPerson_throwsCommandException() {
+        ModelStub modelStub = new ModelStubWithPerson(ALICE);
+        for (Clash clash : clashesWith(ALICE, ALICE_NAMESAKE)) {
+            AddCommand addCommand = new AddCommand(clash.person());
+            assertThrows(CommandException.class, clash.expectedMessage(), () -> addCommand.execute(modelStub));
+        }
+    }
+
+    @Test
+    public void execute_sameNameDistinctDetails_addSuccessful() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+
+        new AddCommand(ALICE).execute(modelStub);
+        new AddCommand(ALICE_NAMESAKE).execute(modelStub);
+
+        assertEquals(List.of(ALICE, ALICE_NAMESAKE), modelStub.personsAdded);
     }
 
     @Test
@@ -116,7 +141,12 @@ public class AddCommandTest {
         }
 
         @Override
-        public boolean hasPerson(Person person) {
+        public Optional<ContactConflict> findConflict(Person candidate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<ContactConflict> findConflict(Person candidate, Person excluded) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -173,9 +203,9 @@ public class AddCommandTest {
         }
 
         @Override
-        public boolean hasPerson(Person person) {
-            requireNonNull(person);
-            return this.person.isSamePerson(person);
+        public Optional<ContactConflict> findConflict(Person candidate) {
+            requireNonNull(candidate);
+            return candidate.findConflictWith(person);
         }
     }
 
@@ -186,9 +216,9 @@ public class AddCommandTest {
         final ArrayList<Person> personsAdded = new ArrayList<>();
 
         @Override
-        public boolean hasPerson(Person person) {
-            requireNonNull(person);
-            return personsAdded.stream().anyMatch(person::isSamePerson);
+        public Optional<ContactConflict> findConflict(Person candidate) {
+            requireNonNull(candidate);
+            return personsAdded.stream().map(candidate::findConflictWith).flatMap(Optional::stream).findFirst();
         }
 
         @Override

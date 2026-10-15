@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
 import static seedu.address.testutil.TypicalPersons.IDA;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,6 +25,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.TelegramUsername;
+import seedu.address.testutil.AddressBookBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -198,6 +201,50 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void backupAddressBook_unloadableFile_copiesExactBytesBesideOriginal() throws Exception {
+        Path file = testFolder.resolve("clashing.json");
+        Files.copy(Paths.get("src", "test", "data", "JsonSerializableAddressBookTest",
+                "samePhoneDifferentNamesAddressBook.json"), file);
+        byte[] original = Files.readAllBytes(file);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+
+        Path backup = storage.backupAddressBook().orElseThrow();
+
+        assertEquals(file.toAbsolutePath().getParent(), backup.getParent());
+        assertTrue(backup.getFileName().toString().startsWith("clashing.json.unreadable-"));
+        assertTrue(backup.getFileName().toString().endsWith(".bak"));
+        assertArrayEquals(original, Files.readAllBytes(backup));
+        assertArrayEquals(original, Files.readAllBytes(file));
+    }
+
+    @Test
+    public void backupAddressBook_repeatedBackups_doNotOverwriteEachOther() throws Exception {
+        Path file = testFolder.resolve("data.json");
+        Files.writeString(file, "{}");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+
+        assertFalse(storage.backupAddressBook().equals(storage.backupAddressBook()));
+    }
+
+    @Test
+    public void backupAddressBook_missingFile_returnsEmpty() throws Exception {
+        assertEquals(Optional.empty(), new JsonAddressBookStorage(testFolder.resolve("missing.json"))
+                .backupAddressBook());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_sameNameContacts_success() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBookBuilder().withPerson(ALICE).withPerson(ALICE_NAMESAKE).build();
+        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+
+        jsonAddressBookStorage.saveAddressBook(original, filePath);
+
+        assertEquals(original, new AddressBook(jsonAddressBookStorage.readAddressBook(filePath).get()));
     }
 
     @Test

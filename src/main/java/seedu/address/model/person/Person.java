@@ -1,11 +1,13 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.project.Project;
@@ -18,8 +20,9 @@ public class Person {
 
     public static final String MESSAGE_DUPLICATE_PROJECTS = "A contact cannot contain duplicate projects";
 
-    // Identity fields
     private final Name name;
+
+    // Contact details that must be unique across contacts
     private final Phone phone;
     private final Email email;
     private final TelegramUsername telegramUsername;
@@ -73,21 +76,48 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
-     * This defines a weaker notion of equality between two persons.
+     * Returns true if this person and {@code otherPerson} cannot both be saved, because they share a phone number,
+     * an email (ignoring case) or a non-empty Telegram username. Names and projects are never compared.
+     * This relation is symmetric but not transitive, so it is not an equivalence.
      */
-    public boolean isSamePerson(Person otherPerson) {
-        if (otherPerson == this) {
-            return true;
-        }
-
-        return otherPerson != null
-                && otherPerson.getName().equals(getName());
+    public boolean conflictsWith(Person otherPerson) {
+        return findConflictWith(otherPerson).isPresent();
     }
 
     /**
-     * Returns true if both persons have the same identity and data fields.
-     * This defines a stronger notion of equality between two persons.
+     * Returns the first contact detail this person shares with {@code existingPerson}, checking phone, email and
+     * Telegram username in that order, or an empty {@code Optional} if they do not conflict.
+     * The reported value is taken from this person.
+     */
+    public Optional<ContactConflict> findConflictWith(Person existingPerson) {
+        requireNonNull(existingPerson);
+        if (phone.equals(existingPerson.phone)) {
+            return conflictOn(ContactConflict.Field.PHONE, phone, existingPerson);
+        }
+        if (email.equals(existingPerson.email)) {
+            return conflictOn(ContactConflict.Field.EMAIL, email, existingPerson);
+        }
+        if (hasSameTelegramUsername(existingPerson)) {
+            return conflictOn(ContactConflict.Field.TELEGRAM_USERNAME, telegramUsername, existingPerson);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns true if both persons have the same Telegram username. An empty username never matches.
+     */
+    private boolean hasSameTelegramUsername(Person otherPerson) {
+        return !telegramUsername.isEmpty() && telegramUsername.equals(otherPerson.telegramUsername);
+    }
+
+    private static Optional<ContactConflict> conflictOn(ContactConflict.Field field, Object value,
+            Person existingPerson) {
+        return Optional.of(new ContactConflict(field, value.toString(), existingPerson));
+    }
+
+    /**
+     * Returns true if both persons have identical fields.
+     * Two contacts that are not equal may still conflict; see {@link #conflictsWith(Person)}.
      */
     @Override
     public boolean equals(Object other) {

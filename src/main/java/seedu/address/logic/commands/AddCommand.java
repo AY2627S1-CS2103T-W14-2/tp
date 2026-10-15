@@ -34,7 +34,6 @@ public class AddCommand extends Command {
             + PREFIX_PROJECT + "CS2103T";
 
     public static final String MESSAGE_SUCCESS = "Added contact: %1$s%2$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
     public static final String MESSAGE_PROJECT_REQUIRED = "Project is required. Use pr/PROJECT.";
 
     private final Person toAdd;
@@ -51,10 +50,7 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasPerson(toAdd)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
-        }
-
+        rejectIfConflicting(model.findConflict(toAdd));
         model.addPerson(toAdd);
         String projectSuffix = toAdd.getProjects().isEmpty() ? "" : " [" + toAdd.getProjects().getFirst() + "]";
         return new CommandResult(String.format(MESSAGE_SUCCESS, toAdd.getName(), projectSuffix));
