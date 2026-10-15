@@ -49,12 +49,10 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_removedFields_failure() {
-        String validInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB;
+        String validInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB;
         for (String removedField : new String[] {" a/NUS", " a/", " t/friend", " t/", " a/NUS t/friend"}) {
             assertParseFailure(parser, validInput + removedField, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS);
             assertParseFailure(parser, removedField + validInput, ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS);
-            assertParseFailure(parser, validInput + PROJECT_DESC_BOB + removedField,
-                    ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS);
         }
     }
 
