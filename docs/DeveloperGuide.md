@@ -172,6 +172,11 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Current command and contact model
 
+The MVP includes `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`,
+with same-name support, duplicate-detail validation and persistence. Editing is outside the MVP scope.
+The partial `edit` implementation remains in the code and its regression tests remain relevant, but extending
+editing is deferred. The help window lists the ten MVP commands and identifies editing as outside this scope.
+
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
 `undo`, `help`, and `exit`. Command words are case-sensitive.
@@ -382,6 +387,10 @@ commands available in this release. No archiving design has been implemented yet
 ## **Appendix: Requirements**
 
 ### Product scope
+
+**Release boundary:** All ten commands listed in the current command model are in the MVP. `edit` is excluded
+from MVP acceptance, even though partial editing remains available. Future user stories below do not expand
+this release boundary.
 
 **Target user profile**:
 
@@ -649,6 +658,9 @@ Expect three contacts in that order, including two separate Alex Tan cards. Phon
 hyphens, emails are lowercase, and Telegram usernames display a leading `@`. Projects distinguish the namesakes.
 
 ### Search, index selection and editing
+
+The `edit` step below is an additional regression check for existing code, not an MVP acceptance requirement.
+It can be skipped when checking only MVP scope; the remaining steps work with David's original name.
 
 Run the following in order after preparing the contacts:
 

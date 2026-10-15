@@ -10,6 +10,10 @@ LinkUp is a **desktop contact manager for students working across projects and t
 contact details, associate project mates with projects, and find the right person by name or project. The contact
 list shows phone numbers, emails, Telegram usernames, and projects so you can distinguish people with the same name.
 
+**MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
+Same-name contacts, duplicate-detail checks and automatic saving are included. Editing is deferred from the
+MVP; the existing partial `edit` command is documented separately below so its current limitations are clear.
+
 <!-- * Table of Contents -->
 <page-nav-print />
 
@@ -83,6 +87,9 @@ Opens a window containing a command reference and the User Guide link. Use its c
 into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
+
+The reference includes all ten MVP commands. Resize the help window or scroll to reach later commands and
+the Copy URL button. Editing is labelled as outside MVP scope.
 
 
 ### Adding a person: `add`
@@ -181,7 +188,10 @@ when the list is empty.
 
 Format: `list`
 
-### Editing a person: `edit`
+### Editing a person: `edit` (outside MVP scope)
+
+Editing is planned for a later iteration. This command remains available in the current build for name,
+phone and email changes only; its presence does not mean full editing is part of the MVP.
 
 Edits an existing person in the address book.
 
@@ -390,7 +400,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit (outside MVP)** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`

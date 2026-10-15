@@ -79,14 +79,7 @@ Any warnings or errors will be printed out to the console.
 
 Here are the steps to create a new release.
 
-1. Select the team-approved release commit and version. Check the version in
-   [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java).
-1. Run `./gradlew clean check coverage shadowJar` with Java 25 (Windows: `.\gradlew.bat clean check coverage shadowJar`).
-   On headless Linux, prefix the command with `xvfb-run -a`. Confirm CI for that commit also passes.
-1. Build the documentation using the [Documentation Guide](Documentation.md), then follow the
-   [manual testing instructions](DeveloperGuide.md#appendix-instructions-for-manual-testing) with the generated
-   `build/libs/LinkUp.jar` in a separate folder. Launch with `java -jar LinkUp.jar`.
-1. Tag the verified commit with the agreed version and create the GitHub release in the team repository.
-   Upload `build/libs/LinkUp.jar` as an asset named `LinkUp.jar`; the source ZIP is not the runnable application.
-1. Describe the implemented features and known limitations in the release notes, including the current edit
-   scope. Download the uploaded JAR and verify that it launches before announcing the release.
+1. Update the version number in [`MainApp.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java).
+1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
+1. Tag the repo with the version number. e.g. `v0.1`
+1. [Create a new release using GitHub](https://help.github.com/articles/creating-releases/). Upload the JAR file you created.
