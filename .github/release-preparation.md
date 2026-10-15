@@ -68,6 +68,12 @@ Build and publishing commands are in the [DevOps Guide](../docs/DevOps.md#making
 
 ## Screenshot capture instructions (not part of the published notes)
 
+Six supplied screenshots are included in the formal release notes: same-name contacts, duplicate-phone
+rejection with matching and different names, project search, deletion and undo. Their captions describe the
+actual Alex Yeoh/Bernice Yu/`hi` examples shown, rather than the suggested fixture below.
+Only the help-window top and bottom captures remain pending. The fixture below is retained for optional retakes.
+Image links use the immutable asset commit in the personal repository so they work in a GitHub release description.
+
 Use a separate folder with a copy of `LinkUp.jar` so these steps do not change real contacts. Launch it from
 that folder with `java -jar LinkUp.jar`. Keep the command result and relevant contact cards visible in each
 capture. Save the requested files under `docs/images/`; add the images and captions to docs/ReleaseNotes.md once

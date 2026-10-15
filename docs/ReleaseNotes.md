@@ -46,6 +46,40 @@ Name-search results display matching contacts with their details and project inf
 
 ![LinkUp name search showing Alex Yeoh and David Li](https://raw.githubusercontent.com/AY2627S1-CS2103T-W14-2/tp/7e84655a998bf23b65cff8f9e9e23072c83f1c09/docs/images/findAlexDavidResult.png)
 
+### Same-name contacts
+
+Two contacts named Alex Yeoh are stored separately, with different phone numbers, emails and Telegram usernames.
+They can also belong to the same project.
+
+![Two Alex Yeoh contacts with distinct contact details](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-same-name.png)
+
+### Duplicate-detail detection
+
+An add command is rejected when its phone number is already in use, even if the other contact details differ.
+
+![Phone conflict rejected for a contact with the same name](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-duplicate-same-name.png)
+
+Changing the name does not bypass the duplicate-phone check.
+
+![Phone conflict rejected for a contact with a different name](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-duplicate-different-name.png)
+
+### Project search
+
+Project search returns Alex Yeoh and Bernice Yu, both associated with CS2103T. Bernice's additional Orbital
+association remains visible in the results.
+
+![Project search returns two contacts with their project associations](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-project-search.png)
+
+### Deletion and undo
+
+LinkUp confirms the deletion of the contact named `hi`.
+
+![Deletion confirmation for the contact named hi](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-delete.png)
+
+Running `undo` restores the contact, including their contact details and project association.
+
+![Undo confirmation and the restored contact hi](https://raw.githubusercontent.com/yileteoh/tp/60eef49b52b3740b1a746a84dcfc7ac7a3aec785/docs/images/release-undo.png)
+
 ## Getting started
 
 **Requirements:** Java 25 on Windows, macOS or Linux.
