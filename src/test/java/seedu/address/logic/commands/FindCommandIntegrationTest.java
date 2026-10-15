@@ -119,8 +119,8 @@ public class FindCommandIntegrationTest {
     @Test
     public void execute_editAfterPartialSearch_editsDisplayedContactAndPreservesProjects() throws Exception {
         logic.execute("find ale");
-        logic.execute("edit 1 p/91234567");
-        Person editedAlex = new PersonBuilder(alex).withPhone("91234567").build();
+        logic.execute("edit 1 p/+6591234567");
+        Person editedAlex = new PersonBuilder(alex).withPhone("+6591234567").build();
 
         logic.execute("find ale");
         assertEquals(List.of(editedAlex, alexander), logic.getFilteredPersonList());
