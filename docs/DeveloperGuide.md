@@ -223,8 +223,8 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
-A file that is well-formed but cannot be loaded, for example because two contacts conflict, has no retired
-fields and so is not covered by the migration backup. Instead, when `MainApp.initModelManager` catches the
+A file that is well-formed but cannot be loaded, for example because two contacts conflict, may have no retired
+fields and therefore may not qualify for the migration backup. When `MainApp.initModelManager` catches the
 `DataLoadingException` and starts with an empty address book, it calls `Storage#backupAddressBook()`, which copies
 the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. If the
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
@@ -695,7 +695,8 @@ Start with `list` after the preceding sequence. Each rejected command below must
 
 For boundaries, try `find` with 60 and then 61 consecutive `x` characters, and `findproject` with 40 and
 then 41. The shorter query is accepted (with no matches); the longer one reports a length error without
-changing the current results. `project 1 pr/` with 40 consecutive `x` characters succeeds, while 41 fails.
+changing the current results. Run `list` to restore the displayed contacts. Then `project 1 pr/` with 40
+consecutive `x` characters succeeds, while 41 fails.
 Run `undo` after the accepted project change to restore the fixture.
 
 ### Undo and restart
@@ -707,7 +708,8 @@ Run `undo` after the accepted project change to restore the fixture.
 
 ### Missing, unreadable and legacy files
 
-Close the application before each file change, and keep a copy outside the test folder.
+Close the application before each file change, and keep a valid copy outside the test folder. Restore that
+valid copy before each scenario so the legacy tests start with contacts rather than the preceding empty file.
 
 | Scenario | Procedure and expected result |
 | --- | --- |
