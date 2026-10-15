@@ -79,6 +79,10 @@ Any warnings or errors will be printed out to the console.
 
 Here are the steps to create a new release.
 
+For the MVP, use the [release checklist and notes](ReleaseNotes.md). Editing is outside MVP acceptance;
+its existing automated regression tests should still pass. Publishing a tag or GitHub release is a separate
+step after the team has selected and verified the release commit.
+
 1. Select the team-approved release commit and version. Check the version in
    [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java).
 1. Run `./gradlew clean check coverage shadowJar` with Java 25 (Windows: `.\gradlew.bat clean check coverage shadowJar`).
