@@ -40,7 +40,7 @@
       "src": "DeveloperGuide.md",
       "title": "Developer Guide",
       "headings": {
-        "ab-3-developer-guide": "AB-3 Developer Guide",
+        "linkup-developer-guide": "LinkUp Developer Guide",
         "acknowledgements": "Acknowledgements",
         "setting-up-getting-started": "Setting up, getting started",
         "design": "Design",
@@ -51,12 +51,15 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "current-command-and-contact-model": "Current command and contact model",
+        "name-search-and-displayed-indices": "Name search and displayed indices",
         "removing-retired-contact-fields": "Removing retired contact fields",
         "duplicate-contact-detection": "Duplicate contact detection",
         "finding-contacts-by-project": "Finding contacts by project",
         "project-association-implementation": "Project association implementation",
         "undo-command-implementation": "Undo command implementation",
-        "proposed-data-archiving": "[Proposed] Data archiving",
+        "persistence-and-save-failures": "Persistence and save failures",
+        "deferred-features": "Deferred features",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
         "product-scope": "Product scope",
@@ -65,9 +68,12 @@
         "non-functional-requirements": "Non-Functional Requirements",
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
-        "launch-and-shutdown": "Launch and shutdown",
-        "deleting-a-person": "Deleting a person",
-        "saving-data": "Saving data"
+        "launch-shutdown-and-persistence": "Launch, shutdown and persistence",
+        "prepare-deterministic-contacts": "Prepare deterministic contacts",
+        "search-index-selection-and-editing": "Search, index selection and editing",
+        "validation-and-duplicate-rejection": "Validation and duplicate rejection",
+        "undo-and-restart": "Undo and restart",
+        "missing-unreadable-and-legacy-files": "Missing, unreadable and legacy files"
       },
       "headingKeywords": {}
     },
@@ -75,7 +81,12 @@
       "src": "Documentation.md",
       "title": "Documentation guide",
       "headings": {
-        "documentation-guide": "Documentation Guide"
+        "documentation-guide": "Documentation Guide",
+        "local-preview-and-build": "Local preview and build",
+        "where-to-make-changes": "Where to make changes",
+        "keeping-documentation-consistent-with-code": "Keeping documentation consistent with code",
+        "style-guidance": "Style guidance",
+        "converting-to-pdf": "Converting to PDF"
       },
       "headingKeywords": {}
     },
