@@ -83,7 +83,7 @@ For the MVP, use the [release checklist and notes](ReleaseNotes.md). Editing is 
 its existing automated regression tests should still pass. Publishing a tag or GitHub release is a separate
 step after the team has selected and verified the release commit.
 
-1. Select the team-approved release commit and version. Check the version in
+1. For Week 9, use version/tag `v1.3` and select the team-approved release commit. Check the version in
    [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java).
 1. Run `./gradlew clean check coverage shadowJar` with Java 25 (Windows: `.\gradlew.bat clean check coverage shadowJar`).
    On headless Linux, prefix the command with `xvfb-run -a`. Confirm CI for that commit also passes.
@@ -92,5 +92,10 @@ step after the team has selected and verified the release commit.
    `build/libs/LinkUp.jar` in a separate folder. Launch with `java -jar LinkUp.jar`.
 1. Tag the verified commit with the agreed version and create the GitHub release in the team repository.
    Upload `build/libs/LinkUp.jar` as an asset named `LinkUp.jar`; the source ZIP is not the runnable application.
-1. Describe the implemented features and known limitations in the release notes, including the current edit
-   scope. Download the uploaded JAR and verify that it launches before announcing the release.
+1. Paste the itemised changes compared with AB3 and the product screenshots from the
+   [release-note draft](ReleaseNotes.md#release-note-draft) into the GitHub release description. Include the
+   current edit limitation. Check that the images render in GitHub's preview.
+1. Download the uploaded JAR and verify that it launches before announcing the release.
+1. Close completed release issues, move deferred work to a later milestone, and close the `v1.3` milestone
+   after publication. The Week 9 deadline is Thursday, 15 October 2026, 23:59; see the
+   [course requirements](https://nus-cs2103-ay2627-s1.github.io/website/schedule/week9/project.html).
