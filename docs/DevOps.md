@@ -77,9 +77,12 @@ Any warnings or errors will be printed out to the console.
 
 ## Making a release
 
-Here are the steps to create a new release.
+Here are the steps to create a new LinkUp release.
 
-1. Update the version number in [`MainApp.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java).
-1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
-1. Tag the repo with the version number. e.g. `v0.1`
-1. [Create a new release using GitHub](https://help.github.com/articles/creating-releases/). Upload the JAR file you created.
+1. Update the version number in [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java).
+1. Generate the fat JAR using `./gradlew shadowJar` (Windows: `.\gradlew.bat shadowJar`). The output is `build/libs/LinkUp.jar`.
+1. Tag the release commit with the version number, for example `v1.3`.
+1. [Create a release in the LinkUp team repository](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases/new) using that tag.
+   Add a title such as `LinkUp v1.3`, describe the changes, and include relevant screenshots in the release notes.
+1. Upload `LinkUp.jar` as a release asset and publish the release.
+1. Download the uploaded JAR and check that it launches with `java -jar LinkUp.jar`.
