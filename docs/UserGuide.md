@@ -236,7 +236,13 @@ Undo the last supported command. The supported commands are:
 * `clear`
 * `project`
 
-Only the most recent command can be undone.
+Each `undo` reverses the most recent successful supported command that has not already been undone.
+Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Failed commands and
+unsupported commands do not affect the undo history.
+
+Undo history is available only during the current application session and is cleared on restart.
+If there are no commands left to undo, the application reports `No command to undo.`.
+Redo is not supported.
 
 Format: `undo`
 

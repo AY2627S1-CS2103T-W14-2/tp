@@ -3,6 +3,8 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -21,7 +23,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
-    private AddressBook undoSnapshot;
+    private final Deque<AddressBook> undoHistory = new ArrayDeque<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -128,11 +130,11 @@ public class ModelManager implements Model {
     }
 
     /**
-     * Saves a copy of {@code previousState} for undo, replacing any existing saved state.
+     * Adds a copy of {@code previousState} to the undo history.
      */
     @Override
     public void saveUndoState(ReadOnlyAddressBook previousState) {
-        undoSnapshot = new AddressBook(previousState);
+        undoHistory.push(new AddressBook(previousState));
     }
 
     /**
@@ -140,11 +142,19 @@ public class ModelManager implements Model {
      */
     @Override
     public boolean canUndo() {
-        return undoSnapshot != null;
+        return !undoHistory.isEmpty();
+    }
+
+    @Override
+    public ReadOnlyAddressBook getUndoState() {
+        if (!canUndo()) {
+            throw new IllegalStateException("No command to undo");
+        }
+        return new AddressBook(undoHistory.peek());
     }
 
     /**
-     * Restores the saved address book state, discards it and shows all persons.
+     * Restores the most recent saved address book state, discards it and shows all persons.
      * @throws IllegalStateException if there is no saved state to restore.
      */
     @Override
@@ -153,8 +163,7 @@ public class ModelManager implements Model {
             throw new IllegalStateException("No command to undo");
         }
 
-        addressBook.resetData(undoSnapshot);
-        undoSnapshot = null;
+        addressBook.resetData(undoHistory.pop());
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 }
