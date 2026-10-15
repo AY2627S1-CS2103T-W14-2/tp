@@ -94,7 +94,7 @@ public class NameContainsKeywordsPredicateTest {
                 new NameContainsKeywordsPredicate(List.of("123", "mail", "reet", "user", "orb", "fri"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alex Tan").withPhone("12345678")
                 .withEmail("other@mail.com").withTelegramUsername("other_user")
-                .withProjects("Orbital").withTags("friend").build()));
+                .withProjects("Orbital").build()));
     }
 
     @Test
