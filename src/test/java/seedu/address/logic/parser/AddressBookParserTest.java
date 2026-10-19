@@ -59,9 +59,18 @@ public class AddressBookParserTest {
     public void parseCommand_edit() throws Exception {
         Person person = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
+        assertTrue(descriptor.getTelegramUsername().isPresent()); // all four editable fields are routed
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
         assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
+    }
+
+    @Test
+    public void parseCommand_editWithProject_throwsParseException() {
+        for (String userInput : List.of("edit 1 n/Alice pr/Orbital", "edit pr/Orbital")) {
+            assertThrows(ParseException.class, EditCommand.MESSAGE_PROJECT_NOT_EDITABLE, () ->
+                    parser.parseCommand(userInput));
+        }
     }
 
     @Test
