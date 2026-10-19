@@ -16,7 +16,7 @@ import seedu.address.testutil.FxTestUtil;
 
 public class HelpWindowTest {
     @Test
-    public void help_smallWindowAllowsAccessToAllMvpCommandsAndGuide() throws Exception {
+    public void help_smallWindowAllowsAccessToAllCommandsAndGuide() throws Exception {
         FxTestUtil.run(() -> {
             HelpWindow window = new HelpWindow();
             try {

@@ -11,8 +11,8 @@ contact details, associate project mates with projects, and find the right perso
 list shows phone numbers, emails, Telegram usernames, and projects so you can distinguish people with the same name.
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Same-name contacts, duplicate-detail checks and automatic saving are included. Editing is deferred from the
-MVP; the existing partial `edit` command is documented separately below so its current limitations are clear.
+Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
+contact's name, phone number, email or Telegram username; projects are added with `project` and cannot be edited.
 
 <!-- * Table of Contents -->
 <page-nav-print />
