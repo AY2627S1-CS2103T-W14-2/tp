@@ -30,6 +30,9 @@ public class HelpWindow extends UiPart<Stage> {
             + "COMMAND: add n/NAME p/PHONE e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT\n"
             + "Save a contact with their phone, email, Telegram username and project. "
             + "Phone example: p/+6591234567.\n\n"
+            + "COMMAND: edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [tele/TELEGRAM_USERNAME]\n"
+            + "Change one or more of these details of the contact at the given index, in any order. "
+            + "Projects stay unchanged; use project to add one.\n\n"
             + "COMMAND: list\n"
             + "Show all saved contacts and their projects.\n\n"
             + "COMMAND: delete INDEX\n"
@@ -46,7 +49,7 @@ public class HelpWindow extends UiPart<Stage> {
             + "Delete all contacts, including contacts hidden by a search. "
             + "There is no confirmation prompt; use undo in this session to restore them.\n\n"
             + "COMMAND: undo\n"
-            + "Reverse the latest add, delete, clear or project change. Repeat to undo earlier changes. "
+            + "Reverse the latest add, edit, delete, clear or project change. Repeat to undo earlier changes. "
             + "History is lost when LinkUp closes; there is no redo.\n\n"
             + "COMMAND: help\n"
             + "Open this reference. The Help menu and F1 also open it.\n\n"
@@ -54,8 +57,6 @@ public class HelpWindow extends UiPart<Stage> {
             + "Close LinkUp. Contacts are saved automatically after successful commands.\n\n"
             + "Use indices from the currently displayed list. Same names are allowed; phone numbers, "
             + "emails and non-empty Telegram usernames must be unique.\n\n"
-            + "Editing is outside the MVP scope. The existing partial edit command remains available "
-            + "and undoable, but full editing is deferred; see the user guide for its limitations.\n\n"
             + "Refer to the user guide: " + USERGUIDE_URL;
 
     private static final Logger logger = LogsCenter.getLogger(HelpWindow.class);
