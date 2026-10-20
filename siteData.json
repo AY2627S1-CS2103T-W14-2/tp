@@ -57,6 +57,7 @@
         "duplicate-contact-detection": "Duplicate contact detection",
         "finding-contacts-by-project": "Finding contacts by project",
         "project-association-implementation": "Project association implementation",
+        "edit-command-implementation": "Edit command implementation",
         "undo-command-implementation": "Undo command implementation",
         "persistence-and-save-failures": "Persistence and save failures",
         "deferred-features": "Deferred features",
@@ -71,6 +72,7 @@
         "launch-shutdown-and-persistence": "Launch, shutdown and persistence",
         "prepare-deterministic-contacts": "Prepare deterministic contacts",
         "search-index-selection-and-editing": "Search, index selection and editing",
+        "editing-contacts": "Editing contacts",
         "validation-and-duplicate-rejection": "Validation and duplicate rejection",
         "undo-and-restart": "Undo and restart",
         "missing-unreadable-and-legacy-files": "Missing, unreadable and legacy files"
