@@ -27,8 +27,8 @@ duplicate-contact handling, and data recovery.
 - List all contacts, clear the address book, open command help, and exit the app.
 
 The MVP command set is `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Editing is deferred from the MVP. The existing `edit` command still supports name, phone and email changes,
-but does not support editing Telegram usernames or replacing/removing projects.
+Beyond the MVP, `edit` changes a contact's name, phone number, email or Telegram username. Projects are added
+with `project`; replacing or removing a project association is not supported.
 
 ## UI
 

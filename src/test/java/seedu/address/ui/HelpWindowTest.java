@@ -16,7 +16,7 @@ import seedu.address.testutil.FxTestUtil;
 
 public class HelpWindowTest {
     @Test
-    public void help_smallWindowAllowsAccessToAllMvpCommandsAndGuide() throws Exception {
+    public void help_smallWindowAllowsAccessToAllCommandsAndGuide() throws Exception {
         FxTestUtil.run(() -> {
             HelpWindow window = new HelpWindow();
             try {
@@ -32,13 +32,14 @@ public class HelpWindowTest {
                         .filter(TextFlow.class::isInstance).map(TextFlow.class::cast)
                         .flatMap(flow -> flow.getChildren().stream()).map(Text.class::cast)
                         .map(Text::getText).reduce("", String::concat);
-                for (String command : List.of("add", "list", "delete", "find", "project", "findproject",
+                for (String command : List.of("add", "edit", "list", "delete", "find", "project", "findproject",
                         "clear", "undo", "help", "exit")) {
                     assertTrue(displayedText.contains("COMMAND: " + command + " ")
                             || displayedText.contains("COMMAND: " + command + "\n"), command);
                 }
-                assertFalse(displayedText.contains("COMMAND: edit"));
-                assertTrue(displayedText.contains("Editing is outside the MVP scope"));
+                assertTrue(displayedText.contains("COMMAND: edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] "
+                        + "[tele/TELEGRAM_USERNAME]"));
+                assertFalse(displayedText.contains("outside the MVP scope"));
                 assertTrue(content.getBoundsInLocal().getHeight() > scroll.getViewportBounds().getHeight());
 
                 scroll.setVvalue(scroll.getVmax());

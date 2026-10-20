@@ -11,8 +11,8 @@ contact details, associate project mates with projects, and find the right perso
 list shows phone numbers, emails, Telegram usernames, and projects so you can distinguish people with the same name.
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Same-name contacts, duplicate-detail checks and automatic saving are included. Editing is deferred from the
-MVP; the existing partial `edit` command is documented separately below so its current limitations are clear.
+Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
+contact's name, phone number, email or Telegram username; projects are added with `project` and cannot be edited.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -88,8 +88,8 @@ into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
-The reference includes all ten MVP commands. Resize the help window or scroll to reach later commands and
-the Copy URL button. Editing is labelled as outside MVP scope.
+The reference includes all eleven commands. Resize the help window or scroll to reach later commands and
+the Copy URL button.
 
 
 ### Adding a person: `add`
@@ -188,32 +188,42 @@ when the list is empty.
 
 Format: `list`
 
-### Editing a person: `edit` (outside MVP scope)
+### Editing a person: `edit`
 
-Editing is planned for a later iteration. This command remains available in the current build for name,
-phone and email changes only; its presence does not mean full editing is part of the MVP.
+Changes the name, phone number, email or Telegram username of an existing contact.
 
-Edits an existing person in the address book.
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] `
-
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
-* After a successful edit, LinkUp displays all contacts again. The previous search filter is cleared.
-* New phone inputs follow the same international format as `add`. Existing saved local numbers remain unchanged
-  until edited.
-* Name and email inputs follow the same rules as `add`; edited emails are stored in lowercase.
-* The new phone number and email must not belong to another contact, following the same
-  [duplicate-contact rule](#adding-a-person-add) as `add`, with the same error messages. You can keep a contact's
-  own phone number or email, and you can give a contact the same name as another contact.
-* Address (`a/`) and tags (`t/`) are no longer supported. Telegram and projects are preserved when editing other fields; use `project` to add a project association.
-* Only `n/`, `p/`, and `e/` are editable. Do not supply `tele/` or `pr/` to `edit`.
-  Replacing or removing a project association is not supported in this release.
+* `INDEX` refers to the currently displayed list, including search results, and must be a positive integer
+  within that list.
+* Supply at least one field. Fields can be given in any order, so `edit 1 tele/@alice_tan n/Alice` and
+  `edit 1 n/Alice tele/@alice_tan` are the same command.
+* Only the fields you supply change. All other details, including every project and their order, stay exactly
+  as they are. Contacts saved by older versions without a Telegram username can still have other fields edited.
+* Values follow the same rules and formatting as [`add`](#adding-a-person-add): phone numbers need `+` and a
+  country code, new emails are stored in lowercase, and Telegram usernames are stored in lowercase without `@`.
+* A field cannot be left blank or cleared. For example, `edit 1 n/Weien tele/` is rejected as a whole, and the
+  name does not change either.
+* Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
+* Projects cannot be edited. Supplying `pr/` rejects the whole command with
+  `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
+  Removing or renaming a project association is not supported. Address (`a/`) and tags (`t/`) are no longer
+  supported either.
+* The new phone number, email and Telegram username must not belong to any other contact, including contacts
+  hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
+  a contact's own details, and you can give a contact the same name as another contact.
+* If any part of the command is invalid, nothing changes: the contact, the current search results, the saved
+  data and the undo history all stay as they were. LinkUp reports one error at a time.
+* If the command would leave the contact exactly as it is, LinkUp shows `No changes made.` and keeps the current
+  search results. This does not count as a change for `undo`.
+* After a successful edit, LinkUp shows `Edited contact: ` followed by the contact's details, and displays all
+  contacts again, clearing the previous search filter.
 
 Examples:
-*  `edit 1 p/+6591234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `+6591234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower` Edits the name of the 2nd person to be `Betsy Crower`.
+*  `edit 1 p/+6591234567 e/johndoe@example.com` changes the phone number and email of the 1st contact to
+   `+6591234567` and `johndoe@example.com`.
+*  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
+*  `find Bernice` followed by `edit 1 tele/@bernice_yu2` changes the Telegram username of the first search result.
 
 ### Locating persons by name: `find`
 
@@ -301,8 +311,9 @@ Undo the last supported command. The supported commands are:
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
-input or duplicate details do not affect the undo history. Commands such as `find`, `findproject`, `list`, and
-`help` do not add undo entries. A successful undo displays all contacts again.
+input or duplicate details do not affect the undo history, and neither does an `edit` that reports
+`No changes made.`. Commands such as `find`, `findproject`, `list`, and `help` do not add undo entries.
+A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
 If there are no commands left to undo, the application reports `No command to undo.`
@@ -400,7 +411,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit (outside MVP)** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
