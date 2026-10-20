@@ -68,6 +68,14 @@ public class ReplaceProjectCommandTest {
     }
 
     @Test
+    public void toString_includesIndexAndBothProjects() {
+        ReplaceProjectCommand value = command(2, "Team Alpha", "Orbital");
+        String expected = ReplaceProjectCommand.class.getCanonicalName()
+                + "{index=" + Index.fromOneBased(2) + ", oldProject=Team Alpha, newProject=Orbital}";
+        assertEquals(expected, value.toString());
+    }
+
+    @Test
     public void equals_comparesAllArguments() {
         ReplaceProjectCommand value = command(1, "A", "B");
         assertEquals(value, value);
