@@ -229,6 +229,21 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void sortPersons_nullComparator_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.sortPersons(null));
+    }
+
+    @Test
+    public void sortPersons_unsortedListWithNamesake_ordersByNameThenPhone() {
+        // ALICE_NAMESAKE shares ALICE's name but has the smaller phone number
+        uniquePersonList.setPersons(List.of(BOB, ALICE, ALICE_NAMESAKE));
+
+        uniquePersonList.sortPersons(new PersonNameComparator());
+
+        assertEquals(List.of(ALICE_NAMESAKE, ALICE, BOB), uniquePersonList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void toStringMethod() {
         assertEquals(uniquePersonList.asUnmodifiableObservableList().toString(), uniquePersonList.toString());
     }

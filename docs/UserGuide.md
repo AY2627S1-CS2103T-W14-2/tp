@@ -12,7 +12,8 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
-contact's name, phone number, email or Telegram username; projects are added with `project` and cannot be edited.
+contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
+with `project` and cannot be edited.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -75,7 +76,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * `INDEX` always refers to the current displayed list, including search results. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `sort`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -88,7 +89,7 @@ into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
-The reference includes all eleven commands. Resize the help window or scroll to reach later commands and
+The reference includes all twelve commands. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
 
@@ -187,6 +188,30 @@ Clears the current search filter. Shows `Listed all contacts.` when contacts exi
 when the list is empty.
 
 Format: `list`
+
+### Sorting contacts by name: `sort`
+
+Sorts all saved contacts alphabetically by name and saves the new order.
+
+Format: `sort`
+
+* Names are compared ignoring case, so `alex Tan` comes before `Bernice Yu`. Names that differ only in case are
+  ordered by their exact spelling, and contacts with the same name are ordered by phone number, so the result is
+  always the same.
+* Names are compared character by character, so `Alex 10` comes before `Alex 2`.
+* The new order is saved and kept after you restart LinkUp. Contacts you add later are placed at the end until
+  you sort again.
+* All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
+  now in sorted order.
+* Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
+* On success, LinkUp shows `Sorted N contact(s) by name.`, where N is the number of saved contacts.
+* If the contacts are already in order, LinkUp shows `Contacts are already sorted by name.`. If there are no
+  contacts, it shows `No contacts saved yet.`. Neither case changes anything or adds an undo entry.
+* `undo` restores the previous order.
+
+Examples:
+* `sort` puts the whole contact list in name order.
+* `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
 
 ### Editing a person: `edit`
 
@@ -308,6 +333,7 @@ Undo the last supported command. The supported commands are:
 * `edit`
 * `clear`
 * `project`
+* `sort`
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
@@ -415,6 +441,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Sort**   | `sort`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
 **Undo**   | `undo`
