@@ -179,7 +179,7 @@ goes beyond it, covering name, phone, email and Telegram username; see
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
-`undo`, `help`, and `exit`. Command words are case-sensitive.
+`projects`, `undo`, `help`, and `exit`. Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
