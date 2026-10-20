@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -29,6 +31,8 @@ public class ReplaceProjectCommand extends Command {
     public static final String MESSAGE_PROJECT_NOT_FOUND = "This contact is not associated with the old project.";
     public static final String MESSAGE_UNCHANGED_PROJECT = "The replacement project must differ from the old project.";
 
+    private static final Logger logger = LogsCenter.getLogger(ReplaceProjectCommand.class);
+
     private final Index index;
     private final Project oldProject;
     private final Project project;
@@ -47,17 +51,24 @@ public class ReplaceProjectCommand extends Command {
         requireNonNull(model);
         List<Person> displayedContacts = model.getFilteredPersonList();
         if (index.getZeroBased() >= displayedContacts.size()) {
+            logger.fine("Project replacement rejected: index " + index.getOneBased()
+                    + " exceeds displayed list size " + displayedContacts.size());
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         Person original = displayedContacts.get(index.getZeroBased());
         int projectIndex = original.getProjects().indexOf(oldProject);
         if (projectIndex < 0) {
+            logger.fine("Project replacement rejected: old association not found at contact index "
+                    + index.getOneBased());
             throw new CommandException(MESSAGE_PROJECT_NOT_FOUND);
         }
         if (oldProject.equals(project)) {
+            logger.fine("Project replacement rejected: old and new projects are equivalent");
             throw new CommandException(MESSAGE_UNCHANGED_PROJECT);
         }
         if (original.getProjects().contains(project)) {
+            logger.fine("Project replacement rejected: new association already exists at contact index "
+                    + index.getOneBased());
             throw new CommandException(MESSAGE_DUPLICATE_PROJECT);
         }
 
@@ -66,6 +77,8 @@ public class ReplaceProjectCommand extends Command {
         Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
                 original.getTelegramUsername(), projects);
         model.setPerson(original, updated);
+        logger.fine("Replaced project association at position " + (projectIndex + 1)
+                + " for contact at displayed index " + index.getOneBased());
         return new CommandResult(String.format(MESSAGE_SUCCESS, original.getProjects().get(projectIndex),
                 project, original.getName()));
     }
