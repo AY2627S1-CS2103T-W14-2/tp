@@ -178,14 +178,14 @@ goes beyond it, covering name, phone, email and Telegram username; see
 [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
-`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
+`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`, `replaceproject`,
 `undo`, `help`, and `exit`. Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
 `EditCommandParser` accepts `n/`, `p/`, `e/`, and `tele/`, requires at least one of them, and rejects `pr/`.
-Replacing or removing projects is deferred.
+Individual project replacement is supported by `replaceproject`; removal is deferred.
 Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
 field's value, so callers must use the documented grammar.
 
@@ -209,8 +209,8 @@ before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compare
 For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
 
 Both search commands replace the predicate on the full address book rather than searching only the previous
-results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
-`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
+results. `delete`, `edit`, `project`, and `replaceproject` resolve one-based indices against the displayed list.
+`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, `replaceproject`, and a failed or
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
@@ -333,6 +333,24 @@ Command tests cover filtered indices, preservation of fields and order, and dupl
 Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
 filtered selection, rejected operations, and a JSON round trip.
 
+### Replacing a project association
+
+`replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT` changes one association on one contact.
+`AddressBookParser` dispatches to `ReplaceProjectCommandParser`, which requires one of each prefix
+and reuses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for validation.
+
+`ReplaceProjectCommand` resolves the displayed index, locates the old project with `Project.equals`,
+and rejects missing, equivalent or duplicate replacements before mutation. It copies the ordered
+project list, replaces the matching entry in place, and constructs a new `Person` preserving all
+other fields. `Model.setPerson` retains the active predicate; a changed contact may leave the results.
+This is a local association change, not a global project rename.
+
+The command returns `isUndoable() == true`, allowing `LogicManager` to save the prior snapshot
+only after successful execution. Existing JSON storage persists the replacement without schema changes.
+Parser and command tests cover normalization, boundaries, invalid inputs, duplicates and filtered indices.
+The integration test verifies dispatch, filter re-evaluation, JSON persistence and undo after rejected commands.
+
+
 ### Edit command implementation
 
 `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [tele/TELEGRAM]` replaces one or more details of the contact at a
@@ -382,7 +400,7 @@ no-change detection and filter handling. `EditCommandParserTest` covers the pars
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
-supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, and `project`.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`, and `replaceproject`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
@@ -416,7 +434,7 @@ This differs from validation failure, which leaves contacts unchanged.
 
 ### Deferred features
 
-Editing, removing or renaming project associations, notes, roles, sorting, archiving,
+Removing project associations, globally renaming projects, notes, roles, sorting, archiving,
 and redo are not implemented. The user stories below include backlog ideas; they are not claims about
 commands available in this release. No archiving design has been implemented yet.
 
@@ -461,7 +479,7 @@ not commitments.
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
-Editing covers name, phone, email and Telegram username; projects cannot be edited. New contacts require all five add fields; optional missing
+Editing covers name, phone, email and Telegram username; individual project associations can be replaced with `replaceproject`. New contacts require all five add fields; optional missing
 Telegram/project data is supported only when loading legacy files. Notes, roles, project removal, sorting,
 archiving, multi-criteria search, and highlighting which project matched remain backlog items.
 
