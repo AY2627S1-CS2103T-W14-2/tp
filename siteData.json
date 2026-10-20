@@ -149,7 +149,7 @@
         "adding-a-person-add": "Adding a person: add",
         "associating-an-existing-contact-with-a-project-project": "Associating an existing contact with a project: project",
         "listing-all-persons-list": "Listing all persons: list",
-        "editing-a-person-edit-outside-mvp-scope": "Editing a person: edit (outside MVP scope)",
+        "editing-a-person-edit": "Editing a person: edit",
         "locating-persons-by-name-find": "Locating persons by name: find",
         "finding-contacts-by-project-findproject": "Finding contacts by project: findproject",
         "deleting-a-person-delete": "Deleting a person: delete",
