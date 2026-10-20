@@ -9,14 +9,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
-import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -33,9 +32,8 @@ import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Exercises {@code edit} with the real parser, {@code LogicManager}, model and JSON storage in an isolated
- * directory. Typed {@code tele/} input is not covered here because the parser does not recognise that prefix yet;
- * Telegram persistence is covered by executing {@code EditCommand} directly and saving through real storage.
+ * Exercises typed {@code edit} commands, including {@code tele/} and the rejected {@code pr/}, through the real
+ * parser, {@code LogicManager}, model and JSON storage in an isolated directory.
  */
 public class EditCommandIntegrationTest {
     private static final String ADD_ALEX = "add n/Alex Tan p/+65 9123-4567 e/alex@example.com "
@@ -107,6 +105,42 @@ public class EditCommandIntegrationTest {
     }
 
     @Test
+    public void execute_nameAndTelegramEdit_oneUndoRestoresBoth() throws Exception {
+        AddressBook beforeEdit = new AddressBook(model.getAddressBook());
+        Person edited = new PersonBuilder(ALEX).withName("Alex Lee").withTelegramUsername("alex_lee").build();
+        int savesBefore = saveCount;
+
+        String feedback = logic.execute("edit 1 n/Alex Lee tele/@Alex_Lee").getFeedbackToUser();
+
+        assertEquals(savesBefore + 1, saveCount);
+        assertEquals("Edited contact: Alex Lee; Phone: +6591234567; Email: alex@example.com; "
+                + "Telegram: @alex_lee; Projects: Team Alpha, CS2103T", feedback);
+        assertSavedContacts(edited, BETTY);
+
+        logic.execute("undo");
+        assertEquals(beforeEdit, model.getAddressBook());
+        assertSavedContacts(ALEX, BETTY);
+    }
+
+    @Test
+    public void execute_telegramSameAfterNormalisation_keepsStateAndUndoesPreviousChange() throws Exception {
+        logic.execute("edit 1 tele/@New_Handle");
+        Person handled = new PersonBuilder(ALEX).withTelegramUsername("new_handle").build();
+        logic.execute("find Alex");
+        String savedData = readSavedFile();
+        AddressBook before = new AddressBook(model.getAddressBook());
+        int savesBefore = saveCount;
+
+        CommandException failure = assertThrows(CommandException.class, () ->
+                logic.execute("edit 1 tele/@NEW_HANDLE"));
+        assertEquals(EditCommand.MESSAGE_NO_CHANGES, failure.getMessage());
+        assertRejectedState(before, savedData, List.of(handled), savesBefore);
+
+        logic.execute("undo");
+        assertSavedContacts(ALEX, BETTY);
+    }
+
+    @Test
     public void execute_editAfterSearch_showsAllContactsAndReloads() throws Exception {
         logic.execute("find Betty");
         logic.execute("edit 1 n/Betty Tan");
@@ -151,9 +185,27 @@ public class EditCommandIntegrationTest {
             assertThrows(CommandException.class, () -> logic.execute(command), command);
             assertRejectedState(before, savedData, List.of(ALEX), savesBefore);
         }
+        CommandException telegramConflict = assertThrows(CommandException.class, () ->
+                logic.execute("edit 1 tele/@BETTY_LIM"));
+        assertEquals("Telegram username @betty_lim is already used by Betty Lim. "
+                + "Please enter a different Telegram username.", telegramConflict.getMessage());
+        assertRejectedState(before, savedData, List.of(ALEX), savesBefore);
+
         for (String command : List.of("edit 1", "edit n/Alicia", "edit 1 n/Alicia n/Alicia",
                 "edit 1 n/Alicia p/91234567", "edit 1 n/Alicia e/", "edit 1 n/Alicia a/Old Address")) {
             assertThrows(ParseException.class, () -> logic.execute(command), command);
+            assertRejectedState(before, savedData, List.of(ALEX), savesBefore);
+        }
+        // A blank Telegram username rejects the whole command, so the valid name is not applied either.
+        Map<String, String> messageByCommand = Map.of(
+                "edit 1 n/Weien tele/", TelegramUsername.MESSAGE_CONSTRAINTS,
+                "edit 1 tele/@alex_lee tele/@alex_lee",
+                "Multiple values specified for the following single-valued field(s): tele/",
+                "edit 1 n/Alicia pr/Orbital", EditCommand.MESSAGE_PROJECT_NOT_EDITABLE);
+        for (Map.Entry<String, String> entry : messageByCommand.entrySet()) {
+            ParseException failure = assertThrows(ParseException.class, () -> logic.execute(entry.getKey()),
+                    entry.getKey());
+            assertEquals(entry.getValue(), failure.getMessage(), entry.getKey());
             assertRejectedState(before, savedData, List.of(ALEX), savesBefore);
         }
 
@@ -198,21 +250,15 @@ public class EditCommandIntegrationTest {
         assertFalse(model.canUndo());
     }
 
-    /**
-     * Executes the real {@code EditCommand} with a directly built descriptor, because the parser does not accept
-     * {@code tele/} yet, then saves through real JSON storage and reloads the file.
-     */
     @Test
-    public void editCommand_telegramChange_persistsAfterReload() throws Exception {
+    public void execute_typedTelegramEdits_fillLegacyReplaceAndReload() throws Exception {
         startSessionWith(LEGACY, ALEX);
-        EditPersonDescriptor fillLegacy = new EditPersonDescriptor();
-        fillLegacy.setTelegramUsername(new TelegramUsername("@Legacy_Lee"));
-        EditPersonDescriptor replace = new EditPersonDescriptor();
-        replace.setTelegramUsername(new TelegramUsername("alex_tan_sg"));
+        int savesBefore = saveCount;
 
-        new EditCommand(Index.fromOneBased(1), fillLegacy).execute(model);
-        new EditCommand(Index.fromOneBased(2), replace).execute(model);
-        storage.saveAddressBook(model.getAddressBook());
+        logic.execute("edit 1 tele/@Legacy_Lee");
+        assertEquals(savesBefore + 1, saveCount);
+        logic.execute("edit 2 tele/alex_tan_sg");
+        assertEquals(savesBefore + 2, saveCount);
         reloadSession();
 
         Person legacy = savedPerson(0);
