@@ -12,7 +12,7 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
-contact's name, phone number, email or Telegram username; projects are added with `project` and cannot be edited.
+contact's name, phone number, email or Telegram username; projects are added with `project` and removed individually with `deleteproject`.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -91,7 +91,6 @@ Format: `help`
 The reference includes all eleven commands. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
-
 ### Adding a person: `add`
 
 Adds a person to the address book.
@@ -100,7 +99,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
 <box type="tip" seamless>
 
-**Tip:** Every new contact must have one initial project. Contacts saved before this requirement may still have no project;
+**Tip:** Every new contact must have one initial project. Contacts can have no projects after `deleteproject` or when loaded from older files;
 use `project` to associate them with one later.
 
 For a new phone number, enter `+` followed by a country calling code and a national number. The `+` must be
@@ -179,6 +178,25 @@ Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
+### Removing a contact's project association: `deleteproject`
+
+Removes one project from one contact. The contact and other contacts associated with the same project
+remain saved, and the remaining projects retain their order.
+
+Format: `deleteproject INDEX pr/PROJECT`
+
+* `INDEX` is a positive index in the currently displayed list, including search results.
+* The name follows the existing 1-40 printable character project rules. Matching ignores case,
+  removes surrounding whitespace and collapses repeated whitespace.
+* The specified project must belong to the selected contact. Missing or invalid indices, missing or
+  invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
+* Removing the last project is allowed and leaves the contact with no projects.
+* The current search filter is preserved. A contact may disappear from `findproject` results after removal.
+* Successful removal is saved and can be reversed with `undo`.
+
+Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
+The success message identifies the removed project and the contact.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -207,7 +225,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
-  Removing or renaming a project association is not supported. Address (`a/`) and tags (`t/`) are no longer
+  Use `deleteproject` to remove one association. Renaming an association is not supported. Address (`a/`) and tags (`t/`) are no longer
   supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
   hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
@@ -308,6 +326,7 @@ Undo the last supported command. The supported commands are:
 * `edit`
 * `clear`
 * `project`
+* `deleteproject`
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
@@ -415,6 +434,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Delete project** | `deleteproject INDEX pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
 **Undo**   | `undo`
