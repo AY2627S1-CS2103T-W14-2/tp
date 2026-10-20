@@ -9,6 +9,8 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.RenameProjectCommand;
+import seedu.address.logic.commands.RenameProjectCommand.RenamePlan;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -33,6 +35,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final AddressBookParser addressBookParser;
+    private RenameProjectCommand pendingRename;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -47,8 +50,14 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
+        // Consume first, so even a parse error cancels the previous confirmation.
+        RenameProjectCommand previousRename = pendingRename;
+        pendingRename = null;
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        if (command instanceof RenameProjectCommand rename) {
+            return executeRename(rename, previousRename);
+        }
         if (command instanceof UndoCommand && model.canUndo()) {
             // Persist the restored state before changing contacts, the filter or undo history.
             saveAddressBook(model.getUndoState());
@@ -65,6 +74,21 @@ public class LogicManager implements Logic {
 
         saveAddressBook(model.getAddressBook());
         return commandResult;
+    }
+
+    private CommandResult executeRename(RenameProjectCommand command, RenameProjectCommand previous)
+            throws CommandException {
+        RenamePlan plan = command.prepare(model.getAddressBook());
+        if (plan.requiresConfirmation() && !command.equals(previous)) {
+            pendingRename = command;
+            return new CommandResult(plan.getConfirmationMessage());
+        }
+        AddressBook before = new AddressBook(model.getAddressBook());
+        // A failed save leaves the live contacts, filter and undo history untouched.
+        saveAddressBook(plan.getUpdatedAddressBook());
+        CommandResult result = plan.applyTo(model);
+        model.saveUndoState(before);
+        return result;
     }
 
     private void saveAddressBook(ReadOnlyAddressBook addressBook) throws CommandException {

@@ -12,7 +12,8 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
-contact's name, phone number, email or Telegram username; projects are added with `project` and cannot be edited.
+contact's name, phone number, email or Telegram username; projects are added with `project` and renamed or
+merged across contacts with `renameproject`.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -88,7 +89,7 @@ into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
-The reference includes all eleven commands. Resize the help window or scroll to reach later commands and
+The reference includes all twelve commands. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
 
@@ -179,6 +180,64 @@ Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
+### Renaming or merging a project: `renameproject`
+
+Renames a project across **all saved contacts**, including contacts hidden by a search. Contact details and
+unrelated projects are preserved. This command does not rename a project for just one contact.
+
+Format: `renameproject old/OLD_NAME new/NEW_NAME`
+
+* Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
+* Project names follow the existing 1–40 Unicode-code-point limit after whitespace normalisation.
+* Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
+* If the destination is new, the rename happens immediately. The new name keeps its position in each project list.
+* Case-only changes, such as `orbital` to `Orbital`, update the displayed spelling immediately across all matching
+  associations. They do not merge separate projects. If every association already has the requested spelling,
+  the command reports `No changes made.` without saving or adding an undo entry.
+* An unknown source produces an error and changes nothing.
+* On success, all contacts are displayed and the message reports the number of contacts actually changed.
+  The whole operation is one `undo` step, including its original capitalisation and project ordering.
+
+**Merging into an existing project**
+
+If a different destination project already exists (ignoring case), the first submission shows a warning:
+
+> Project "Orbital" already exists. This will merge "CS2103T" into "Orbital", combining memberships and using
+> the spelling "Orbital" for all destination associations. Enter the same command again to confirm.
+
+The actual warning also states how many contacts will change. This first submission does not change contacts,
+search results, saved data, or undo history. Enter the command again as your next submission to confirm.
+Prefix order, source capitalisation and normalised whitespace may differ; the destination's requested spelling
+must stay the same. Any other submitted command, including one that fails, cancels the pending confirmation.
+A different merge request starts a new warning. Closing the app also cancels confirmation.
+
+A confirmed merge removes duplicate memberships. If a contact belongs to both projects, the destination stays
+in its existing position and the source is removed. All destination associations use the requested spelling,
+including on contacts that did not belong to the source. Each changed contact is counted once.
+
+Examples:
+
+* `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
+* `renameproject old/orbital new/Orbital` standardises display capitalisation without a warning.
+* If `orbital` already exists, enter `renameproject old/CS2103T new/Orbital` twice consecutively to merge.
+
+**Quoted names**
+
+Names may be enclosed in double quotes. Quote the entire value when it starts with `old/` or `new/`, contains
+either prefix after whitespace, or begins with a literal double quote. Inside quoted values, use `\"` for a double quote and
+`\\` for a literal backslash; other escape sequences are rejected. Quotes must enclose the entire value.
+Unquoted backslashes and quotes that do not start a value are literal characters. Quoting is specific to
+`renameproject`; it does not change the syntax of other commands.
+
+Examples:
+
+* `renameproject old/"Team new/Alpha" new/"Team Beta"`
+* `renameproject old/"Team \"Blue\"" new/"Team \\ Blue"`
+
+Renames and merges are saved before changing the displayed contacts or undo history. If saving fails, those
+remain unchanged. Correct the storage problem and retry; a failed merge consumes confirmation, so it must be
+confirmed again.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -207,8 +266,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
-  Removing or renaming a project association is not supported. Address (`a/`) and tags (`t/`) are no longer
-  supported either.
+  Removing or replacing a project association for just one contact is not supported. Use `renameproject`
+  to rename across all contacts. Address (`a/`) and tags (`t/`) are no longer supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
   hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
   a contact's own details, and you can give a contact the same name as another contact.
@@ -308,6 +367,7 @@ Undo the last supported command. The supported commands are:
 * `edit`
 * `clear`
 * `project`
+* `renameproject` (the entire rename or merge)
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
@@ -330,7 +390,8 @@ Format: `exit`
 ### Saving the data
 
 LinkUp automatically attempts to save after each successfully executed command, including searches and `list`.
-Commands rejected during parsing or validation do not save. There is no separate save command.
+Commands rejected during parsing or validation do not save. A pending merge warning also does not save.
+There is no separate save command.
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
@@ -339,6 +400,9 @@ If a save error appears, the displayed contact list may already contain your cha
 Keep the application open, correct the storage or permission problem, then run `list` to retry saving the current
 contacts. Do not repeat an `add` blindly, as the contact may already be in the list. If you want to reverse the change,
 use `undo` after fixing storage. An undo that cannot save leaves the contacts and undo history unchanged and can be retried.
+
+Contact-file writes use a temporary file in the same directory followed by atomic replacement. A failed write
+or an unsupported atomic replacement leaves the existing contact file intact. The data directory must be writable.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
@@ -415,6 +479,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
 **Undo**   | `undo`
