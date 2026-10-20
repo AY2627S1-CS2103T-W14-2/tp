@@ -173,8 +173,8 @@ This section describes some noteworthy details on how certain features are imple
 ### Current command and contact model
 
 The MVP includes `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`,
-with same-name support, duplicate-detail validation and persistence. `edit` was outside the MVP release and is
-now being extended beyond it to cover name, phone, email and Telegram username; see
+with same-name support, duplicate-detail validation and persistence. `edit` was outside the MVP release and now
+goes beyond it, covering name, phone, email and Telegram username; see
 [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
@@ -184,8 +184,8 @@ The Java package remains `seedu.address`, and internal names such as `AddressBoo
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
-`EditCommandParser` currently accepts only `n/`, `p/`, and `e/`, and requires at least one field; parsing `tele/`
-and explicitly rejecting `pr/` are pending a parser update. Replacing or removing projects is deferred.
+`EditCommandParser` accepts `n/`, `p/`, `e/`, and `tele/`, requires at least one of them, and rejects `pr/`.
+Replacing or removing projects is deferred.
 Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
 field's value, so callers must use the documented grammar.
 
@@ -337,8 +337,10 @@ filtered selection, rejected operations, and a JSON round trip.
 
 `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [tele/TELEGRAM]` replaces one or more details of the contact at a
 one-based index in the displayed list. `EditCommandParser` validates each supplied value with the same
-`ParserUtil` methods as `add` and stores it in an `EditCommand.EditPersonDescriptor`. The parser currently
-recognises only `n/`, `p/` and `e/`; parsing `tele/` and rejecting `pr/` are pending. A field left unset in the
+`ParserUtil` methods as `add` and stores it in an `EditCommand.EditPersonDescriptor`. It reports one problem at
+a time, in this order: retired `a/` or `t/`, any `pr/` (with `EditCommand.MESSAGE_PROJECT_NOT_EDITABLE`), the
+index, repeated prefixes (even with identical values), the supplied values (name, phone, email, Telegram
+username), and finally a missing field. The parser never reads the model. A field left unset in the
 descriptor is kept exactly as saved, so untouched legacy values (for example a local phone `91234567` or a
 mixed-case email) are not normalised, and a legacy contact is never forced to supply a Telegram username or project.
 
@@ -373,9 +375,9 @@ whatever the number of fields, is one undo step.
   command is rejected instead.
 
 `EditCommandTest` covers each field, legacy values, filtered indices, conflicts with visible and hidden contacts,
-no-change detection and filter handling. `EditCommandIntegrationTest` runs `edit` through the real parser,
-`LogicManager` and JSON storage, and saves and reloads a Telegram edit made by executing `EditCommand` directly
-until the parser accepts `tele/`.
+no-change detection and filter handling. `EditCommandParserTest` covers the parse order above.
+`EditCommandIntegrationTest` types `edit` commands, including `tele/` and `pr/`, through the real parser,
+`LogicManager` and JSON storage, checking saved data, reloads, save counts, the filter and undo.
 
 ### Undo command implementation
 
@@ -414,8 +416,7 @@ This differs from validation failure, which leaves contacts unchanged.
 
 ### Deferred features
 
-`EditCommand` supports name, phone, email and Telegram username, but typed `tele/` input awaits the parser
-update. Editing, removing or renaming project associations, notes, roles, sorting, archiving,
+Editing, removing or renaming project associations, notes, roles, sorting, archiving,
 and redo are not implemented. The user stories below include backlog ideas; they are not claims about
 commands available in this release. No archiving design has been implemented yet.
 
@@ -436,7 +437,7 @@ commands available in this release. No archiving design has been implemented yet
 ### Product scope
 
 **Release boundary:** All ten commands listed in the current command model were in the MVP release. `edit` was
-excluded from MVP acceptance and is now being extended as post-MVP work. Other future user stories below are
+excluded from MVP acceptance and has since been extended as post-MVP work. Other future user stories below are
 not commitments.
 
 **Target user profile**:
@@ -460,8 +461,7 @@ not commitments.
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
-Editing covers name, phone, email and (once the parser accepts `tele/`) Telegram username; projects cannot be
-edited. New contacts require all five add fields; optional missing
+Editing covers name, phone, email and Telegram username; projects cannot be edited. New contacts require all five add fields; optional missing
 Telegram/project data is supported only when loading legacy files. Notes, roles, project removal, sorting,
 archiving, multi-criteria search, and highlighting which project matched remain backlog items.
 
@@ -740,13 +740,13 @@ Continue after the preceding sequence, with Alex Tan, Alex Tan and David Lee dis
 | `edit 1 n/Dave e/` | Invalid email; the name is not changed either. |
 | `list` | All three contacts, with David's details unchanged. |
 
-These steps need the parser update that adds `tele/` and rejects `pr/` (pending):
+Continue with Telegram usernames and projects:
 
 | Input | Expected result |
 | --- | --- |
 | `edit 3 tele/@David_L n/David Lim` | Both fields change; the Telegram username is saved as `david_l`. |
 | `edit 3 tele/@DAVID_L` | `No changes made.`: it normalises to the saved `david_l`. |
-| `edit 3 tele/` | Rejected; a Telegram username cannot be cleared. |
+| `edit 3 tele/` | Telegram username format error; nothing changes, because a Telegram username cannot be cleared. |
 | `edit 3 tele/@alex_tan` | Telegram conflict with the first Alex. |
 | `edit 3 n/David pr/Team Beta` | `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`; nothing changes. |
 | `undo` | David Lee's name and Telegram username return, restoring the fixture for the next section. |
