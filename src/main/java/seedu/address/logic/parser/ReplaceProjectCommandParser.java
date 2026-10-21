@@ -32,7 +32,7 @@ public class ReplaceProjectCommandParser implements Parser<ReplaceProjectCommand
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_OLD_PROJECT, PREFIX_NEW_PROJECT);
         Project oldProject = ParserUtil.parseProject(arguments.getValue(PREFIX_OLD_PROJECT).get());
-        Project project = ParserUtil.parseProject(arguments.getValue(PREFIX_NEW_PROJECT).get());
-        return new ReplaceProjectCommand(index, oldProject, project);
+        Project newProject = ParserUtil.parseProject(arguments.getValue(PREFIX_NEW_PROJECT).get());
+        return new ReplaceProjectCommand(index, oldProject, newProject);
     }
 }

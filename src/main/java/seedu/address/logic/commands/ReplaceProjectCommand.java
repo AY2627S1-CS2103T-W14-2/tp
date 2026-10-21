@@ -35,15 +35,15 @@ public class ReplaceProjectCommand extends Command {
 
     private final Index index;
     private final Project oldProject;
-    private final Project project;
+    private final Project newProject;
 
     /**
-     * Creates a command to replace {@code oldProject} with {@code project} on the selected contact.
+     * Creates a command to replace {@code oldProject} with {@code newProject} on the selected contact.
      */
-    public ReplaceProjectCommand(Index index, Project oldProject, Project project) {
+    public ReplaceProjectCommand(Index index, Project oldProject, Project newProject) {
         this.index = requireNonNull(index);
         this.oldProject = requireNonNull(oldProject);
-        this.project = requireNonNull(project);
+        this.newProject = requireNonNull(newProject);
     }
 
     @Override
@@ -62,25 +62,25 @@ public class ReplaceProjectCommand extends Command {
                     + index.getOneBased());
             throw new CommandException(MESSAGE_PROJECT_NOT_FOUND);
         }
-        if (oldProject.equals(project)) {
+        if (oldProject.equals(newProject)) {
             logger.fine("Project replacement rejected: old and new projects are equivalent");
             throw new CommandException(MESSAGE_UNCHANGED_PROJECT);
         }
-        if (original.getProjects().contains(project)) {
+        if (original.getProjects().contains(newProject)) {
             logger.fine("Project replacement rejected: new association already exists at contact index "
                     + index.getOneBased());
             throw new CommandException(MESSAGE_DUPLICATE_PROJECT);
         }
 
         List<Project> projects = new ArrayList<>(original.getProjects());
-        projects.set(projectIndex, project);
+        projects.set(projectIndex, newProject);
         Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
                 original.getTelegramUsername(), projects);
         model.setPerson(original, updated);
         logger.fine("Replaced project association at position " + (projectIndex + 1)
                 + " for contact at displayed index " + index.getOneBased());
         return new CommandResult(String.format(MESSAGE_SUCCESS, original.getProjects().get(projectIndex),
-                project, original.getName()));
+                newProject, original.getName()));
     }
 
     @Override
@@ -90,18 +90,18 @@ public class ReplaceProjectCommand extends Command {
         }
         return other instanceof ReplaceProjectCommand otherCommand
                 && index.equals(otherCommand.index) && oldProject.equals(otherCommand.oldProject)
-                && project.equals(otherCommand.project);
+                && newProject.equals(otherCommand.newProject);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index.getZeroBased(), oldProject, project);
+        return Objects.hash(index.getZeroBased(), oldProject, newProject);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("index", index).add("oldProject", oldProject)
-                .add("newProject", project).toString();
+                .add("newProject", newProject).toString();
     }
 
     /**
