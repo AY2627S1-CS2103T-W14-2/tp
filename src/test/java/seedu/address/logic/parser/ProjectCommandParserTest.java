@@ -28,7 +28,7 @@ public class ProjectCommandParserTest {
     public void parse_missingOrInvalidIndexOrPrefix_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
         for (String input : new String[] {"", "1", "pr/Orbital", "0 pr/Orbital", "-1 pr/Orbital",
-            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital", "1 1 pr/Orbital",
+            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital",
             "pr/Orbital 1"}) {
             assertParseFailure(parser, input, expected);
         }
@@ -56,9 +56,15 @@ public class ProjectCommandParserTest {
     @Test
     public void parse_invalidLaterIndex_rejected() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
-        for (String input : new String[] {"1 0", "1 -2", "1 word", "1 2.5", "1 2147483648", "1 2 1"}) {
+        for (String input : new String[] {"1 0", "1 -2", "1 word", "1 2.5", "1 2147483648"}) {
             assertParseFailure(parser, input + " pr/Orbital", expected);
         }
+    }
+
+    @Test
+    public void parse_repeatedIndices_identifiesRepeatedIndex() {
+        assertParseFailure(parser, "1 1 pr/Orbital", "Contact index 1 is repeated.");
+        assertParseFailure(parser, "3 2 1 2 pr/Orbital", "Contact index 2 is repeated.");
     }
 
 }

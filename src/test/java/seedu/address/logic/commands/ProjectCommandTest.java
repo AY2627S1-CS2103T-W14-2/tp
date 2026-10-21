@@ -52,8 +52,8 @@ public class ProjectCommandTest {
     public void execute_duplicateNormalizedProject_failureWithoutMutation() {
         model.addPerson(new PersonBuilder().withProjects("Team Alpha").build());
         assertCommandFailure(new ProjectCommand(Index.fromOneBased(1), new Project(" team   ALPHA ")),
-                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACT, 1,
-                        model.getFilteredPersonList().get(0).getName()));
+                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "team ALPHA",
+                        "1: " + model.getFilteredPersonList().get(0).getName()));
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ProjectCommandTest {
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(3)), project),
                 model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(2)), project),
-                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACT, 2, "Bob"));
+                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "Orbital", "2: Bob"));
     }
 
     @Test
@@ -123,6 +123,20 @@ public class ProjectCommandTest {
         assertThrows(IllegalArgumentException.class, () -> new ProjectCommand(List.of(), project));
         assertThrows(IllegalArgumentException.class, () -> new ProjectCommand(
                 List.of(Index.fromOneBased(1), Index.fromOneBased(1)), project));
+    }
+
+    @Test
+    public void execute_multipleConflicts_listsEveryConflictWithoutChangingValidSelections() {
+        model.addPerson(PersonBuilder.named("Hidden").withProjects("Orbital").build());
+        model.addPerson(PersonBuilder.named("Alice").withProjects("ORBITAL").build());
+        model.addPerson(PersonBuilder.named("Bob").withProjects().build());
+        model.addPerson(PersonBuilder.named("Charlie").withProjects("orbital").build());
+        model.updateFilteredPersonList(person -> !person.getName().fullName.equals("Hidden"));
+        assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(2),
+                Index.fromOneBased(1)), project), model,
+                "No changes made. These contacts already have project Orbital:\n3: Charlie\n1: Alice");
+        assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(4)), project),
+                model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
 }
