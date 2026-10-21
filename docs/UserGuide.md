@@ -180,22 +180,28 @@ Examples:
 
 ### Removing a contact's project association: `deleteproject`
 
-Removes one project from one contact. The contact and other contacts associated with the same project
+Removes one project from one or more selected contacts. The contact and other contacts associated with the same project
 remain saved, and the remaining projects retain their order.
 
-Format: `deleteproject INDEX pr/PROJECT`
+Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
 * The name follows the existing 1-40 printable character project rules. Matching ignores case,
   removes surrounding whitespace and collapses repeated whitespace.
-* The specified project must belong to the selected contact. Missing or invalid indices, missing or
+* The specified project must belong to every selected contact. Missing or invalid indices, missing or
   invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
+* Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
+  Repeated-index errors identify the repeated index. If any index is invalid or any selected contact lacks
+  the project, the entire batch is rejected without changing contacts or undo history. Missing-association
+  errors list all affected selections by displayed index and name; out-of-range indices take precedence.
+* One `undo` restores all associations removed by a successful batch.
 * Removing the last project is allowed and leaves the contact with no projects.
 * The current search filter is preserved. A contact may disappear from `findproject` results after removal.
 * Successful removal is saved and can be reversed with `undo`.
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
-The success message identifies the removed project and the contact.
+Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
+The success message identifies the project and selected contacts.
 
 ### Listing all persons: `list`
 
@@ -434,7 +440,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
-**Delete project** | `deleteproject INDEX pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Help**   | `help`
 **Undo**   | `undo`

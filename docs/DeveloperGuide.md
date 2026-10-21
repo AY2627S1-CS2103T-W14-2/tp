@@ -334,19 +334,25 @@ filtered selection, rejected operations, and a JSON round trip.
 
 ### Removing a project association
 
-`deleteproject INDEX pr/PROJECT` removes one association from one contact, including their last project.
+`deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
+including their last project.
 `AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
 and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
 
-`DeleteProjectCommand` resolves the displayed index and locates the project using `Project.equals`,
+`DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
+It locates the project using `Project.equals`,
 which ignores case and normalizes whitespace. Invalid indices and missing associations are rejected
-before mutation. The command copies the ordered project list, removes the matched entry and constructs
+before mutation. Missing-association errors list all conflicting selections; invalid indices take precedence.
+The parser rejects repeated indices with a specific message. The command copies each ordered project list,
+removes the matched entry and constructs
 an updated `Person` preserving all contact details. `Model.setPerson` preserves the active filter,
 which may remove the contact from the visible results. Other contacts are unchanged.
 
-The success message uses the stored project spelling and identifies the contact. FINE logs record
+Single-contact success retains the stored project spelling; batch success identifies the project
+and all selected contacts. FINE logs record
 successful removal and rejection reasons. `isUndoable()` enables the existing snapshot mechanism;
-failed commands do not replace undo history. Existing JSON storage supports empty project lists.
+failed commands do not replace undo history. One undo restores the entire batch.
+Existing JSON storage supports empty project lists.
 Parser and command tests cover validation, normalization, order, last-project removal and diagnostics.
 An integration test covers filtered selection, disappearance from results, persistence and undo after errors.
 
