@@ -188,6 +188,26 @@ when the list is empty.
 
 Format: `list`
 
+### Listing entered commands: `history`
+
+Format: `history`
+
+Lists earlier command submissions from this session in reverse chronological order (newest first),
+including failed commands and repeated submissions. The current `history` command appears in subsequent
+history requests. If there are no earlier submissions, LinkUp shows `No commands entered yet.`
+Blank submissions are ignored, and `history` does not accept arguments.
+
+With focus in the command box, press the up arrow to recall older inputs and the down arrow to recall
+newer inputs. Browsing does not execute a command: you may edit it and press Enter to submit it again.
+The up arrow stops at the oldest entry; moving past the newest entry restores the draft you were typing.
+Submitting a command, whether successful or failed, resets navigation to the newest end.
+
+History is kept only until LinkUp closes. It is separate from undo history: displaying history or recalling
+an input does not change contacts, the current search filter, saved contact data or undo history.
+
+Example: after submitting `list` and `find Alice`, `history` displays `find Alice` followed by `list`.
+
+
 ### Editing a person: `edit`
 
 Changes the name, phone number, email or Telegram username of an existing contact.
@@ -416,6 +436,7 @@ Action     | Format, Examples
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**History** | `history` (up/down arrows recall inputs)
 **Help**   | `help`
 **Undo**   | `undo`
 **Exit**   | `exit`

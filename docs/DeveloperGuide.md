@@ -379,6 +379,29 @@ no-change detection and filter handling. `EditCommandParserTest` covers the pars
 `EditCommandIntegrationTest` types `edit` commands, including `tele/` and `pr/`, through the real parser,
 `LogicManager` and JSON storage, checking saved data, reloads, save counts, the filter and undo.
 
+### Command history and input recall
+
+`LogicManager` owns an in-memory chronological list of non-blank submissions. Its `execute` wrapper
+records the original input in `finally`, including parse, command and storage failures. Immutable
+snapshots are exposed through `Logic.getCommandHistory`; a new manager starts with empty history.
+Recording after execution excludes the current `history` request from its own output.
+
+`AddressBookParser` receives a history supplier and constructs `HistoryCommand` from a snapshot.
+The command rejects arguments during parsing and returns earlier submissions newest first, or an
+empty-history message. Logic executes it without saving contact data or modifying undo state or filters.
+FINE logging records the displayed entry count without duplicating command text.
+
+`MainWindow` passes the same history supplier to `CommandBox`. Its key event filter consumes plain
+Up/Down keys and delegates to `CommandHistoryNavigator`, which captures the history and draft when
+browsing begins. It stops at the oldest entry and restores the draft after the newest entry. Recall
+moves the caret to the end and clears error styling without executing anything. Every submission resets
+the cursor. History is not persisted and is independent of the model's undo snapshots.
+
+Tests cover failures and duplicate submissions, empty history, argument rejection, session isolation,
+unchanged contact files and undo, navigation boundaries, draft restoration and JavaFX key events.
+Manual check: submit `list`, submit an invalid command, then `history`; verify newest-first output.
+Type a draft, press Up twice and Down twice, and verify the draft returns without executing commands.
+
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
