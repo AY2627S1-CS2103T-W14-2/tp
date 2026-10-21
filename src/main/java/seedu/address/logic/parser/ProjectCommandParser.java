@@ -25,18 +25,20 @@ public class ProjectCommandParser implements Parser<ProjectCommand> {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_PROJECT);
         List<Index> indices = new ArrayList<>();
-        try {
-            for (String token : arguments.getPreamble().strip().split("\\s+")) {
-                Index index = ParserUtil.parseIndex(token);
-                if (indices.contains(index)) {
-                    logger.fine("Project parsing rejected: repeated contact index");
-                    throw new ParseException(ProjectCommand.MESSAGE_DUPLICATE_INDEX);
-                }
-                indices.add(index);
+        for (String token : arguments.getPreamble().strip().split("\\s+")) {
+            Index index;
+            try {
+                index = ParserUtil.parseIndex(token);
+            } catch (ParseException e) {
+                logger.fine("Project parsing rejected: invalid contact index");
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                        ProjectCommand.MESSAGE_USAGE), e);
             }
-        } catch (ParseException e) {
-            logger.fine("Project parsing rejected: invalid or repeated contact indices");
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE), e);
+            if (indices.contains(index)) {
+                logger.fine("Project parsing rejected: repeated contact index " + index.getOneBased());
+                throw new ParseException(String.format(ProjectCommand.MESSAGE_DUPLICATE_INDEX, index.getOneBased()));
+            }
+            indices.add(index);
         }
         if (arguments.getValue(PREFIX_PROJECT).isEmpty()) {
             logger.fine("Project parsing rejected: missing project prefix");

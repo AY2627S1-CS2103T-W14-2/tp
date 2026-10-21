@@ -27,11 +27,11 @@ public class ProjectCommand extends Command {
             + "Parameters: INDEX [MORE_INDICES] (positive integers) pr/PROJECT\n"
             + "Example: " + COMMAND_WORD + " 1 pr/Orbital";
     public static final String MESSAGE_SUCCESS = "Added project %1$s to contact %2$s.";
-    public static final String MESSAGE_DUPLICATE_PROJECT = "This contact is already associated with that project.";
 
-    public static final String MESSAGE_DUPLICATE_INDEX = "Contact indices must not be repeated.";
+    public static final String MESSAGE_DUPLICATE_INDEX = "Contact index %1$d is repeated.";
     public static final String MESSAGE_MULTIPLE_SUCCESS = "Added project %1$s to contacts %2$s.";
-    public static final String MESSAGE_CONFLICTING_CONTACT = MESSAGE_DUPLICATE_PROJECT + " Contact %1$d: %2$s.";
+    public static final String MESSAGE_CONFLICTING_CONTACTS =
+            "No changes made. These contacts already have project %1$s:\n%2$s";
     private static final Logger logger = LogsCenter.getLogger(ProjectCommand.class);
 
     private final List<Index> indices;
@@ -54,7 +54,8 @@ public class ProjectCommand extends Command {
         }
         for (int i = 0; i < indices.size(); i++) {
             if (indices.subList(0, i).contains(indices.get(i))) {
-                throw new IllegalArgumentException(MESSAGE_DUPLICATE_INDEX);
+                throw new IllegalArgumentException(String.format(MESSAGE_DUPLICATE_INDEX,
+                        indices.get(i).getOneBased()));
             }
         }
         this.project = requireNonNull(project);
@@ -67,6 +68,7 @@ public class ProjectCommand extends Command {
         List<Person> originals = new ArrayList<>();
         List<Person> replacements = new ArrayList<>();
         List<String> selectedContacts = new ArrayList<>();
+        List<String> conflicts = new ArrayList<>();
         // Resolve and validate every selection before mutating the model or its filtered list.
         for (Index index : indices) {
             if (index.getZeroBased() >= displayedContacts.size()) {
@@ -76,8 +78,8 @@ public class ProjectCommand extends Command {
             Person original = displayedContacts.get(index.getZeroBased());
             if (original.getProjects().contains(project)) {
                 logger.fine("Project association rejected: duplicate project at index " + index.getOneBased());
-                throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACT,
-                        index.getOneBased(), original.getName()));
+                conflicts.add(index.getOneBased() + ": " + original.getName());
+                continue;
             }
             List<Project> projects = new ArrayList<>(original.getProjects());
             projects.add(project);
@@ -85,6 +87,10 @@ public class ProjectCommand extends Command {
             replacements.add(new Person(original.getName(), original.getPhone(), original.getEmail(),
                     original.getTelegramUsername(), projects));
             selectedContacts.add(index.getOneBased() + ": " + original.getName());
+        }
+        if (!conflicts.isEmpty()) {
+            throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, project,
+                    String.join("\n", conflicts)));
         }
         for (int i = 0; i < originals.size(); i++) {
             model.setPerson(originals.get(i), replacements.get(i));
