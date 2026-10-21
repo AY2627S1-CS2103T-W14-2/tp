@@ -117,7 +117,8 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        RecentFindPanel recentFindPanel = new RecentFindPanel(logic.getRecentFindPersonList());
+        RecentFindPanel recentFindPanel = new RecentFindPanel(logic.getRecentFindPersonList(),
+                logic.recentFindSearchProperty());
         recentFindPanelPlaceholder.getChildren().add(recentFindPanel.getRoot());
 
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());

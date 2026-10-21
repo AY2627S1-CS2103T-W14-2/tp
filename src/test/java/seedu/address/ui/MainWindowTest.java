@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -110,6 +111,8 @@ public class MainWindowTest {
                 stage.getScene().getRoot().layout();
                 ListView<?> recent = (ListView<?>) stage.getScene().lookup("#recentFindListView");
                 ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
+                Label search = (Label) stage.getScene().lookup("#recentFindSearchLabel");
+                assertEquals("No search yet", search.getText());
                 assertTrue(recent.getItems().isEmpty());
                 assertTrue(recent.getHeight() < persons.getHeight());
                 assertTrue(recent.localToScene(0, recent.getHeight()).getY()
@@ -118,13 +121,22 @@ public class MainWindowTest {
                 TextField input = (TextField) stage.getScene().lookup("#commandTextField");
                 enter(input, "find Amy");
                 assertEquals(List.of(amy), recent.getItems());
+                assertEquals("Search: find Amy", search.getText());
                 enter(input, "list");
                 assertEquals(List.of(amy), recent.getItems());
                 assertEquals(List.of(amy, bob), persons.getItems());
+                assertEquals("Search: find Amy", search.getText());
+                enter(input, "findproject Team Alpha");
+                assertEquals("Search: findproject Team Alpha", search.getText());
+                enter(input, "find");
+                assertEquals("Search: findproject Team Alpha", search.getText());
                 enter(input, "find Bob");
                 assertEquals(List.of(bob), recent.getItems());
+                assertEquals("Search: find Bob", search.getText());
                 enter(input, "find Nobody");
                 assertTrue(recent.getItems().isEmpty());
+                assertEquals("Search: find Nobody", search.getText());
+                assertEquals(search.getText(), search.getTooltip().getText());
             } finally {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);
             }

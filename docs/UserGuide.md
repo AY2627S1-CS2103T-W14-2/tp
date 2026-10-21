@@ -86,16 +86,22 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 
 The **Recent find results** section sits directly above the main person list. It is smaller than the main list
 and scrolls independently. Each row shows a matching contact's name and email address.
+The search is shown above the rows, for example `Search: find Alex` or `Search: findproject Team Alpha`.
+Hover over this text to see the full search if it is too long to fit. Before your first search, it shows `No search yet`.
 
 * Running `find` or `findproject` replaces this section with the latest search results.
-* Running `list` shows all contacts in the main list while keeping the latest search in the recent-results section.
+  The search text updates automatically and includes the command word so you can distinguish name and project searches.
+* Running `list` shows all contacts in the main list while keeping the latest results and search text in this section.
 * Results stay in sync with contact changes: editing, deleting, adding, clearing, or undoing can change which
   contacts match the latest search and the details displayed.
 * Before the first search, or when no contacts match, the section shows `No recent find results.`.
-* Invalid search input leaves the previous results unchanged. Recent results are cleared when you restart LinkUp.
+  A search with no matches still displays its search text, so you can check what was searched.
+* Invalid search input leaves the previous results and search text unchanged. Recent results and search text
+  are cleared when you restart LinkUp.
 
 For example, run `find Alex` and then `list`. The main list shows all contacts, while the smaller section still
-shows contacts matching Alex. Use the indices in the main list for `edit`, `delete`, and `project`.
+shows contacts matching Alex and the label `Search: find Alex`. Use the indices in the main list for
+`edit`, `delete`, and `project`.
 
 ### Viewing help: `help`
 

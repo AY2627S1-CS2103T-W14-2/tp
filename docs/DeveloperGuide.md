@@ -229,6 +229,19 @@ it into `recentFindPanelPlaceholder`. `RecentFindPanel.fxml` defines its `ListVi
 The rows show names and email addresses without indices; commands continue to resolve indices exclusively
 against `Model.getFilteredPersonList()`.
 
+The panel also binds its search label to `Logic.recentFindSearchProperty()`. `LogicManager` records the trimmed
+command text after a `FindCommand` or `FindProjectCommand` executes, before saving the address book, so the
+label remains consistent with the in-memory results even if saving fails. Other commands and parse failures
+leave the label unchanged. The label initially shows `No search yet` and exposes its full text in a tooltip.
+
+`LogicManager` owns a private final `ReadOnlyStringWrapper` for this text. Its
+`recentFindSearchProperty()` accessor returns the wrapper's `ReadOnlyStringProperty` view, allowing the UI
+to observe changes and bind the label while keeping writes within `LogicManager`. The `final` modifier keeps
+the field referencing the same property object; it does not prevent changes to that object's value.
+The wrapper therefore provides both an observable value for automatic UI updates and a read-only view for callers.
+The stored value is initially empty. The binding displays `Search: ` followed by the latest command once a
+search executes, including searches with no matches, and retains the command word to distinguish search types.
+
 `ModelManager` creates the `recentFind` filtered list once, initially with a predicate that matches no contacts.
 `updateFilteredPersonList(predicate)` updates the main list and copies the predicate to `recentFind` unless it
 is the `PREDICATE_SHOW_ALL_PERSONS` constant. Both `find` and `findproject` therefore replace the latest search,
@@ -242,6 +255,8 @@ The predicate is held only in memory, so recent results start empty on each laun
 
 `MainWindowTest.recentFindResults_updateAndRemainAboveLargerPersonList()` verifies the initial empty state,
 relative size and placement, replacement by a later search, no-match results, and retention after `list`.
+It also checks the initial label, name and project search text, preservation after invalid input and `list`,
+and the tooltip text.
 
 ### Removing retired contact fields
 
@@ -763,10 +778,10 @@ After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee.
 
 | Input or action | Expected result |
 | --- | --- |
-| `find Alex` | Both Alex contacts appear in both lists. Recent rows show names and email addresses without indices. |
-| `list` | All three contacts appear in the main list; recent results still show only the two Alex contacts. |
-| `findproject Orbital` | Recent results are replaced with the second Alex only. |
-| `find` | Parse error; both lists retain their previous results. |
+| `find Alex` | Both Alex contacts appear in both lists. Recent rows show names and email addresses without indices; the search label shows `Search: find Alex`. |
+| `list` | All three contacts appear in the main list; recent results still show only the two Alex contacts and retain the search label. |
+| `findproject Orbital` | Recent results are replaced with the second Alex only; the label shows `Search: findproject Orbital`. |
+| `find` | Parse error; both lists and the search label retain their previous values. |
 | `delete 1` | The Orbital contact is removed from both lists; recent results show `No recent find results.`. |
 | `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
 | `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |

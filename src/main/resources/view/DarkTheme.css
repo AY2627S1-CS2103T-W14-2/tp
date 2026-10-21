@@ -127,6 +127,12 @@
     -fx-text-fill: white;
 }
 
+.recent-find-search {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: #cccccc;
+}
+
 .recent-find-list .placeholder .label {
     -fx-text-fill: #cccccc;
     -fx-font-size: 13px;

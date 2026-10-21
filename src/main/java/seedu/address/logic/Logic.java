@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
@@ -25,6 +26,9 @@ public interface Logic {
 
     /** Returns an unmodifiable view of the results of the last find command */
     ObservableList<Person> getRecentFindPersonList();
+
+    /** Returns the latest executed search command, or an empty string before the first search. */
+    ReadOnlyStringProperty recentFindSearchProperty();
 
     /**
      * Returns the user prefs' GUI settings.
