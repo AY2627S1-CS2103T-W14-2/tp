@@ -64,42 +64,57 @@ public class DeleteProjectCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        List<Person> originals = getValidatedContacts(model);
+        List<Person> replacements = originals.stream().map(this::createUpdatedContact).toList();
+        for (int i = 0; i < originals.size(); i++) {
+            model.setPerson(originals.get(i), replacements.get(i));
+        }
+        logger.fine("Removed project association from " + originals.size() + " contact(s)");
+        return createSuccessResult(originals);
+    }
+
+    /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
+    private List<Person> getValidatedContacts(Model model) throws CommandException {
         List<Person> displayedContacts = new ArrayList<>(model.getFilteredPersonList());
-        List<Person> originals = new ArrayList<>();
-        List<Person> replacements = new ArrayList<>();
-        List<String> selectedContacts = new ArrayList<>();
+        List<Person> selectedContacts = new ArrayList<>();
         List<String> conflicts = new ArrayList<>();
-        // Resolve and validate every selection before mutating the model or its filtered list.
         for (Index index : indices) {
             if (index.getZeroBased() >= displayedContacts.size()) {
                 logger.fine("Project removal rejected: invalid displayed index " + index.getOneBased());
                 throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             }
-            Person original = displayedContacts.get(index.getZeroBased());
-            if (!original.getProjects().contains(project)) {
+            Person contact = displayedContacts.get(index.getZeroBased());
+            if (!contact.getProjects().contains(project)) {
                 logger.fine("Project removal rejected: missing project at index " + index.getOneBased());
-                conflicts.add(index.getOneBased() + ": " + original.getName());
-                continue;
+                conflicts.add(index.getOneBased() + ": " + contact.getName());
             }
-            List<Project> projects = new ArrayList<>(original.getProjects());
-            projects.remove(project);
-            originals.add(original);
-            replacements.add(new Person(original.getName(), original.getPhone(), original.getEmail(),
-                    original.getTelegramUsername(), projects));
-            selectedContacts.add(index.getOneBased() + ": " + original.getName());
+            selectedContacts.add(contact);
         }
         if (!conflicts.isEmpty()) {
             throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, project,
                     String.join("\n", conflicts)));
         }
-        for (int i = 0; i < originals.size(); i++) {
-            model.setPerson(originals.get(i), replacements.get(i));
+        return selectedContacts;
+    }
+
+    /** Removes the association while preserving remaining project order and contact details. */
+    private Person createUpdatedContact(Person original) {
+        List<Project> projects = new ArrayList<>(original.getProjects());
+        projects.remove(project);
+        return new Person(original.getName(), original.getPhone(), original.getEmail(),
+                original.getTelegramUsername(), projects);
+    }
+
+    /** Formats the existing single-contact or batch success message using the original indices. */
+    private CommandResult createSuccessResult(List<Person> contacts) {
+        if (contacts.size() == 1) {
+            Person contact = contacts.get(0);
+            Project removedProject = contact.getProjects().get(contact.getProjects().indexOf(project));
+            return new CommandResult(String.format(MESSAGE_SUCCESS, removedProject, contact.getName()));
         }
-        logger.fine("Removed project association from " + originals.size() + " contact(s)");
-        if (originals.size() == 1) {
-            return new CommandResult(String.format(MESSAGE_SUCCESS,
-                    originals.get(0).getProjects().get(originals.get(0).getProjects().indexOf(project)),
-                    originals.get(0).getName()));
+        List<String> selectedContacts = new ArrayList<>();
+        for (int i = 0; i < contacts.size(); i++) {
+            selectedContacts.add(indices.get(i).getOneBased() + ": " + contacts.get(i).getName());
         }
         return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
                 String.join(", ", selectedContacts)));
