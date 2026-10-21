@@ -152,6 +152,7 @@
         "editing-a-person-edit": "Editing a person: edit",
         "locating-persons-by-name-find": "Locating persons by name: find",
         "finding-contacts-by-project-findproject": "Finding contacts by project: findproject",
+        "listing-all-projects-projects": "Listing all projects: projects",
         "deleting-a-person-delete": "Deleting a person: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "undo-a-command-undo": "Undo a command: undo",
