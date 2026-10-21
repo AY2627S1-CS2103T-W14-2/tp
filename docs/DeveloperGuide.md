@@ -86,9 +86,9 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`
 class, which captures common behavior among classes that represent visible GUI parts.
 
-`RecentFindPanel` displays names and email addresses in a compact, independently scrolling list above
-`PersonListPanel`. Its container has a fixed height of 130 pixels; the main person-list container has a minimum
-height of 180 pixels and grows with the window.
+`RecentFindPanel` displays names, Telegram usernames, and project tags in a compact,
+independently scrolling list above `PersonListPanel`. Its container has a fixed height of 160 pixels;
+the main person-list container has a minimum height of 180 pixels and grows with the window.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -225,9 +225,15 @@ After a mutation, indices can change, so callers must read the current list befo
 ### Recent find results
 
 `MainWindow.fillInnerParts()` constructs `RecentFindPanel` using `Logic.getRecentFindPersonList()` and inserts
-it into `recentFindPanelPlaceholder`. `RecentFindPanel.fxml` defines its `ListView<Person>` with 32-pixel rows.
-The rows show names and email addresses without indices; commands continue to resolve indices exclusively
-against `Model.getFilteredPersonList()`.
+it into `recentFindPanelPlaceholder`. `RecentFindPanel.fxml` defines its `ListView<Person>` with variable-height cells.
+Each cell displays a compact `VBox` containing a `Name | Telegram` header above project tags, without indices.
+`TelegramUsername.isEmpty()` selects the `No Telegram Username` fallback; otherwise `toString()` supplies
+the username with its leading `@`. The header tooltip contains the full name and displayed handle or fallback.
+Commands continue to resolve indices exclusively against `Model.getFilteredPersonList()`.
+
+`createPersonDetails(...)` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
+the existing tag colors, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
+width so tags wrap within the list. Empty project lists are hidden and unmanaged.
 
 The panel also binds its search label to `Logic.recentFindSearchProperty()`. `LogicManager` records the trimmed
 command text after a `FindCommand` or `FindProjectCommand` executes, before saving the address book, so the
@@ -257,6 +263,10 @@ The predicate is held only in memory, so recent results start empty on each laun
 relative size and placement, replacement by a later search, no-match results, and retention after `list`.
 It also checks the initial label, name and project search text, preservation after invalid input and `list`,
 and the tooltip text.
+
+`RecentFindPanelTest` checks populated and missing Telegram usernames, header tooltips, project order,
+and cleanup when cells are reused or results are cleared. Its rendered styling test compares project tags
+with a `PersonCard` for background, text color, padding, font, border, and spacing, and verifies wrapping.
 
 ### Removing retired contact fields
 
@@ -778,7 +788,7 @@ After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee.
 
 | Input or action | Expected result |
 | --- | --- |
-| `find Alex` | Both Alex contacts appear in both lists. Recent rows show names and email addresses without indices; the search label shows `Search: find Alex`. |
+| `find Alex` | Both Alex contacts appear in both lists. Recent cards show names, Telegram handles, and project tags without indices; the search label shows `Search: find Alex`. |
 | `list` | All three contacts appear in the main list; recent results still show only the two Alex contacts and retain the search label. |
 | `findproject Orbital` | Recent results are replaced with the second Alex only; the label shows `Search: findproject Orbital`. |
 | `find` | Parse error; both lists and the search label retain their previous values. |
@@ -786,7 +796,8 @@ After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee.
 | `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
 | `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |
 | `find LEX vid` | Three recent results can be scrolled independently of the main list. |
-| Resize the window | The recent-results section stays above and smaller than the main person list. |
+| Resize the window | The recent-results section stays above and smaller than the main person list; project tags wrap as needed. |
+| Hover over a recent-result header | The tooltip shows the full name and Telegram handle. |
 | `exit`, then relaunch | Contacts persist; recent results start empty. |
 
 ### Editing contacts
@@ -854,7 +865,7 @@ valid copy before each scenario so the legacy tests start with contacts rather t
 | Missing data | Move `data/addressbook.json` out of the test folder. Relaunch: sample contacts appear. Run `list` to save them. |
 | Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book. |
 | Legacy fields | In a valid saved contact, add `"address": "Old Address"` and `"tags": ["old"]`. Relaunch and run `list`: the saved contact omits these fields, and a sibling `.pre-v1.3-<unique suffix>.bak` preserves the original file. A second `list` creates no further migration backup. |
-| Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch: it loads without a Telegram username or project. New `add` commands still require both. |
+| Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch and search for that contact: the recent-result header shows `Name \| No Telegram Username` and no project tags. The main person card hides the missing Telegram row. New `add` commands still require both fields. |
 
 Backup and permission failures depend on the OS and account. Their automated coverage is in `MainAppTest`,
 `JsonAddressBookStorageTest`, and `LogicManagerTest`. If reproducing them manually, use only the test folder:

@@ -85,7 +85,15 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 ### Viewing recent find results
 
 The **Recent find results** section sits directly above the main person list. It is smaller than the main list
-and scrolls independently. Each row shows a matching contact's name and email address.
+and scrolls independently. Each result shows a matching contact's name and Telegram handle, with project tags
+underneath. Contacts without a Telegram username show `No Telegram Username` beside their name.
+For example, a result header reads `Alex Tan | @alex_tan` or `Alex Tan | No Telegram Username`.
+Hover over the header to see the full name and handle if the text is too long to fit.
+
+Project tags appear below the header as purple labels such as `Project: Orbital`, using the same styling as
+the main person cards. Tags wrap onto additional lines when needed, and results scroll independently to show
+all details. Contacts without projects have no project tags. Use the main person list to view phone numbers and emails.
+
 The search is shown above the rows, for example `Search: find Alex` or `Search: findproject Team Alpha`.
 Hover over this text to see the full search if it is too long to fit. Before your first search, it shows `No search yet`.
 
@@ -264,7 +272,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
 * No matches produces an empty list and the message `0 person(s) listed!`.
 * Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
-* The [Recent find results](#viewing-recent-find-results) section also shows matching names and email addresses
+* The [Recent find results](#viewing-recent-find-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
 

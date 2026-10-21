@@ -47,7 +47,7 @@
         </StackPane>
 
         <VBox fx:id="recentFind" styleClass="pane-with-border" spacing="6" VBox.vgrow="NEVER"
-              minHeight="130" prefHeight="130" maxHeight="130">
+              minHeight="160" prefHeight="160" maxHeight="160">
           <padding>
             <Insets top="10" right="10" bottom="5" left="10" />
           </padding>

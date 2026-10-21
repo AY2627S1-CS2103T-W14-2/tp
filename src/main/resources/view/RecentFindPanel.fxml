@@ -6,6 +6,6 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" minHeight="0" spacing="4">
   <Label fx:id="recentFindSearchLabel" styleClass="recent-find-search" maxWidth="Infinity" minWidth="0" />
-  <ListView fx:id="recentFindListView" styleClass="recent-find-list" fixedCellSize="32"
+  <ListView fx:id="recentFindListView" styleClass="recent-find-list"
             minHeight="0" VBox.vgrow="ALWAYS" />
 </VBox>
