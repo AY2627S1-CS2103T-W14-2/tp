@@ -187,10 +187,12 @@ Other contacts associated with the old project remain unchanged.
 Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* Both names follow the existing 1–40 printable character project rules. Surrounding whitespace is
+* Both names follow the existing 1-40 printable character project rules. Surrounding whitespace is
   removed, repeated whitespace is collapsed, and matching ignores case.
-* The old project must belong to the selected contact. The new project must differ from the old
-  project and must not already belong to that contact. Case-only changes are rejected.
+* The old project must belong to the selected contact. The new project must not duplicate another
+  association on that contact. Capitalization corrections
+  are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
+  spelling exactly matches the stored spelling, regardless of how the old name was typed.
 * Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or
   invalid names and invalid indices produce an error without changing the contact.
 * The replacement keeps the old project's position. The active filter is preserved, so a contact

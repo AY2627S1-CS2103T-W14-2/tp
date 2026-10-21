@@ -340,7 +340,8 @@ filtered selection, rejected operations, and a JSON round trip.
 and reuses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for validation.
 
 `ReplaceProjectCommand` resolves the displayed index, locates the old project with `Project.equals`,
-and rejects missing, equivalent or duplicate replacements before mutation. It copies the ordered
+and rejects missing associations, unchanged stored spelling or duplicate replacements before mutation.
+It copies the ordered
 project list, replaces the matching entry in place, and constructs a new `Person` preserving all
 other fields. `Model.setPerson` retains the active predicate; a changed contact may leave the results.
 This is a local association change, not a global project rename.
