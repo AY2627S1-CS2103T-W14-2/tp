@@ -33,7 +33,7 @@ public class HelpWindowTest {
                         .flatMap(flow -> flow.getChildren().stream()).map(Text.class::cast)
                         .map(Text::getText).reduce("", String::concat);
                 for (String command : List.of("add", "edit", "list", "delete", "find", "project", "findproject",
-                        "projects", "clear", "undo", "help", "exit")) {
+                        "deleteproject", "projects", "clear", "undo", "help", "exit")) {
                     assertTrue(displayedText.contains("COMMAND: " + command + " ")
                             || displayedText.contains("COMMAND: " + command + "\n"), command);
                 }
