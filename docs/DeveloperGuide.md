@@ -82,7 +82,13 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `RecentFindPanel`,
+`PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`
+class, which captures common behavior among classes that represent visible GUI parts.
+
+`RecentFindPanel` displays names and email addresses in a compact, independently scrolling list above
+`PersonListPanel`. Its container has a fixed height of 130 pixels; the main person-list container has a minimum
+height of 180 pixels and grows with the window.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -141,6 +147,8 @@ The `Model` component,
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * exposes a `FilteredList<Person>` backed by the address book's observable list. Changing its predicate updates
   the displayed results without removing contacts from the underlying address book.
+* maintains a separate `FilteredList<Person>` for the latest search, exposed by `Model.getRecentFindList()` and
+  `Logic.getRecentFindPersonList()`. Both lists observe the same underlying contacts.
 * stores a `UserPrefs` object containing GUI settings. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
 * keeps undo snapshots in an in-memory `Deque<AddressBook>`; they are not stored in JSON.
@@ -213,6 +221,27 @@ results. `delete`, `edit`, and `project` resolve one-based indices against the d
 `add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
+
+### Recent find results
+
+`MainWindow.fillInnerParts()` constructs `RecentFindPanel` using `Logic.getRecentFindPersonList()` and inserts
+it into `recentFindPanelPlaceholder`. `RecentFindPanel.fxml` defines its `ListView<Person>` with 32-pixel rows.
+The rows show names and email addresses without indices; commands continue to resolve indices exclusively
+against `Model.getFilteredPersonList()`.
+
+`ModelManager` creates the `recentFind` filtered list once, initially with a predicate that matches no contacts.
+`updateFilteredPersonList(predicate)` updates the main list and copies the predicate to `recentFind` unless it
+is the `PREDICATE_SHOW_ALL_PERSONS` constant. Both `find` and `findproject` therefore replace the latest search,
+while `list`, `add`, successful `edit`, and `undo` can show all contacts without replacing that search predicate.
+Keeping a separate list with a stable identity allows the panel to observe updates throughout the session.
+
+Recent results are a live filtered view rather than a snapshot. Contact additions, edits, deletions, clearing,
+and undo update membership and displayed details according to the retained predicate. Invalid search input
+fails before either predicate changes. An empty recent list displays `No recent find results.`.
+The predicate is held only in memory, so recent results start empty on each launch and require no storage changes.
+
+`MainWindowTest.recentFindResults_updateAndRemainAboveLargerPersonList()` verifies the initial empty state,
+relative size and placement, replacement by a later search, no-match results, and retention after `list`.
 
 ### Removing retired contact fields
 
@@ -310,7 +339,8 @@ The parser therefore validates the search phrase separately from `ParserUtil.par
 
 **Design choices:** A separate command preserves the existing name-search behaviour. Whole-phrase substring matching
 supports partial project names without treating individual words as alternatives. Reusing the model's existing
-filter avoids introducing a separate project index or changes to storage and the UI.
+filter avoids introducing a separate project index or changes to storage. The recent-results panel observes
+the same project predicate through its separate filtered list.
 
 ### Project association implementation
 
@@ -668,7 +698,8 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Contact**: A saved record for a project mate, containing their name, contact details, and associated projects.
 * **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
-* **Displayed contact list**: The contacts currently shown in LinkUp, including results of a search.
+* **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
+* **Recent find results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
 * **Same-name disambiguation**: Using project information to distinguish contacts with identical or similar names.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS.
@@ -725,6 +756,23 @@ Run the following in order after preparing the contacts:
 | `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
+
+### Recent find results panel
+
+After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee. Check the following in order:
+
+| Input or action | Expected result |
+| --- | --- |
+| `find Alex` | Both Alex contacts appear in both lists. Recent rows show names and email addresses without indices. |
+| `list` | All three contacts appear in the main list; recent results still show only the two Alex contacts. |
+| `findproject Orbital` | Recent results are replaced with the second Alex only. |
+| `find` | Parse error; both lists retain their previous results. |
+| `delete 1` | The Orbital contact is removed from both lists; recent results show `No recent find results.`. |
+| `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
+| `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |
+| `find LEX vid` | Three recent results can be scrolled independently of the main list. |
+| Resize the window | The recent-results section stays above and smaller than the main person list. |
+| `exit`, then relaunch | Contacts persist; recent results start empty. |
 
 ### Editing contacts
 
