@@ -322,7 +322,8 @@ project prefix. `ParserUtil.parseProject` reuses shared project validation and n
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
 A duplicate association or invalid index rejects the whole command, so earlier valid selections are
-not changed. Duplicate errors identify the conflicting displayed index and contact name.
+not changed. Duplicate errors list all conflicting contacts by displayed index and name, in input order.
+Out-of-range indices take precedence over association conflicts; no updates occur in either case.
 
 Each replacement appends the project while preserving existing project order and all contact details.
 Selected contacts are captured before mutation, so changes to filtered results cannot redirect later

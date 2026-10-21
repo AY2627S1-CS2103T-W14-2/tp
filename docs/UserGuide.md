@@ -175,10 +175,10 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
   These input errors leave contacts unchanged.
 * Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
 * Supply distinct positive indices separated by spaces, for example `project 1 3 5 pr/CS2103T`.
-  All indices refer to the displayed list at the start of the command; repeated indices are rejected.
+  All indices refer to the displayed list at the start of the command; repeated indices are rejected with a message identifying the repeated index.
 * All selected contacts are checked before any changes are applied. If any index is invalid or any
   contact already has the project, the entire command is rejected and undo history is unchanged.
-  Duplicate-project errors identify the conflicting contact by its displayed index and name.
+  Duplicate-project errors list every conflicting selected contact by displayed index and name, in input order.
 * A successful command appends the project to every selected contact and reports the selected contacts.
   Other contacts are unchanged. One `undo` reverses the entire operation.
 
