@@ -49,13 +49,29 @@ public class ReplaceProjectCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        Person original = getContactAtDisplayedIndex(model);
+        int projectIndex = validateReplacement(original);
+        Person updated = createUpdatedContact(original, projectIndex);
+        model.setPerson(original, updated);
+        logger.fine("Replaced project association at position " + (projectIndex + 1)
+                + " for contact at displayed index " + index.getOneBased());
+        return new CommandResult(String.format(MESSAGE_SUCCESS, original.getProjects().get(projectIndex),
+                newProject, original.getName()));
+    }
+
+    /** Returns the selected contact, rejecting an index outside the displayed list. */
+    private Person getContactAtDisplayedIndex(Model model) throws CommandException {
         List<Person> displayedContacts = model.getFilteredPersonList();
         if (index.getZeroBased() >= displayedContacts.size()) {
             logger.fine("Project replacement rejected: index " + index.getOneBased()
                     + " exceeds displayed list size " + displayedContacts.size());
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        Person original = displayedContacts.get(index.getZeroBased());
+        return displayedContacts.get(index.getZeroBased());
+    }
+
+    /** Validates both associations before mutation and returns the old project's position. */
+    private int validateReplacement(Person original) throws CommandException {
         int projectIndex = original.getProjects().indexOf(oldProject);
         if (projectIndex < 0) {
             logger.fine("Project replacement rejected: old association not found at contact index "
@@ -71,16 +87,15 @@ public class ReplaceProjectCommand extends Command {
                     + index.getOneBased());
             throw new CommandException(MESSAGE_DUPLICATE_PROJECT);
         }
+        return projectIndex;
+    }
 
+    /** Creates a replacement contact preserving all other fields and project order. */
+    private Person createUpdatedContact(Person original, int projectIndex) {
         List<Project> projects = new ArrayList<>(original.getProjects());
         projects.set(projectIndex, newProject);
-        Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
+        return new Person(original.getName(), original.getPhone(), original.getEmail(),
                 original.getTelegramUsername(), projects);
-        model.setPerson(original, updated);
-        logger.fine("Replaced project association at position " + (projectIndex + 1)
-                + " for contact at displayed index " + index.getOneBased());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, original.getProjects().get(projectIndex),
-                newProject, original.getName()));
     }
 
     @Override
