@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -50,7 +52,8 @@ public class DeleteProjectCommandTest {
     public void execute_missingProject_failureWithoutMutation() {
         model.addPerson(new PersonBuilder().withProjects("Team Alpha").build());
         assertCommandFailure(new DeleteProjectCommand(Index.fromOneBased(1), new Project("Missing")),
-                model, DeleteProjectCommand.MESSAGE_PROJECT_NOT_FOUND);
+                model, String.format(DeleteProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "Missing",
+                        "1: " + model.getFilteredPersonList().get(0).getName()));
     }
 
     @Test
@@ -69,7 +72,8 @@ public class DeleteProjectCommandTest {
     public void execute_noProjects_failureWithoutMutation() {
         model.addPerson(new PersonBuilder().withProjects().build());
         assertCommandFailure(new DeleteProjectCommand(Index.fromOneBased(1), project), model,
-                DeleteProjectCommand.MESSAGE_PROJECT_NOT_FOUND);
+                String.format(DeleteProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "Orbital",
+                        "1: " + model.getFilteredPersonList().get(0).getName()));
     }
 
     @Test
@@ -85,7 +89,7 @@ public class DeleteProjectCommandTest {
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new DeleteProjectCommand(null, project));
+        assertThrows(NullPointerException.class, () -> new DeleteProjectCommand((Index) null, project));
         assertThrows(NullPointerException.class, () -> new DeleteProjectCommand(Index.fromOneBased(1), null));
     }
 
@@ -99,7 +103,47 @@ public class DeleteProjectCommandTest {
         assertNotEquals(command, new DeleteProjectCommand(Index.fromOneBased(1), new Project("CS2103T")));
         assertNotEquals(command, null);
         assertNotEquals(command, "project");
-        assertEquals(DeleteProjectCommand.class.getCanonicalName() + "{index=" + Index.fromOneBased(1)
+        assertEquals(DeleteProjectCommand.class.getCanonicalName() + "{indices=" + List.of(Index.fromOneBased(1))
                 + ", project=Orbital}", command.toString());
     }
+    @Test
+    public void execute_multipleFilteredContacts_removesAllDespiteChangingResults() throws Exception {
+        Person hidden = PersonBuilder.named("Hidden").withProjects("Other").build();
+        Person alice = PersonBuilder.named("Alice").withProjects("First", "Orbital", "Last").build();
+        Person bob = PersonBuilder.named("Bob").withProjects("ORBITAL").build();
+        Person untouched = PersonBuilder.named("Untouched").withProjects("Orbital").build();
+        model.addPerson(hidden);
+        model.addPerson(alice);
+        model.addPerson(bob);
+        model.addPerson(untouched);
+        model.updateFilteredPersonList(person -> person.getProjects().contains(project));
+        CommandResult result = new DeleteProjectCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(1)),
+                project).execute(model);
+        assertEquals(List.of(hidden, new PersonBuilder(alice).withProjects("First", "Last").build(),
+                new PersonBuilder(bob).withProjects().build(), untouched), model.getAddressBook().getPersonList());
+        assertEquals(List.of(untouched), model.getFilteredPersonList());
+        assertEquals(String.format(DeleteProjectCommand.MESSAGE_MULTIPLE_SUCCESS, project, "2: Bob, 1: Alice"),
+                result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_missingAssociationsOrInvalidIndex_rejectsEntireBatch() {
+        model.addPerson(PersonBuilder.named("Alice").withProjects("Orbital").build());
+        model.addPerson(PersonBuilder.named("Bob").withProjects().build());
+        model.addPerson(PersonBuilder.named("Charlie").withProjects("Other").build());
+        assertCommandFailure(new DeleteProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(3),
+                Index.fromOneBased(2)), project), model,
+                "No changes made. These contacts do not have project Orbital:\n3: Charlie\n2: Bob");
+        assertCommandFailure(new DeleteProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(4)),
+                project), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void constructor_invalidLists_rejected() {
+        assertThrows(NullPointerException.class, () -> new DeleteProjectCommand((List<Index>) null, project));
+        assertThrows(IllegalArgumentException.class, () -> new DeleteProjectCommand(List.of(), project));
+        assertThrows(IllegalArgumentException.class, () -> new DeleteProjectCommand(
+                List.of(Index.fromOneBased(1), Index.fromOneBased(1)), project));
+    }
+
 }

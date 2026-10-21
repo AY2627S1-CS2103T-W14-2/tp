@@ -54,4 +54,30 @@ public class DeleteProjectCommandIntegrationTest {
         assertEquals(2, model.getFilteredPersonList().size());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
+    @Test
+    public void execute_batchRemoval_persistsAndUndoRestoresAllAfterFailures() throws Exception {
+        Model model = new ModelManager();
+        Person alice = PersonBuilder.named("Alice").withProjects("Team Alpha", "Other").build();
+        Person bob = PersonBuilder.named("Bob").withProjects("Team Alpha").build();
+        model.addPerson(alice);
+        model.addPerson(bob);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("batch.json"));
+        Logic logic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("batch-prefs.json"))));
+        logic.execute("findproject Alpha");
+        logic.execute("deleteproject 2 1 pr/team alpha");
+        assertEquals(0, model.getFilteredPersonList().size());
+        assertEquals(java.util.List.of(new PersonBuilder(alice).withProjects("Other").build(),
+                new PersonBuilder(bob).withProjects().build()), model.getAddressBook().getPersonList());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        logic.execute("list");
+        assertThrows(CommandException.class, () -> logic.execute("deleteproject 1 2 pr/Other"));
+        assertThrows(CommandException.class, () -> logic.execute("deleteproject 1 3 pr/Other"));
+        assertThrows(ParseException.class, () -> logic.execute("deleteproject 1 1 pr/Other"));
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        logic.execute("undo");
+        assertEquals(java.util.List.of(alice, bob), model.getAddressBook().getPersonList());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
 }
