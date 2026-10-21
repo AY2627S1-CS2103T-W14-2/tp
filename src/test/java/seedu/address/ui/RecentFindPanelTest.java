@@ -104,6 +104,9 @@ public class RecentFindPanelTest {
         });
     }
 
+    /**
+     * Returns the panel's list view for checking its cells and empty-state placeholder.
+     */
     @SuppressWarnings("unchecked")
     private ListView<Person> getListView(RecentFindPanel panel) {
         return (ListView<Person>) panel.getRoot().lookup("#recentFindListView");

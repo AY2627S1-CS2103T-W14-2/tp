@@ -90,11 +90,17 @@ public class LogicManager implements Logic {
         return model.getFilteredPersonList();
     }
 
+    /**
+     * Returns the model's live view of persons matching the latest search.
+     */
     @Override
     public ObservableList<Person> getRecentFindPersonList() {
         return model.getRecentFindList();
     }
 
+    /**
+     * Returns a read-only view of the search text so callers can observe changes without modifying it.
+     */
     @Override
     public ReadOnlyStringProperty recentFindSearchProperty() {
         return recentFindSearch.getReadOnlyProperty();

@@ -12,7 +12,7 @@ import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
 
 /**
- * Compact panel showing contacts matching the most recent find command.
+ * Compact panel showing contacts matching the latest name or project search and the search command text.
  */
 public class RecentFindPanel extends UiPart<Region> {
     private static final String FXML = "RecentFindPanel.fxml";
@@ -24,7 +24,11 @@ public class RecentFindPanel extends UiPart<Region> {
     private Label recentFindSearchLabel;
 
     /**
-     * Creates a panel bound to the given recent find results and search command.
+     * Creates a {@code RecentFindPanel} bound to the given results and search command property.
+     * Displays names and email addresses without command indices, and provides a tooltip with the full search text.
+     *
+     * @param recentFindResults Observable list of contacts matching the latest search.
+     * @param search Read-only search command property, containing an empty string before the first search.
      */
     public RecentFindPanel(ObservableList<Person> recentFindResults, ReadOnlyStringProperty search) {
         super(FXML);
@@ -36,6 +40,9 @@ public class RecentFindPanel extends UiPart<Region> {
         recentFindListView.setItems(recentFindResults);
         recentFindListView.setPlaceholder(new Label("No recent find results."));
         recentFindListView.setCellFactory(listView -> new ListCell<>() {
+            /**
+             * Displays the current person's name and email, clearing previous content when the cell becomes empty.
+             */
             @Override
             protected void updateItem(Person person, boolean empty) {
                 super.updateItem(person, empty);

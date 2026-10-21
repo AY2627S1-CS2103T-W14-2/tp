@@ -126,6 +126,10 @@ public class ModelManager implements Model {
         }
     }
 
+    /**
+     * Returns the live filtered view backed by the address book and retaining the latest search predicate.
+     * The same list instance is returned so UI bindings continue to observe subsequent searches and contact changes.
+     */
     @Override
     public ObservableList<Person> getRecentFindList() {
         return recentFind;
