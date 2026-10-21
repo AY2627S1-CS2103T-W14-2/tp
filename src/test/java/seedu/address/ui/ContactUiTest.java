@@ -15,6 +15,8 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -89,4 +91,48 @@ public class ContactUiTest {
             assertEquals(List.of("bad", "bad", "list"), executed);
         });
     }
+    @Test
+    public void commandBox_arrowKeysRecallWithoutExecutingAndResetAfterSubmission() throws Exception {
+        FxTestUtil.run(() -> {
+            List<String> history = new ArrayList<>(List.of("list", "bad"));
+            CommandBox box = new CommandBox(command -> {
+                history.add(command);
+                if (command.equals("bad")) {
+                    throw new ParseException("Invalid command");
+                }
+                return new CommandResult("Done");
+            }, () -> List.copyOf(history));
+            TextField input = (TextField) box.getRoot().lookup("#commandTextField");
+            input.setText("draft");
+            for (int modifier = 0; modifier < 4; modifier++) {
+                input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
+                        modifier == 0, modifier == 1, modifier == 2, modifier == 3));
+            }
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.RIGHT,
+                    false, false, false, false));
+            assertEquals("draft", input.getText());
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP, false, false, false, false));
+            assertEquals("bad", input.getText());
+            assertEquals(3, input.getCaretPosition());
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP, false, false, false, false));
+            assertEquals("list", input.getText());
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN, false, false, false, false));
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN, false, false, false, false));
+            assertEquals("draft", input.getText());
+            assertEquals(2, history.size());
+            input.setText("bad");
+            input.fireEvent(new ActionEvent());
+            assertTrue(input.getStyleClass().contains("error"));
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP, false, false, false, false));
+            assertEquals("bad", input.getText());
+            assertFalse(input.getStyleClass().contains("error"));
+            input.setText("list");
+            input.fireEvent(new ActionEvent());
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP, false, false, false, false));
+            assertEquals("list", input.getText());
+            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN, false, false, false, false));
+            assertEquals("", input.getText());
+        });
+    }
+
 }
