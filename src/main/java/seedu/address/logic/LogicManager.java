@@ -83,6 +83,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Person> getRecentFindPersonList() {
+        return model.getRecentFindList();
+    }
+
+    @Override
     public GuiSettings getGuiSettings() {
         return model.getGuiSettings();
     }

@@ -26,6 +26,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final Deque<AddressBook> undoHistory = new ArrayDeque<>();
+    private final FilteredList<Person> recentFind;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -38,6 +39,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        recentFind = new FilteredList<>(this.addressBook.getPersonList(), person -> false);
     }
 
     public ModelManager() {
@@ -119,6 +121,14 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+        if (predicate != PREDICATE_SHOW_ALL_PERSONS) {
+            recentFind.setPredicate(predicate);
+        }
+    }
+
+    @Override
+    public ObservableList<Person> getRecentFindList() {
+        return recentFind;
     }
 
     @Override
