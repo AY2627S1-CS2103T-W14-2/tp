@@ -43,7 +43,7 @@ public class ReplaceProjectCommandTest {
     public void execute_invalidReplacements_failureWithoutMutation() {
         model.addPerson(new PersonBuilder().withProjects("Team Alpha", "Orbital").build());
         assertCommandFailure(command(1, "Missing", "New"), model, ReplaceProjectCommand.MESSAGE_PROJECT_NOT_FOUND);
-        assertCommandFailure(command(1, "Team Alpha", " team   ALPHA "), model,
+        assertCommandFailure(command(1, "team alpha", " Team   Alpha "), model,
                 ReplaceProjectCommand.MESSAGE_UNCHANGED_PROJECT);
         assertCommandFailure(command(1, "Team Alpha", "ORBITAL"), model,
                 ReplaceProjectCommand.MESSAGE_DUPLICATE_PROJECT);
@@ -79,8 +79,9 @@ public class ReplaceProjectCommandTest {
     public void equals_comparesAllArguments() {
         ReplaceProjectCommand value = command(1, "A", "B");
         assertEquals(value, value);
-        assertEquals(value, command(1, "a", "b"));
-        assertEquals(value.hashCode(), command(1, "a", "b").hashCode());
+        assertEquals(value, command(1, "a", "B"));
+        assertNotEquals(value, command(1, "A", "b"));
+        assertEquals(value.hashCode(), command(1, "a", "B").hashCode());
         assertNotEquals(value, command(2, "A", "B"));
         assertNotEquals(value, command(1, "C", "B"));
         assertNotEquals(value, command(1, "A", "C"));
@@ -88,4 +89,16 @@ public class ReplaceProjectCommandTest {
         assertNotEquals(value, "replaceproject");
         assertTrue(value.isUndoable());
     }
+    @Test
+    public void execute_caseOnlyCorrection_usesStoredSpellingToDetectChanges() throws Exception {
+        model.addPerson(new PersonBuilder().withProjects("First", "orbital", "Last").build());
+        command(1, "ORBITAL", "Orbital").execute(model);
+        assertEquals(java.util.List.of("First", "Orbital", "Last"), model.getFilteredPersonList().get(0)
+                .getProjects().stream().map(value -> value.projectName).toList());
+        assertCommandFailure(command(1, "orbital", "Orbital"), model,
+                ReplaceProjectCommand.MESSAGE_UNCHANGED_PROJECT);
+        command(1, "orbital", "orbital").execute(model);
+        assertEquals("orbital", model.getFilteredPersonList().get(0).getProjects().get(1).projectName);
+    }
+
 }

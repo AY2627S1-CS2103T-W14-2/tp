@@ -40,7 +40,7 @@ public class ReplaceProjectCommandIntegrationTest {
         assertEquals(alice, model.getAddressBook().getPersonList().get(0));
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
         logic.execute("find Bob");
-        assertThrows(CommandException.class, () -> logic.execute("replaceproject 1 old/Orbital new/ORBITAL"));
+        assertThrows(CommandException.class, () -> logic.execute("replaceproject 1 old/orbital new/Orbital"));
         assertThrows(CommandException.class, () -> logic.execute("replaceproject 1 old/Missing new/New"));
         assertThrows(ParseException.class, () -> logic.execute("replaceproject 1 old/Orbital new/"));
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
@@ -49,4 +49,23 @@ public class ReplaceProjectCommandIntegrationTest {
         assertEquals(2, model.getFilteredPersonList().size());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
+    @Test
+    public void execute_caseOnlyChange_persistsExactSpellingAndUndoRestoresIt() throws Exception {
+        Model model = new ModelManager();
+        model.addPerson(new PersonBuilder().withProjects("orbital").build());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("case.json"));
+        Logic logic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("case-prefs.json"))));
+        logic.execute("findproject orbital");
+        logic.execute("replaceproject 1 old/ORBITAL new/Orbital");
+        assertEquals("Orbital", model.getFilteredPersonList().get(0).getProjects().get(0).projectName);
+        assertEquals("Orbital", storage.readAddressBook().orElseThrow().getPersonList()
+                .get(0).getProjects().get(0).projectName);
+        assertThrows(CommandException.class, () -> logic.execute("replaceproject 1 old/orbital new/Orbital"));
+        logic.execute("undo");
+        assertEquals("orbital", model.getFilteredPersonList().get(0).getProjects().get(0).projectName);
+        assertEquals("orbital", storage.readAddressBook().orElseThrow().getPersonList()
+                .get(0).getProjects().get(0).projectName);
+    }
+
 }
