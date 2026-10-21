@@ -76,7 +76,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+  For example, `help 123` is interpreted as `help`. The exception is `projects`, which rejects any parameters.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -299,6 +299,43 @@ Examples:
 * `findproject team alpha` finds contacts whose project names contain the phrase `team alpha`, ignoring case.
 * `findproject orbital` followed by `delete 1` deletes the first contact in those search results.
 
+### Listing all projects: `projects`
+
+Shows every project saved in LinkUp, with the number of contacts associated with each.
+
+Format: `projects`
+
+* The command takes **no parameters**. Surrounding spaces are allowed, but anything else after `projects` is
+  rejected with `Invalid command format!` followed by this command's usage. For example, `projects 2 pr/Orbital`
+  is rejected rather than treated as `projects`, so a mistyped `project 2 pr/Orbital` cannot be mistaken for success.
+* All saved contacts are counted, including contacts hidden by `find` or `findproject`. The displayed contact
+  list and its search filter stay unchanged.
+* Projects that differ only in letter case, such as `CS2103T tP` and `cs2103t TP`, count as one project. It is shown
+  with the spelling of the first contact that has it, in saved contact order.
+* Projects are sorted by comparing their names after conversion to lowercase. This is not language-specific
+  dictionary ordering; for example, `#Team` appears before `Alpha`, while `~Team`, `Élan`, and `数据` appear
+  after `Zeta`.
+* Each project is shown on its own line as `- PROJECT (N contacts)`, or `(1 contact)` for a single contact.
+  The lines have no index numbers: `INDEX` in other commands always refers to a contact, never to a project.
+* The first line reads `Listed N projects across all contacts:` (or `Listed 1 project across all contacts:`).
+* Contacts without any projects are not counted. If no contact has a project, the message is
+  `No projects saved yet.`
+* The list appears in the result box below the command box. Scroll the result box if there are more projects than
+  fit in it.
+* `projects` does not change any contact and does not add an `undo` entry.
+
+Examples:
+
+* With contacts in `Orbital`, `CS2101 OP` and `Hackathon 2026`, `projects` shows:
+  ```
+  Listed 3 projects across all contacts:
+  - CS2101 OP (2 contacts)
+  - Hackathon 2026 (1 contact)
+  - Orbital (3 contacts)
+  ```
+* `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
+  `hackathon 2026`, ignoring case.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -337,7 +374,7 @@ Undo the last supported command. The supported commands are:
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
-`No changes made.`. Commands such as `find`, `findproject`, `list`, and `help` do not add undo entries.
+`No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
 A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
@@ -442,6 +479,7 @@ Action     | Format, Examples
 **List**   | `list`
 **Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**List projects** | `projects`
 **Help**   | `help`
 **Undo**   | `undo`
 **Exit**   | `exit`
