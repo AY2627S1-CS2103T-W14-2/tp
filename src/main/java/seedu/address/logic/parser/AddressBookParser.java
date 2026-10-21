@@ -3,6 +3,8 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
+import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,6 +19,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.HistoryCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ProjectCommand;
 import seedu.address.logic.commands.UndoCommand;
@@ -32,6 +35,16 @@ public class AddressBookParser {
      */
     private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
+
+    private final Supplier<List<String>> historySupplier;
+
+    public AddressBookParser() {
+        this(List::of);
+    }
+
+    public AddressBookParser(Supplier<List<String>> historySupplier) {
+        this.historySupplier = java.util.Objects.requireNonNull(historySupplier);
+    }
 
     /**
      * Parses user input into command for execution.
@@ -65,6 +78,13 @@ public class AddressBookParser {
             case ProjectCommand.COMMAND_WORD -> new ProjectCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case HistoryCommand.COMMAND_WORD -> {
+                if (!arguments.isBlank()) {
+                    throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            HistoryCommand.MESSAGE_USAGE));
+                }
+                yield new HistoryCommand(historySupplier.get());
+            }
             case UndoCommand.COMMAND_WORD -> new UndoCommand();
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);

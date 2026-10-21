@@ -2,6 +2,8 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -9,6 +11,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HistoryCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -30,6 +33,7 @@ public class LogicManager implements Logic {
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
+    private final List<String> commandHistory = new ArrayList<>();
     private final Model model;
     private final Storage storage;
     private final AddressBookParser addressBookParser;
@@ -40,15 +44,34 @@ public class LogicManager implements Logic {
     public LogicManager(Model model, Storage storage) {
         this.model = model;
         this.storage = storage;
-        addressBookParser = new AddressBookParser();
+        addressBookParser = new AddressBookParser(this::getCommandHistory);
     }
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
+        java.util.Objects.requireNonNull(commandText);
+        try {
+            return executeCommand(commandText);
+        } finally {
+            if (!commandText.isBlank()) {
+                commandHistory.add(commandText);
+            }
+        }
+    }
+
+    @Override
+    public List<String> getCommandHistory() {
+        return List.copyOf(commandHistory);
+    }
+
+    private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        if (command instanceof HistoryCommand) {
+            return command.execute(model);
+        }
         if (command instanceof UndoCommand && model.canUndo()) {
             // Persist the restored state before changing contacts, the filter or undo history.
             saveAddressBook(model.getUndoState());
