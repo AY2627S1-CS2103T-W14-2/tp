@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
@@ -17,53 +18,91 @@ import seedu.address.model.person.Person;
 import seedu.address.model.project.Project;
 
 /**
- * Removes one project association from an existing contact.
+ * Removes one project association from selected existing contacts.
  */
 public class DeleteProjectCommand extends Command {
     public static final String COMMAND_WORD = "deleteproject";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Removes a project from the contact at the displayed index.\n"
-            + "Parameters: INDEX (must be a positive integer) pr/PROJECT\n"
+            + ": Removes a project from contacts at the displayed indices.\n"
+            + "Parameters: INDEX [MORE_INDICES] (positive integers) pr/PROJECT\n"
             + "Example: " + COMMAND_WORD + " 1 pr/Orbital";
     public static final String MESSAGE_SUCCESS = "Removed project %1$s from contact %2$s.";
-    public static final String MESSAGE_PROJECT_NOT_FOUND = "This contact is not associated with that project.";
 
+    public static final String MESSAGE_DUPLICATE_INDEX = "Contact index %1$d is repeated.";
+    public static final String MESSAGE_MULTIPLE_SUCCESS = "Removed project %1$s from contacts %2$s.";
+    public static final String MESSAGE_CONFLICTING_CONTACTS =
+            "No changes made. These contacts do not have project %1$s:\n%2$s";
     private static final Logger logger = LogsCenter.getLogger(DeleteProjectCommand.class);
 
-    private final Index index;
+    private final List<Index> indices;
     private final Project project;
 
     /**
      * Creates a command to remove {@code project} from the contact at {@code index}.
      */
     public DeleteProjectCommand(Index index, Project project) {
-        this.index = requireNonNull(index);
+        this(List.of(requireNonNull(index)), project);
+    }
+
+    /**
+     * Creates a command for a non-empty list of distinct displayed contact indices.
+     */
+    public DeleteProjectCommand(List<Index> indices, Project project) {
+        this.indices = List.copyOf(indices);
+        if (indices.isEmpty()) {
+            throw new IllegalArgumentException("At least one contact index is required.");
+        }
+        for (int i = 0; i < indices.size(); i++) {
+            if (indices.subList(0, i).contains(indices.get(i))) {
+                throw new IllegalArgumentException(String.format(MESSAGE_DUPLICATE_INDEX,
+                        indices.get(i).getOneBased()));
+            }
+        }
         this.project = requireNonNull(project);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> displayedContacts = model.getFilteredPersonList();
-        if (index.getZeroBased() >= displayedContacts.size()) {
-            logger.fine("Project removal rejected: index " + index.getOneBased()
-                    + " exceeds displayed list size " + displayedContacts.size());
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        List<Person> displayedContacts = new ArrayList<>(model.getFilteredPersonList());
+        List<Person> originals = new ArrayList<>();
+        List<Person> replacements = new ArrayList<>();
+        List<String> selectedContacts = new ArrayList<>();
+        List<String> conflicts = new ArrayList<>();
+        // Resolve and validate every selection before mutating the model or its filtered list.
+        for (Index index : indices) {
+            if (index.getZeroBased() >= displayedContacts.size()) {
+                logger.fine("Project removal rejected: invalid displayed index " + index.getOneBased());
+                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            }
+            Person original = displayedContacts.get(index.getZeroBased());
+            if (!original.getProjects().contains(project)) {
+                logger.fine("Project removal rejected: missing project at index " + index.getOneBased());
+                conflicts.add(index.getOneBased() + ": " + original.getName());
+                continue;
+            }
+            List<Project> projects = new ArrayList<>(original.getProjects());
+            projects.remove(project);
+            originals.add(original);
+            replacements.add(new Person(original.getName(), original.getPhone(), original.getEmail(),
+                    original.getTelegramUsername(), projects));
+            selectedContacts.add(index.getOneBased() + ": " + original.getName());
         }
-        Person original = displayedContacts.get(index.getZeroBased());
-        int projectIndex = original.getProjects().indexOf(project);
-        if (projectIndex < 0) {
-            logger.fine("Project removal rejected: association not found at contact index " + index.getOneBased());
-            throw new CommandException(MESSAGE_PROJECT_NOT_FOUND);
+        if (!conflicts.isEmpty()) {
+            throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, project,
+                    String.join("\n", conflicts)));
         }
-
-        List<Project> projects = new ArrayList<>(original.getProjects());
-        Project removedProject = projects.remove(projectIndex);
-        Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getTelegramUsername(), projects);
-        model.setPerson(original, updated);
-        logger.fine("Removed project association from contact at displayed index " + index.getOneBased());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, removedProject, original.getName()));
+        for (int i = 0; i < originals.size(); i++) {
+            model.setPerson(originals.get(i), replacements.get(i));
+        }
+        logger.fine("Removed project association from " + originals.size() + " contact(s)");
+        if (originals.size() == 1) {
+            return new CommandResult(String.format(MESSAGE_SUCCESS,
+                    originals.get(0).getProjects().get(originals.get(0).getProjects().indexOf(project)),
+                    originals.get(0).getName()));
+        }
+        return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
+                String.join(", ", selectedContacts)));
     }
 
     @Override
@@ -72,17 +111,17 @@ public class DeleteProjectCommand extends Command {
             return true;
         }
         return other instanceof DeleteProjectCommand otherCommand
-                && index.equals(otherCommand.index) && project.equals(otherCommand.project);
+                && indices.equals(otherCommand.indices) && project.equals(otherCommand.project);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index.getZeroBased(), project);
+        return Objects.hash(indices.stream().map(Index::getZeroBased).collect(Collectors.toList()), project);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("index", index).add("project", project).toString();
+        return new ToStringBuilder(this).add("indices", indices).add("project", project).toString();
     }
 
     /**
