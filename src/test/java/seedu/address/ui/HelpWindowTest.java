@@ -39,6 +39,7 @@ public class HelpWindowTest {
                 }
                 assertTrue(displayedText.contains("COMMAND: edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] "
                         + "[tele/TELEGRAM_USERNAME]"));
+                assertTrue(displayedText.contains("COMMAND: project INDEX [MORE_INDICES] pr/PROJECT"));
                 assertFalse(displayedText.contains("outside the MVP scope"));
                 assertTrue(content.getBoundsInLocal().getHeight() > scroll.getViewportBounds().getHeight());
 
