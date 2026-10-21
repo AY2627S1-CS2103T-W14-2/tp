@@ -243,6 +243,21 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * No matches produces an empty list and the message `0 person(s) listed!`.
 * Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
+* A compact summary above the contact list shows one **Most searched** person above the **Recent search**.
+  Each successful `find` adds one search to every matching person, even if several keywords match that person.
+  The person with the highest count is displayed. In a draw, the person matched by the more recent search wins;
+  if both matched the same search, the person first in the contact list wins. For example, `find Alice` followed
+  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
+* **Recent search** shows the latest successful `find` input, including searches with no matches. A search with
+  no matches does not change anyone's count or tie priority. Invalid searches and searches reporting a save error
+  do not update the summary. `findproject`, `list` and other commands do not add search counts.
+* Editing a contact or adding a project preserves their count and search recency; their displayed name updates
+  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
+  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
+  These commands leave the recent search text unchanged.
+* The summary starts hidden and resets when you restart LinkUp. If no saved contact has a search count, only
+  **Recent search** is shown. Long names and queries use an ellipsis to keep the summary compact; hover over
+  either value to read it in full. Only one most-searched person is ever shown.
 
 Examples:
 * `find John` returns `john` and `John Doe`

@@ -1,3 +1,18 @@
+.search-summary {
+    -fx-padding: 2 8 10 8;
+}
+
+.search-summary .search-summary-caption,
+.search-summary .search-summary-query {
+    -fx-font-size: 10pt;
+    -fx-text-fill: #b8b8b8;
+}
+
+.search-summary .search-summary-name {
+    -fx-font-size: 10pt;
+    -fx-text-fill: #f1f1f1;
+}
+
 .background {
     -fx-background-color: derive(#1d1d1d, 20%);
     background-color: #383838; /* Used in the default.html file */

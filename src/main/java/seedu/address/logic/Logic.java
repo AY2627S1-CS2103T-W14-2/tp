@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
@@ -22,6 +24,12 @@ public interface Logic {
 
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
+
+    /** Returns the single most searched person in this session, or null before any matches. */
+    ReadOnlyObjectProperty<Person> mostSearchedPersonProperty();
+
+    /** Returns the latest successful name search in this session. */
+    ReadOnlyStringProperty recentSearchProperty();
 
     /**
      * Returns the user prefs' GUI settings.

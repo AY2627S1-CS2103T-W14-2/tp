@@ -214,6 +214,41 @@ results. `delete`, `edit`, and `project` resolve one-based indices against the d
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
+### Most-searched person and recent search
+
+`LogicManager` owns one session-only `SearchHistory`, constructed with the unfiltered observable contact list.
+After a `FindCommand` executes and the normal address-book save succeeds, it records the filtered results and
+the query. Query trimming uses `FindCommandParser.trimSearchInput`, sharing the parser's ASCII and Unicode
+whitespace rules while preserving internal spacing. For name searches, parse failures, command failures and
+save failures leave the search summary unchanged. `findproject` and other commands do not record searches.
+
+`SearchHistory` maps each full `Person` value to a frequency and last-search sequence number. Every matching
+contact earns one count per search; repeated matching keywords do not multiply counts. The sequence is shared
+by all contacts in a single search. Ranking compares frequency first, then the last-search sequence. Iterating
+the current unfiltered contact list resolves any remaining draw in contact order, yielding exactly one contact
+or `null`. Same-name contacts have separate entries. A no-match search updates recent text without affecting
+any contact's frequency or recency.
+
+The contact-list listener transfers statistics across replacements without changing their last-search sequence.
+It handles both single-element edits/project updates and equal-sized snapshot replacements from undo. Contacts
+already present in the replacement retain their own statistics, so list reordering cannot exchange counts.
+Removed contacts are pruned. Deletion and clear therefore discard the affected counts permanently; undoing
+those operations restores contacts without restoring their discarded counts. Undoing an edit or project change
+preserves counts. Search statistics are not part of the contact undo snapshots, JSON data or user preferences,
+and reset on restart. The latest search query survives contact mutations until the next successful name search.
+
+`Logic` exposes read-only `mostSearchedPersonProperty()` and `recentSearchProperty()`. `MainWindow` binds them
+to the two-row summary above the person list, with Most searched above Recent search. Visibility and managed
+state are both bound: the entire summary takes no space before a search, and the winner row takes no space
+when no currently saved contact has a count. Single-line labels truncate with ellipses and provide full-text
+tooltips. This adds no extra contact cards or result indices.
+
+`SearchHistoryTest` covers frequency, search recency, same-search ordering, namesakes, edits, snapshot restore,
+reordering, deletion, empty results and session reset. `LogicManagerTest` covers command integration, Unicode
+query trimming, repeated keywords, failed searches, storage failure/retry, edits/undo and clear/undo.
+`SearchSummaryUiTest` loads the actual FXML and checks live bindings, hidden rows, tooltips and compact layout at the
+450-pixel minimum width.
+
 ### Removing retired contact fields
 
 `Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
@@ -704,6 +739,26 @@ add n/David Lim p/+65 8111-2222 e/david@example.com tele/david_lim pr/Team Beta
 
 Expect three contacts in that order, including two separate Alex Tan cards. Phones display without spaces or
 hyphens, emails are lowercase, and Telegram usernames display a leading `@`. Projects distinguish the namesakes.
+
+### Search summary and draws
+
+Restart LinkUp after preparing the deterministic contacts above so the session search history is empty.
+The search summary should initially take no space. Run these commands in order:
+
+| Input | Expected summary |
+| --- | --- |
+| `find Alex` | One Most searched row above Recent search; the first Alex wins the same-search draw. |
+| `find David` | David wins: all three contacts have one match, but David's search is most recent. |
+| `list` then `edit 1 n/Alex Lee` | David stays the winner; editing Alex must not change search recency. |
+| `find Alex` | Alex Lee wins: both Alex contacts have two matches and Alex Lee is first in contact order. |
+| `undo` | First Alex's name returns to Alex Tan; their count remains two, so they stay the winner. |
+| `find missing` | Winner unchanged; Recent search becomes `missing`. |
+| `find` | Error; both summary values remain unchanged. |
+| `clear` | Most searched row disappears; Recent search remains `missing`. |
+| `undo` | Contacts return, but no Most searched row until a new search matches a contact. |
+
+At the minimum window width, verify that long names and queries stay on one line with ellipses and full-text
+hover tooltips. Restart again before continuing the contact-editing scenarios below.
 
 ### Search, index selection and editing
 
