@@ -51,7 +51,7 @@ public class HelpWindow extends UiPart<Stage> {
             + "Delete all contacts, including contacts hidden by a search. "
             + "There is no confirmation prompt; use undo in this session to restore them.\n\n"
             + "COMMAND: undo\n"
-            + "Reverse the latest add, edit, delete, clear, project or sort change. Repeat to undo earlier changes. "
+            + "Reverse the latest supported contact or project change. Repeat to undo earlier changes. "
             + "History is lost when LinkUp closes; there is no redo.\n\n"
             + "COMMAND: help\n"
             + "Open this reference. The Help menu and F1 also open it.\n\n"

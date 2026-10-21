@@ -89,7 +89,7 @@ into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
-The reference includes all twelve commands. Resize the help window or scroll to reach later commands and
+The reference lists every command. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
 
