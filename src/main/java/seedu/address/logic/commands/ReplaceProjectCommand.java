@@ -29,7 +29,8 @@ public class ReplaceProjectCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PROJECT = "This contact is already associated with that project.";
 
     public static final String MESSAGE_PROJECT_NOT_FOUND = "This contact is not associated with the old project.";
-    public static final String MESSAGE_UNCHANGED_PROJECT = "The replacement project must differ from the old project.";
+    public static final String MESSAGE_UNCHANGED_PROJECT =
+            "The replacement project has the same spelling as the stored project.";
 
     private static final Logger logger = LogsCenter.getLogger(ReplaceProjectCommand.class);
 
@@ -78,11 +79,11 @@ public class ReplaceProjectCommand extends Command {
                     + index.getOneBased());
             throw new CommandException(MESSAGE_PROJECT_NOT_FOUND);
         }
-        if (oldProject.equals(newProject)) {
-            logger.fine("Project replacement rejected: old and new projects are equivalent");
+        if (original.getProjects().get(projectIndex).projectName.equals(newProject.projectName)) {
+            logger.fine("Project replacement rejected: requested spelling is unchanged");
             throw new CommandException(MESSAGE_UNCHANGED_PROJECT);
         }
-        if (original.getProjects().contains(newProject)) {
+        if (!oldProject.equals(newProject) && original.getProjects().contains(newProject)) {
             logger.fine("Project replacement rejected: new association already exists at contact index "
                     + index.getOneBased());
             throw new CommandException(MESSAGE_DUPLICATE_PROJECT);
@@ -105,12 +106,12 @@ public class ReplaceProjectCommand extends Command {
         }
         return other instanceof ReplaceProjectCommand otherCommand
                 && index.equals(otherCommand.index) && oldProject.equals(otherCommand.oldProject)
-                && newProject.equals(otherCommand.newProject);
+                && newProject.projectName.equals(otherCommand.newProject.projectName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index.getZeroBased(), oldProject, newProject);
+        return Objects.hash(index.getZeroBased(), oldProject, newProject.projectName);
     }
 
     @Override
