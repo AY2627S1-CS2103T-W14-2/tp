@@ -4,6 +4,8 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -26,7 +28,7 @@ public class ProjectCommandParserTest {
     public void parse_missingOrInvalidIndexOrPrefix_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
         for (String input : new String[] {"", "1", "pr/Orbital", "0 pr/Orbital", "-1 pr/Orbital",
-            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital", "1 2 pr/Orbital",
+            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital", "1 1 pr/Orbital",
             "pr/Orbital 1"}) {
             assertParseFailure(parser, input, expected);
         }
@@ -44,4 +46,19 @@ public class ProjectCommandParserTest {
         assertParseFailure(parser, "1 pr/Orbital pr/CS2103T",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_PROJECT));
     }
+    @Test
+    public void parse_multipleIndices_acceptsWhitespaceAndSelectionOrder() {
+        assertParseSuccess(parser, " 3  1\t2 pr/ Team   Alpha ",
+                new ProjectCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(1), Index.fromOneBased(2)),
+                        new Project("Team Alpha")));
+    }
+
+    @Test
+    public void parse_invalidLaterIndex_rejected() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
+        for (String input : new String[] {"1 0", "1 -2", "1 word", "1 2.5", "1 2147483648", "1 2 1"}) {
+            assertParseFailure(parser, input + " pr/Orbital", expected);
+        }
+    }
+
 }
