@@ -39,7 +39,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final AddressBookParser addressBookParser;
-    private final ReadOnlyStringWrapper recentFindSearch = new ReadOnlyStringWrapper("");
+    private final ReadOnlyStringWrapper recentSearch = new ReadOnlyStringWrapper("");
     private final SearchHistory searchHistory;
 
     /**
@@ -67,8 +67,13 @@ public class LogicManager implements Logic {
                 ? new AddressBook(model.getAddressBook())
                 : null;
         commandResult = command.execute(model);
-        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
-            recentFindSearch.set(commandText.trim());
+        boolean isSearch = command instanceof FindCommand || command instanceof FindProjectCommand;
+        if (isSearch) {
+            String commandWord = command instanceof FindCommand
+                    ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
+            String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
+            recentSearch.set(searchType + FindCommandParser.trimSearchInput(
+                    commandText.trim().substring(commandWord.length())));
         }
 
         if (command.isUndoable()) {
@@ -76,13 +81,8 @@ public class LogicManager implements Logic {
         }
 
         saveAddressBook(model.getAddressBook());
-        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
-            String commandWord = command instanceof FindCommand
-                    ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
-            String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
-            searchHistory.record(searchType + FindCommandParser.trimSearchInput(
-                    commandText.trim().substring(commandWord.length())),
-                    model.getFilteredPersonList());
+        if (isSearch) {
+            searchHistory.record(model.getFilteredPersonList());
         }
         return commandResult;
     }
@@ -114,18 +114,13 @@ public class LogicManager implements Logic {
      * Returns a read-only view of the search text so callers can observe changes without modifying it.
      */
     @Override
-    public ReadOnlyStringProperty recentFindSearchProperty() {
-        return recentFindSearch.getReadOnlyProperty();
+    public ReadOnlyStringProperty recentSearchProperty() {
+        return recentSearch.getReadOnlyProperty();
     }
 
     @Override
     public ReadOnlyObjectProperty<Person> mostSearchedPersonProperty() {
         return searchHistory.mostSearchedPersonProperty();
-    }
-
-    @Override
-    public ReadOnlyStringProperty recentSearchProperty() {
-        return searchHistory.recentSearchProperty();
     }
 
     @Override

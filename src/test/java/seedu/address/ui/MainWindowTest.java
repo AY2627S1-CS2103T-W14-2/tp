@@ -112,7 +112,7 @@ public class MainWindowTest {
                 ListView<?> recent = (ListView<?>) stage.getScene().lookup("#recentFindListView");
                 ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
                 Label search = (Label) stage.getScene().lookup("#recentFindSearchLabel");
-                assertEquals("No search yet", search.getText());
+                assertEquals("Latest search: No search yet", search.getText());
                 assertTrue(recent.getItems().isEmpty());
                 assertTrue(recent.getHeight() < persons.getHeight());
                 assertTrue(recent.localToScene(0, recent.getHeight()).getY()
@@ -121,21 +121,21 @@ public class MainWindowTest {
                 TextField input = (TextField) stage.getScene().lookup("#commandTextField");
                 enter(input, "find Amy");
                 assertEquals(List.of(amy), recent.getItems());
-                assertEquals("Search: find Amy", search.getText());
+                assertEquals("Latest search: Name: Amy", search.getText());
                 enter(input, "list");
                 assertEquals(List.of(amy), recent.getItems());
                 assertEquals(List.of(amy, bob), persons.getItems());
-                assertEquals("Search: find Amy", search.getText());
+                assertEquals("Latest search: Name: Amy", search.getText());
                 enter(input, "findproject Team Alpha");
-                assertEquals("Search: findproject Team Alpha", search.getText());
+                assertEquals("Latest search: Project: Team Alpha", search.getText());
                 enter(input, "find");
-                assertEquals("Search: findproject Team Alpha", search.getText());
+                assertEquals("Latest search: Project: Team Alpha", search.getText());
                 enter(input, "find Bob");
                 assertEquals(List.of(bob), recent.getItems());
-                assertEquals("Search: find Bob", search.getText());
+                assertEquals("Latest search: Name: Bob", search.getText());
                 enter(input, "find Nobody");
                 assertTrue(recent.getItems().isEmpty());
-                assertEquals("Search: find Nobody", search.getText());
+                assertEquals("Latest search: Name: Nobody", search.getText());
                 assertEquals(search.getText(), search.getTooltip().getText());
             } finally {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);

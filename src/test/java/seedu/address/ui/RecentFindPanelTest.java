@@ -31,17 +31,17 @@ public class RecentFindPanelTest {
             RecentFindPanel panel = new RecentFindPanel(FXCollections.observableArrayList(),
                     search.getReadOnlyProperty());
             Label label = (Label) panel.getRoot().lookup("#recentFindSearchLabel");
-            assertEquals("No search yet", label.getText());
-            assertEquals("No search yet", label.getTooltip().getText());
+            assertEquals("Latest search: No search yet", label.getText());
+            assertEquals("Latest search: No search yet", label.getTooltip().getText());
 
             for (String command : List.of("find " + "x".repeat(60), "findproject " + "y".repeat(40))) {
                 search.set(command);
-                assertEquals("Search: " + command, label.getText());
-                assertEquals("Search: " + command, label.getTooltip().getText());
+                assertEquals("Latest search: " + command, label.getText());
+                assertEquals("Latest search: " + command, label.getTooltip().getText());
             }
             search.set("");
-            assertEquals("No search yet", label.getText());
-            assertEquals("No search yet", label.getTooltip().getText());
+            assertEquals("Latest search: No search yet", label.getText());
+            assertEquals("Latest search: No search yet", label.getTooltip().getText());
         });
     }
 
@@ -95,7 +95,7 @@ public class RecentFindPanelTest {
                 panel.getRoot().layout();
                 ListView<Person> list = getListView(panel);
                 Label placeholder = (Label) list.getPlaceholder();
-                assertEquals("No recent find results.", placeholder.getText());
+                assertEquals("No contacts match the latest search.", placeholder.getText());
                 assertTrue(placeholder.getParent().isVisible());
 
                 results.add(new PersonBuilder().build());
@@ -109,7 +109,7 @@ public class RecentFindPanelTest {
                 panel.getRoot().layout();
                 assertTrue(placeholder.getParent().isVisible());
                 Label searchLabel = (Label) panel.getRoot().lookup("#recentFindSearchLabel");
-                assertEquals("Search: find Amy", searchLabel.getText());
+                assertEquals("Latest search: find Amy", searchLabel.getText());
             } finally {
                 stage.hide();
             }

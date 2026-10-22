@@ -223,7 +223,7 @@ results. `delete`, `edit`, and `project` resolve one-based indices against the d
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
-### Recent find results
+### Recent search results
 
 `MainWindow.fillInnerParts()` constructs `RecentFindPanel` using `Logic.getRecentFindPersonList()` and inserts
 it into `recentFindPanelPlaceholder`. `RecentFindPanel.fxml` defines its `ListView<Person>` with variable-height cells.
@@ -232,22 +232,15 @@ Each cell displays a compact `VBox` containing a `Name | Telegram` header above 
 the username with its leading `@`. The header tooltip contains the full name and displayed handle or fallback.
 Commands continue to resolve indices exclusively against `Model.getFilteredPersonList()`.
 
-`createPersonDetails(...)` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
+`SearchContactDetails` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
 the existing tag colors, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
 width so tags wrap within the list. Empty project lists are hidden and unmanaged.
 
-The panel also binds its search label to `Logic.recentFindSearchProperty()`. `LogicManager` records the trimmed
-command text after a `FindCommand` or `FindProjectCommand` executes, before saving the address book, so the
-label remains consistent with the in-memory results even if saving fails. Other commands and parse failures
-leave the label unchanged. The label initially shows `No search yet` and exposes its full text in a tooltip.
-
-`LogicManager` owns a private final `ReadOnlyStringWrapper` for this text. Its
-`recentFindSearchProperty()` accessor returns the wrapper's `ReadOnlyStringProperty` view, allowing the UI
-to observe changes and bind the label while keeping writes within `LogicManager`. The `final` modifier keeps
-the field referencing the same property object; it does not prevent changes to that object's value.
-The wrapper therefore provides both an observable value for automatic UI updates and a read-only view for callers.
-The stored value is initially empty. The binding displays `Search: ` followed by the latest command once a
-search executes, including searches with no matches, and retains the command word to distinguish search types.
+The panel binds its single latest-search label to `Logic.recentSearchProperty()`. `LogicManager` owns the
+read-only string wrapper and updates it after either search command executes, before saving, so the label
+stays consistent with in-memory results on save failure. The stored value uses `Name: ` or `Project: `,
+with query trimming delegated to `FindCommandParser.trimSearchInput`. Other commands and parse failures
+leave it unchanged. The label adds `Latest search: ` and exposes the full text in a tooltip.
 
 `ModelManager` creates the `recentFind` filtered list once, initially with a predicate that matches no contacts.
 `updateFilteredPersonList(predicate)` updates the main list and copies the predicate to `recentFind` unless it
@@ -257,7 +250,8 @@ Keeping a separate list with a stable identity allows the panel to observe updat
 
 Recent results are a live filtered view rather than a snapshot. Contact additions, edits, deletions, clearing,
 and undo update membership and displayed details according to the retained predicate. Invalid search input
-fails before either predicate changes. An empty recent list displays `No recent find results.`.
+fails before either predicate changes. Before the first search the list prompts for a search; later an empty
+list displays `No contacts match the latest search.`.
 The predicate is held only in memory, so recent results start empty on each launch and require no storage changes.
 
 `MainWindowTest.recentFindResults_updateAndRemainAboveLargerPersonList()` verifies the initial empty state,
@@ -269,13 +263,12 @@ and the tooltip text.
 and cleanup when cells are reused or results are cleared. Its rendered styling test compares project tags
 with a `PersonCard` for background, text color, padding, font, border, and spacing, and verifies wrapping.
 
-### Most-searched person and recent search
+### Most searched contact and shared latest search
 
 `LogicManager` owns one session-only `SearchHistory`, constructed with the unfiltered observable contact list.
-After a `FindCommand` executes and the normal address-book save succeeds, it records the filtered results and
-the query. Query trimming uses `FindCommandParser.trimSearchInput`, sharing the parser's ASCII and Unicode
-whitespace rules while preserving internal spacing. For name searches, parse failures, command failures and
-save failures leave the search summary unchanged. `findproject` and other commands do not record searches.
+After either `FindCommand` or `FindProjectCommand` executes and saving succeeds, it records the filtered
+results. Parse failures, command failures and save failures do not increment frequencies. The shared latest
+search property updates before saving, independently of frequency counts.
 
 `SearchHistory` maps each full `Person` value to a frequency and last-search sequence number. Every matching
 contact earns one count per search; repeated matching keywords do not multiply counts. The sequence is shared
@@ -290,19 +283,22 @@ already present in the replacement retain their own statistics, so list reorderi
 Removed contacts are pruned. Deletion and clear therefore discard the affected counts permanently; undoing
 those operations restores contacts without restoring their discarded counts. Undoing an edit or project change
 preserves counts. Search statistics are not part of the contact undo snapshots, JSON data or user preferences,
-and reset on restart. The latest search query survives contact mutations until the next successful name search.
+and reset on restart. The latest search query survives contact mutations until the next executed name or project search.
 
-`Logic` exposes read-only `mostSearchedPersonProperty()` and `recentSearchProperty()`. `MainWindow` binds them
-to the two-row summary above the person list, with Most searched above Recent search. Visibility and managed
-state are both bound: the entire summary takes no space before a search, and the winner row takes no space
-when no currently saved contact has a count. Single-line labels truncate with ellipses and provide full-text
-tooltips. This adds no extra contact cards or result indices.
+`Logic` exposes read-only `mostSearchedPersonProperty()` and `recentSearchProperty()`. `MainWindow` groups
+the two search sections in an equal-width `GridPane`, above the numbered Current contact list.
+Most searched is on the left, with the subtitle Top contact this session; Recent search is on the right.
+Both content areas align vertically and scroll independently. The horizontal scrollbar of the recent
+results list is hidden; contact headers truncate with tooltips, while project tags wrap.
+The latest query appears only once, in `RecentFindPanel`. `SearchContactDetails` renders contact headers,
+Telegram fallbacks, full-text tooltips and wrapping project tags for both features. The favourite shows
+`No contacts searched yet.` when no current contact has a count, and its details scroll when needed.
 
 `SearchHistoryTest` covers frequency, search recency, same-search ordering, namesakes, edits, snapshot restore,
 reordering, deletion, empty results and session reset. `LogicManagerTest` covers command integration, Unicode
 query trimming, repeated keywords, failed searches, storage failure/retry, edits/undo and clear/undo.
-`SearchSummaryUiTest` loads the actual FXML and checks live bindings, hidden rows, tooltips and compact layout at the
-450-pixel minimum width.
+`SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the session favourite,
+tooltips, equal column widths, aligned content and compact layout at the 450-pixel minimum width.
 
 ### Removing retired contact fields
 
@@ -842,7 +838,7 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
 * **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
-* **Recent find results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
+* **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
 * **Same-name disambiguation**: Using project information to distinguish contacts with identical or similar names.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS.
@@ -882,19 +878,19 @@ hyphens, emails are lowercase, and Telegram usernames display a leading `@`. Pro
 ### Search summary and draws
 
 Restart LinkUp after preparing the deterministic contacts above so the session search history is empty.
-The search summary should initially take no space. Run these commands in order:
+Both search sections should initially show their empty states. Run these commands in order:
 
 | Input | Expected summary |
 | --- | --- |
-| `find Alex` | One Most searched row above Recent search; the first Alex wins the same-search draw. |
+| `find Alex` | One most searched contact on the left, latest search results on the right; the first Alex wins the same-search draw. |
 | `find David` | David wins: all three contacts have one match, but David's search is most recent. |
 | `list` then `edit 1 n/Alex Lee` | David stays the winner; editing Alex must not change search recency. |
 | `find Alex` | Alex Lee wins: both Alex contacts have two matches and Alex Lee is first in contact order. |
 | `undo` | First Alex's name returns to Alex Tan; their count remains two, so they stay the winner. |
-| `find missing` | Winner unchanged; Recent search becomes `missing`. |
+| `find missing` | Winner unchanged; Latest search becomes `Name: missing`. |
 | `find` | Error; both summary values remain unchanged. |
-| `clear` | Most searched row disappears; Recent search remains `missing`. |
-| `undo` | Contacts return, but no Most searched row until a new search matches a contact. |
+| `clear` | Most searched shows `No contacts searched yet.`; Latest search remains `Name: missing`. |
+| `undo` | Contacts return, but the most searched empty state remains until a new search matches a contact. |
 
 At the minimum window width, verify that long names and queries stay on one line with ellipses and full-text
 hover tooltips. Restart again before continuing the contact-editing scenarios below.
@@ -920,21 +916,21 @@ Run the following in order after preparing the contacts:
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
 
-### Recent find results panel
+### Recent search results panel
 
 After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee. Check the following in order:
 
 | Input or action | Expected result |
 | --- | --- |
-| `find Alex` | Both Alex contacts appear in both lists. Recent cards show names, Telegram handles, and project tags without indices; the search label shows `Search: find Alex`. |
+| `find Alex` | Both Alex contacts appear in both lists. Recent cards show names, Telegram handles, and project tags without indices; the search label shows `Latest search: Name: Alex`. |
 | `list` | All three contacts appear in the main list; recent results still show only the two Alex contacts and retain the search label. |
-| `findproject Orbital` | Recent results are replaced with the second Alex only; the label shows `Search: findproject Orbital`. |
+| `findproject Orbital` | Recent results are replaced with the second Alex only; the label shows `Latest search: Project: Orbital`. |
 | `find` | Parse error; both lists and the search label retain their previous values. |
-| `delete 1` | The Orbital contact is removed from both lists; recent results show `No recent find results.`. |
+| `delete 1` | The Orbital contact is removed from both lists; recent results show `No contacts match the latest search.`. |
 | `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
 | `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |
 | `find LEX vid` | Three recent results can be scrolled independently of the main list. |
-| Resize the window | The recent-results section stays above and smaller than the main person list; project tags wrap as needed. |
+| Resize the window | Most searched stays left of Recent search in equal-width columns above the main person list; project tags wrap as needed. |
 | Hover over a recent-result header | The tooltip shows the full name and Telegram handle. |
 | `exit`, then relaunch | Contacts persist; recent results start empty. |
 

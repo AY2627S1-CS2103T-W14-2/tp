@@ -185,7 +185,8 @@ public class LogicManagerTest {
         assertThrows(CommandException.class, () -> logic.execute("find Benson"));
         assertThrows(CommandException.class, () -> logic.execute("findproject Orbital"));
         assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
-        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        assertEquals("Project: Orbital", logic.recentSearchProperty().get());
+        assertEquals(List.of(BENSON), logic.getRecentFindPersonList());
         failSave[0] = false;
         logic.execute("find Alice Benson");
         assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
@@ -531,20 +532,20 @@ public class LogicManagerTest {
     @Test
     public void recentFindSearch_newSearch_trimsInputAndUpdatesEvenWhenResultsAreUnchanged() throws Exception {
         model.addPerson(ALICE_WITH_PROJECT);
-        assertEquals("", logic.recentFindSearchProperty().get());
+        assertEquals("", logic.recentSearchProperty().get());
         assertTrue(logic.getRecentFindPersonList().isEmpty());
 
         logic.execute("  find Alice  ");
-        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
         assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
         logic.execute("findproject CS2103T");
-        assertEquals("findproject CS2103T", logic.recentFindSearchProperty().get());
+        assertEquals("Project: CS2103T", logic.recentSearchProperty().get());
         assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
         logic.execute("find Nobody");
-        assertEquals("find Nobody", logic.recentFindSearchProperty().get());
+        assertEquals("Name: Nobody", logic.recentSearchProperty().get());
         assertTrue(logic.getRecentFindPersonList().isEmpty());
         logic.execute("findproject Missing Project");
-        assertEquals("findproject Missing Project", logic.recentFindSearchProperty().get());
+        assertEquals("Project: Missing Project", logic.recentSearchProperty().get());
         assertTrue(logic.getRecentFindPersonList().isEmpty());
     }
 
@@ -555,11 +556,11 @@ public class LogicManagerTest {
         for (String command : List.of("find", "find " + "x".repeat(61), "findproject",
                 "findproject " + "x".repeat(41), "unknown")) {
             assertThrows(ParseException.class, () -> logic.execute(command));
-            assertEquals("find Alice", logic.recentFindSearchProperty().get());
+            assertEquals("Name: Alice", logic.recentSearchProperty().get());
             assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
         }
         assertThrows(CommandException.class, () -> logic.execute("delete 99"));
-        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
         assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
     }
 
@@ -571,7 +572,7 @@ public class LogicManagerTest {
         for (String command : List.of("list", "help", "project 1 pr/Orbital", "edit 1 e/updated@example.com",
                 "undo", "delete 1", "undo", "clear", "undo")) {
             logic.execute(command);
-            assertEquals("find Alice", logic.recentFindSearchProperty().get());
+            assertEquals("Name: Alice", logic.recentSearchProperty().get());
             assertEquals(model.getAddressBook().getPersonList().stream()
                     .filter(person -> person.getName().fullName.contains("Alice")).toList(),
                     logic.getRecentFindPersonList());
@@ -591,10 +592,10 @@ public class LogicManagerTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("failedPrefs.json"))));
 
         assertThrows(CommandException.class, () -> logic.execute("find Alice"));
-        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
         assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
         assertThrows(CommandException.class, () -> logic.execute("findproject Missing"));
-        assertEquals("findproject Missing", logic.recentFindSearchProperty().get());
+        assertEquals("Project: Missing", logic.recentSearchProperty().get());
         assertTrue(logic.getRecentFindPersonList().isEmpty());
     }
 
@@ -609,7 +610,7 @@ public class LogicManagerTest {
 
         assertEquals(List.of(ALICE_WITH_PROJECT), reloadedLogic.getFilteredPersonList());
         assertTrue(reloadedLogic.getRecentFindPersonList().isEmpty());
-        assertEquals("", reloadedLogic.recentFindSearchProperty().get());
+        assertEquals("", reloadedLogic.recentSearchProperty().get());
     }
 
     /**

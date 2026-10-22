@@ -1,16 +1,16 @@
-.search-summary {
-    -fx-padding: 2 8 10 8;
+.search-summary-content {
+    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background: derive(#1d1d1d, 20%);
+    -fx-padding: 0;
 }
 
-.search-summary .search-summary-caption,
-.search-summary .search-summary-query {
-    -fx-font-size: 10pt;
-    -fx-text-fill: #b8b8b8;
+.search-summary-content #mostSearchedDetails {
+    -fx-background-color: #3c3e3f;
+    -fx-padding: 4 10;
 }
 
-.search-summary .search-summary-name {
-    -fx-font-size: 10pt;
-    -fx-text-fill: #f1f1f1;
+.search-summary-content .label {
+    -fx-text-fill: white;
 }
 
 .background {
@@ -140,6 +140,14 @@
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
     -fx-text-fill: white;
+}
+
+.recent-find-list .scroll-bar:horizontal {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
 }
 
 .recent-find-search {

@@ -1,6 +1,5 @@
 package seedu.address.logic;
 
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
@@ -34,17 +33,14 @@ public interface Logic {
     ObservableList<Person> getRecentFindPersonList();
 
     /**
-     * Returns a read-only, observable property containing the latest executed search command.
-     * The value includes the command word, with surrounding whitespace trimmed, and is empty before the first search.
-     * Other commands and rejected search input leave the value unchanged.
+     * Returns the latest executed name or project search, prefixed with its search type.
+     * Empty before the first search. Other commands and rejected input leave it unchanged.
+     * Updates with in-memory results even if saving fails.
      */
-    ReadOnlyStringProperty recentFindSearchProperty();
+    ReadOnlyStringProperty recentSearchProperty();
 
     /** Returns the single most searched person in this session, or null before any matches. */
     ReadOnlyObjectProperty<Person> mostSearchedPersonProperty();
-
-    /** Returns the latest successful name or project search in this session. */
-    ReadOnlyStringProperty recentSearchProperty();
 
     /**
      * Returns the user prefs' GUI settings.

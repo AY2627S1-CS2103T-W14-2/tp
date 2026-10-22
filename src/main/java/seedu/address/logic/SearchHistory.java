@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
@@ -21,7 +19,6 @@ public class SearchHistory {
     private final ObservableList<Person> persons;
     private long searchSequence;
     private final ReadOnlyObjectWrapper<Person> mostSearchedPerson = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyStringWrapper recentSearch = new ReadOnlyStringWrapper("");
 
     /**
      * Tracks contact changes so summaries never show deleted or outdated contacts.
@@ -52,8 +49,7 @@ public class SearchHistory {
     /**
      * Records a successful name or project search, including searches with no matches.
      */
-    public void record(String query, List<Person> matches) {
-        recentSearch.set(query);
+    public void record(List<Person> matches) {
         searchSequence++;
         for (Person person : matches) {
             SearchCount previous = counts.get(person);
@@ -82,11 +78,6 @@ public class SearchHistory {
     /** Returns the single winning contact, or null when no current contact has been searched. */
     public ReadOnlyObjectProperty<Person> mostSearchedPersonProperty() {
         return mostSearchedPerson.getReadOnlyProperty();
-    }
-
-    /** Returns the latest successful name or project search, or an empty string before the first search. */
-    public ReadOnlyStringProperty recentSearchProperty() {
-        return recentSearch.getReadOnlyProperty();
     }
 
     /** A contact's frequency and actual search recency, independent of contact edits. */
