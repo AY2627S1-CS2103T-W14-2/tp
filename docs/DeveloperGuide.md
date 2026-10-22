@@ -177,15 +177,16 @@ goes beyond it, covering name, phone, email and Telegram username; see
 [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
-`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`, `projects`, `replaceproject`, `deleteproject`, 
-`undo`, `help`, and `exit`. Command words are case-sensitive.
+`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
+`projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
+Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
 `EditCommandParser` accepts `n/`, `p/`, `e/`, and `tele/`, requires at least one of them, and rejects `pr/`.
-Individual project replacement is supported by `replaceproject`; removal is deferred.
-Individual project removal is supported by `deleteproject`; replacement is deferred.
+Individual project replacement is supported by `replaceproject`, and removal by `deleteproject`.
+`renameproject` renames or merges a project across all contacts.
 Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
 field's value, so callers must use the documented grammar.
 
@@ -431,6 +432,36 @@ no-change detection and filter handling. `EditCommandParserTest` covers the pars
 `EditCommandIntegrationTest` types `edit` commands, including `tele/` and `pr/`, through the real parser,
 `LogicManager` and JSON storage, checking saved data, reloads, save counts, the filter and undo.
 
+### Project renaming and merging
+
+`RenameProjectCommandParser` uses the shared `ArgumentTokenizer` to parse `old/` and `new/` in either order,
+rejecting missing, blank or repeated arguments and unexpected preamble. Values go through
+`ParserUtil.parseProject`. Quotes and backslashes remain literal, as in `replaceproject`; a space followed
+by a recognised prefix is always a delimiter, even inside quotation marks.
+
+`RenameProjectCommand.execute` reads the full address book and validates a complete replacement before
+changing the model. Case-insensitive `Project.equals` identifies memberships, while exact display strings
+identify actual changes. The replacement preserves contact details (including legacy values), contact order
+and unrelated project order. For merges, an existing destination association retains its position; the source
+is removed when both occur. Destination-only contacts also receive the requested spelling. Changed contacts
+are counted once, and `Locale.ROOT` keeps the displayed count independent of the system locale.
+
+Ordinary renames, case-only corrections and merges execute immediately through the same command path.
+`Model.setAddressBook` installs the replacement without changing the current filter. The live filtered list
+re-evaluates the renamed contacts, so a project search may gain or lose results. `LogicManager` records one
+undo snapshot and saves through the normal command flow. The success message mentions `undo`. There is no
+pending confirmation state or rename-specific branch in `LogicManager`.
+
+Case-only changes must never be detected with `AddressBook.equals` or `Person.equals`, because their project
+comparisons ignore case. The shared persistence and save-failure behaviour described below applies to rename:
+a failed save leaves the in-memory change and its undo entry available.
+
+<puml src="diagrams/RenameProjectSequenceDiagram.puml" width="850" />
+
+Tests cover literal quotes and backslashes, Unicode length boundaries, mixed display spelling, hidden contacts,
+merge overlap/order, filter re-evaluation, locale-independent counts, failed saves, restart, and one undo
+restoring exact strings. `RenameProjectUiTest` verifies visible project labels after case-only renaming and undo.
+
 ### Sort command implementation
 
 `sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
@@ -462,8 +493,8 @@ undoable: `LogicManager` stores the previous address book, and `undo` restores t
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
-supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,  `deleteproject`, `replaceproject` and
-`sort`.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,
+`deleteproject`, `replaceproject`, `renameproject`, and `sort`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
@@ -497,7 +528,7 @@ This differs from validation failure, which leaves contacts unchanged.
 
 ### Deferred features
 
-Editing, removing or renaming project associations, notes, roles, sorting by project, archiving,
+Notes, roles, sorting by project, archiving,
 and redo are not implemented. The user stories below include backlog ideas; they are not claims about
 commands available in this release. No archiving design has been implemented yet.
 
@@ -541,10 +572,11 @@ not commitments.
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
-Editing covers name, phone, email and Telegram username; projects cannot be edited. New contacts require all five add fields; optional missing
-Telegram/project data is supported only when loading legacy files. Contacts can be sorted by name. Notes, roles,
-project removal, sorting by project, archiving, multi-criteria search, and highlighting which project matched
-remain backlog items.
+Editing covers name, phone, email and Telegram username. Project associations can be replaced with
+`replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
+New contacts require all five add fields; optional missing Telegram/project data is supported only when
+loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
+multi-criteria search, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -854,6 +886,26 @@ then 41. The shorter query is accepted (with no matches); the longer one reports
 changing the current results. Run `list` to restore the displayed contacts. Then `project 1 pr/` with 40
 consecutive `x` characters succeeds, while 41 fails.
 Run `undo` after the accepted project change to restore the fixture.
+
+### Renaming projects
+
+Start from the three-contact fixture in "Prepare deterministic contacts" with no subsequent changes. After
+each successful rename below, use `undo` to restore that fixture before trying the next example.
+
+| Input | Expected result |
+| --- | --- |
+| `find David`, then `renameproject old/Team Alpha new/Team Gamma` | The hidden Alex's project is renamed; only David remains displayed. |
+| `findproject Team Alpha`, then `renameproject old/Team Alpha new/Team Gamma` | No contacts remain in the current results; the renamed Alex is still saved. |
+| `findproject Orbital`, then `renameproject old/Team Alpha new/Orbital` | Both Alex contacts appear immediately; one undo restores all associations. |
+| `renameproject old/orbital new/ORBITAL` | Display spelling changes immediately; undo restores `Orbital`. |
+| `renameproject old/Team Alpha new/Orbital` | Memberships merge immediately; the message mentions undo. |
+| `renameproject old/"Team Alpha" new/Orbital` | Source not found: quotation marks are part of the name. |
+| `renameproject old/Team Alpha new/"Team Blue"` | The saved project name includes both quotation marks. |
+| `renameproject old/Missing new/Orbital` | Error; nothing changes. |
+
+After a successful rename, restart from the same test folder and verify the saved names. If a save fails,
+expect the normal command behaviour: the in-memory rename and its undo entry remain. Once storage is fixed,
+`undo` restores and saves the previous state. Automated tests inject failures without OS-specific permissions.
 
 ### Undo and restart
 
