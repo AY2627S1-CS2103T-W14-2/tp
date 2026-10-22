@@ -159,9 +159,10 @@ in lowercase.
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is required. A project name must contain 1–40 printable characters. Surrounding whitespace is removed,
-repeated internal whitespace is collapsed, and project names are compared case-insensitively. Supply exactly one
-non-empty `pr/PROJECT`. If `pr/` is missing, the command reports `Project is required. Use pr/PROJECT.`
+The project is required. A project name must contain 1–40 Unicode code points after whitespace normalisation;
+ISO control characters are not allowed. Surrounding whitespace is removed, repeated internal whitespace is
+collapsed, and project names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`.
+If `pr/` is missing, the command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
 For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
@@ -200,7 +201,7 @@ Adds one project to one or more existing contacts, preserving their other projec
 Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
-* Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace
+* Supply exactly one `pr/PROJECT`. Project names contain 1–40 Unicode code points after surrounding whitespace
   is removed and repeated whitespace is collapsed. Control characters remaining after normalisation are rejected.
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
@@ -229,8 +230,8 @@ Other contacts associated with the old project remain unchanged.
 Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* Both names follow the existing 1-40 printable character project rules. Surrounding whitespace is
-  removed, repeated whitespace is collapsed, and matching ignores case.
+* Both names follow the existing project rule: 1–40 Unicode code points after whitespace normalisation,
+  with no ISO control characters. Matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
   association on that contact. Capitalization corrections
   are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
@@ -254,8 +255,8 @@ remain saved, and the remaining projects retain their order.
 Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* The name follows the existing 1-40 printable character project rules. Matching ignores case,
-  removes surrounding whitespace and collapses repeated whitespace.
+* The name follows the existing project rule: 1–40 Unicode code points after whitespace normalisation,
+  with no ISO control characters. Matching ignores case.
 * The specified project must belong to every selected contact. Missing or invalid indices, missing or
   invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
 * Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
