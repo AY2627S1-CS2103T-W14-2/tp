@@ -314,24 +314,31 @@ filter avoids introducing a separate project index or changes to storage and the
 
 ### Project association implementation
 
-The `project INDEX pr/PROJECT` command implements UC03. `AddressBookParser` delegates to
-`ProjectCommandParser`, which parses the displayed index and requires exactly one project prefix.
-`ParserUtil.parseProject` reuses the shared `Project` validation and normalisation rules.
+The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or more contacts.
+`AddressBookParser` delegates to `ProjectCommandParser`, which splits the index preamble on whitespace,
+validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
+project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-`ProjectCommand` resolves the index against `Model.getFilteredPersonList()`, checks whether the
-normalised project already exists, and copies the contact's immutable project list before appending
-the new project. It constructs a replacement `Person` with all other fields preserved and calls
-`Model.setPerson`. Keeping the active predicate preserves the user's search context.
+`ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
+and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
+A duplicate association or invalid index rejects the whole command, so earlier valid selections are
+not changed. Duplicate errors list all conflicting contacts by displayed index and name, in input order.
+Out-of-range indices take precedence over association conflicts; no updates occur in either case.
 
-Projects are stored as an ordered list to retain display order. Duplicate detection uses `Project.equals`,
-so casing and redundant whitespace do not create separate associations. Invalid indices and duplicate
-associations throw `CommandException` before any model mutation; malformed arguments throw `ParseException`.
+Each replacement appends the project while preserving existing project order and all contact details.
+Selected contacts are captured before mutation, so changes to filtered results cannot redirect later
+updates. The active predicate is retained. Contacts outside the selection remain unchanged.
 
-The existing `LogicManager` saves the updated address book through JSON storage after execution.
-No new storage format or UI component is required: both already support a contact's project list.
-Command tests cover filtered indices, preservation of fields and order, and duplicate rejection.
-Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
-filtered selection, rejected operations, and a JSON round trip.
+The existing `LogicManager` records one snapshot for the entire command and persists the resulting
+address book. One `undo` restores all affected contacts; rejected commands leave undo history intact.
+No new storage format is needed. FINE logs record parsing failures, rejected selections and success counts.
+
+Tests cover single-contact compatibility, multiple indices, malformed or repeated indices, normalization,
+validation before mutation, filtered-list changes, persistence, one-step undo and diagnostic output.
+Manual check: run `findproject Team`, then `project 1 2 pr/Orbital`; verify both selected contacts gain
+Orbital. Run `undo` once and verify both associations are removed. Try a valid index followed by an
+out-of-range index and verify neither contacts nor undo history change.
+
 
 ### Replacing a project association
 

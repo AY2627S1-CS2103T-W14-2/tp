@@ -161,9 +161,9 @@ Address and tags are no longer contact fields. The `add` and `edit` commands rej
 
 ### Associating an existing contact with a project: `project`
 
-Adds one project to an existing contact, preserving their other projects and contact details.
+Adds one project to one or more existing contacts, preserving their other projects and contact details.
 
-Format: `project INDEX pr/PROJECT`
+Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
 * Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace
@@ -173,11 +173,19 @@ Format: `project INDEX pr/PROJECT`
 * The new project is appended after existing projects. The current search filter is preserved.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
   These input errors leave contacts unchanged.
-* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates a saved contact.
+* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
+* Supply distinct positive indices separated by spaces, for example `project 1 3 5 pr/CS2103T`.
+  All indices refer to the displayed list at the start of the command; repeated indices are rejected with a message identifying the repeated index.
+* All selected contacts are checked before any changes are applied. If any index is invalid or any
+  contact already has the project, the entire command is rejected and undo history is unchanged.
+  Duplicate-project errors list every conflicting selected contact by displayed index and name, in input order.
+* A successful command appends the project to every selected contact and reports the selected contacts.
+  Other contacts are unchanged. One `undo` reverses the entire operation.
 
 Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
+* `project 1 3 5 pr/CS2103T` adds CS2103T to displayed contacts 1, 3 and 5 as one undoable operation.
 
 ### Replacing a contact's project association: `replaceproject`
 
@@ -533,7 +541,7 @@ Action     | Format, Examples
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
 **Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
-**Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **List projects** | `projects`
 **Help**   | `help`
 **Undo**   | `undo`
