@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -102,6 +103,12 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+    }
+
+    @Override
+    public void sortPersons(Comparator<Person> comparator) {
+        requireNonNull(comparator);
+        addressBook.sortPersons(comparator);
     }
 
     //=========== Filtered Person List Accessors =============================================================

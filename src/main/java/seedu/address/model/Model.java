@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -68,6 +69,12 @@ public interface Model {
      * {@code editedPerson} must not conflict with any person in the address book other than {@code target}.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Reorders all persons in the address book according to {@code comparator}.
+     * The current filter is kept, so the filtered list shows its persons in the new order.
+     */
+    void sortPersons(Comparator<Person> comparator);
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
