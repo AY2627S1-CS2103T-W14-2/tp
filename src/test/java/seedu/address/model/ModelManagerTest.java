@@ -19,6 +19,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.ContactConflict;
 import seedu.address.model.person.ContactConflict.Field;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.PersonNameComparator;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.ConflictTestUtil.Clash;
@@ -108,6 +109,24 @@ public class ModelManagerTest {
                     modelManager.setPerson(ALICE, clash.person()));
         }
         assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortPersons_nullComparator_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.sortPersons(null));
+    }
+
+    @Test
+    public void sortPersons_activeFilter_keepsFilterInNewOrder() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(ALICE_NAMESAKE);
+        modelManager.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Alice")));
+
+        modelManager.sortPersons(new PersonNameComparator());
+
+        assertEquals(List.of(ALICE_NAMESAKE, ALICE, BENSON), modelManager.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE_NAMESAKE, ALICE), modelManager.getFilteredPersonList());
     }
 
     @Test

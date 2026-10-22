@@ -32,8 +32,8 @@ public class HelpWindowTest {
                         .filter(TextFlow.class::isInstance).map(TextFlow.class::cast)
                         .flatMap(flow -> flow.getChildren().stream()).map(Text.class::cast)
                         .map(Text::getText).reduce("", String::concat);
-                for (String command : List.of("add", "edit", "list", "delete", "find", "project", "findproject",
-                        "clear", "undo", "help", "exit", "replaceproject")) {
+                for (String command : List.of("add", "edit", "list", "sort", "delete", "find", "project", "findproject",
+                        "deleteproject", "replaceproject", "projects", "clear", "undo", "help", "exit")) {
                     assertTrue(displayedText.contains("COMMAND: " + command + " ")
                             || displayedText.contains("COMMAND: " + command + "\n"), command);
                 }
