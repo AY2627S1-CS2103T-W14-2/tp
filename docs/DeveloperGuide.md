@@ -178,7 +178,7 @@ goes beyond it, covering name, phone, email and Telegram username; see
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`, `deleteproject`,
-`undo`, `help`, and `exit`. Command words are case-sensitive.
+`sort`, `undo`, `help`, and `exit`. Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
@@ -405,10 +405,39 @@ no-change detection and filter handling. `EditCommandParserTest` covers the pars
 `EditCommandIntegrationTest` types `edit` commands, including `tele/` and `pr/`, through the real parser,
 `LogicManager` and JSON storage, checking saved data, reloads, save counts, the filter and undo.
 
+### Sort command implementation
+
+`sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
+directly, since the command takes no arguments; extra text is ignored, as for `list` and `clear`.
+
+<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic and Model components for the `sort` command" />
+
+The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`), names
+that differ only in case are ordered by their exact text, and contacts with the same name are ordered by their
+saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
+so the order of any contact list is fully determined.
+
+`SortCommand#execute` throws a `CommandException` when there are no contacts (`No contacts saved yet.`) or when
+they are already in order (`Contacts are already sorted by name.`). Because `LogicManager` records an undo state
+and saves only after a command succeeds, these cases change nothing and add no undo entry, matching
+`edit`'s `No changes made.` handling. Otherwise it calls `Model#sortPersons`, which reaches
+`UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
+The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
+undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
+
+**Design choices:**
+
+* *Reorder and save the list, rather than show a sorted view (e.g. a JavaFX `SortedList`).* Indices then match
+  what is displayed and saved, the order survives a restart, and undo works through the existing snapshot
+  mechanism. The cost is that contacts added later appear at the end until the next `sort`.
+* *Break ties by exact name, then phone, rather than keeping the existing order.* The result depends only on
+  the contacts, not on their history, which keeps the behaviour predictable and easy to test.
+
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
-supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`, and `deleteproject`.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,  `deleteproject`, and
+`sort`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
@@ -442,7 +471,7 @@ This differs from validation failure, which leaves contacts unchanged.
 
 ### Deferred features
 
-Editing or renaming project associations, notes, roles, sorting, archiving,
+Editing, removing or renaming project associations, notes, roles, sorting by project, archiving,
 and redo are not implemented. The user stories below include backlog ideas; they are not claims about
 commands available in this release. No archiving design has been implemented yet.
 
@@ -487,9 +516,9 @@ not commitments.
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
 Editing covers name, phone, email and Telegram username; projects cannot be edited. New contacts require all five add fields; optional missing
-Telegram data is supported only when loading legacy files. Contacts can have no projects after `deleteproject`.
-Notes, roles, global project removal, sorting,
-archiving, multi-criteria search, and highlighting which project matched remain backlog items.
+Telegram/project data is supported only when loading legacy files. Contacts can be sorted by name. Notes, roles,
+project removal, sorting by project, archiving, multi-criteria search, and highlighting which project matched
+remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -806,6 +835,19 @@ Run `undo` after the accepted project change to restore the fixture.
 2. Run `undo`. Expect the three contacts to return. `list` has not consumed or added an undo entry.
 3. Run `edit 1 n/Alex Updated`, then `undo`. Expect the original name and all contacts.
 4. Run `exit` and relaunch from the same folder. Expect the restored contacts and `undo` to report no history.
+
+### Sorting contacts
+
+Start from the prepared contacts.
+
+1. Add a contact whose name comes first alphabetically, e.g.
+   `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`. Expect it at the end of the list.
+2. Run `sort`. Expect `Sorted 4 contact(s) by name.` and the order Aaron Lim, Alex Tan (`+6587654321`),
+   Alex Tan (`+6591234567`), David Lim: the two namesakes are ordered by phone.
+3. Run `sort` again. Expect `Contacts are already sorted by name.` and no change.
+4. Run `undo`. Expect Aaron back at the end; the repeated `sort` did not add an undo entry.
+5. Run `find alex`, then `sort`. Expect the Alex results to stay displayed, now in name order.
+6. Run `exit` and relaunch from the same folder. Expect the sorted order from step 5 to be kept.
 
 ### Missing, unreadable and legacy files
 

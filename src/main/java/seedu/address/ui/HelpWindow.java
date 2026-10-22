@@ -35,6 +35,8 @@ public class HelpWindow extends UiPart<Stage> {
             + "Projects stay unchanged; use project to add one.\n\n"
             + "COMMAND: list\n"
             + "Show all saved contacts and their projects.\n\n"
+            + "COMMAND: sort\n"
+            + "Sort all contacts by name, ignoring case, and save the new order. Search results stay displayed.\n\n"
             + "COMMAND: delete INDEX\n"
             + "Remove the contact at the given index in the displayed list.\n\n"
             + "COMMAND: find KEYWORD [MORE_KEYWORDS]\n"
