@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -33,6 +37,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final AddressBookParser addressBookParser;
+    private final ReadOnlyStringWrapper recentFindSearch = new ReadOnlyStringWrapper("");
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -58,6 +63,9 @@ public class LogicManager implements Logic {
                 ? new AddressBook(model.getAddressBook())
                 : null;
         commandResult = command.execute(model);
+        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
+            recentFindSearch.set(commandText.trim());
+        }
 
         if (command.isUndoable()) {
             model.saveUndoState(before);
@@ -80,6 +88,22 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    /**
+     * Returns the model's live view of persons matching the latest search.
+     */
+    @Override
+    public ObservableList<Person> getRecentFindPersonList() {
+        return model.getRecentFindList();
+    }
+
+    /**
+     * Returns a read-only view of the search text so callers can observe changes without modifying it.
+     */
+    @Override
+    public ReadOnlyStringProperty recentFindSearchProperty() {
+        return recentFindSearch.getReadOnlyProperty();
     }
 
     @Override

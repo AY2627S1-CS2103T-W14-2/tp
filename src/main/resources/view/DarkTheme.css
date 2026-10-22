@@ -120,6 +120,24 @@
     -fx-text-fill: white;
 }
 
+.recent-find-list .list-cell {
+    -fx-padding: 4 10;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+}
+
+.recent-find-search {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: #cccccc;
+}
+
+.recent-find-list .placeholder .label {
+    -fx-text-fill: #cccccc;
+    -fx-font-size: 13px;
+}
+
 .cell_big_label {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 16px;

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -406,6 +407,90 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void recentFindSearch_newSearch_trimsInputAndUpdatesEvenWhenResultsAreUnchanged() throws Exception {
+        model.addPerson(ALICE_WITH_PROJECT);
+        assertEquals("", logic.recentFindSearchProperty().get());
+        assertTrue(logic.getRecentFindPersonList().isEmpty());
+
+        logic.execute("  find Alice  ");
+        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
+        logic.execute("findproject CS2103T");
+        assertEquals("findproject CS2103T", logic.recentFindSearchProperty().get());
+        assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
+        logic.execute("find Nobody");
+        assertEquals("find Nobody", logic.recentFindSearchProperty().get());
+        assertTrue(logic.getRecentFindPersonList().isEmpty());
+        logic.execute("findproject Missing Project");
+        assertEquals("findproject Missing Project", logic.recentFindSearchProperty().get());
+        assertTrue(logic.getRecentFindPersonList().isEmpty());
+    }
+
+    @Test
+    public void recentFindSearch_rejectedCommands_preserveSearchAndResults() throws Exception {
+        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute("find Alice");
+        for (String command : List.of("find", "find " + "x".repeat(61), "findproject",
+                "findproject " + "x".repeat(41), "unknown")) {
+            assertThrows(ParseException.class, () -> logic.execute(command));
+            assertEquals("find Alice", logic.recentFindSearchProperty().get());
+            assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
+        }
+        assertThrows(CommandException.class, () -> logic.execute("delete 99"));
+        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
+    }
+
+    @Test
+    public void recentFindSearch_otherCommands_retainLabelWhileResultsTrackContacts() throws Exception {
+        model.addPerson(ALICE_WITH_PROJECT);
+        model.addPerson(BENSON);
+        logic.execute("find Alice");
+        for (String command : List.of("list", "help", "project 1 pr/Orbital", "edit 1 e/updated@example.com",
+                "undo", "delete 1", "undo", "clear", "undo")) {
+            logic.execute(command);
+            assertEquals("find Alice", logic.recentFindSearchProperty().get());
+            assertEquals(model.getAddressBook().getPersonList().stream()
+                    .filter(person -> person.getName().fullName.contains("Alice")).toList(),
+                    logic.getRecentFindPersonList());
+        }
+    }
+
+    @Test
+    public void recentFindSearch_saveFailure_staysConsistentWithInMemoryResults() {
+        model.addPerson(ALICE_WITH_PROJECT);
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failed.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("failedPrefs.json"))));
+
+        assertThrows(CommandException.class, () -> logic.execute("find Alice"));
+        assertEquals("find Alice", logic.recentFindSearchProperty().get());
+        assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
+        assertThrows(CommandException.class, () -> logic.execute("findproject Missing"));
+        assertEquals("findproject Missing", logic.recentFindSearchProperty().get());
+        assertTrue(logic.getRecentFindPersonList().isEmpty());
+    }
+
+    @Test
+    public void recentFindSearch_reload_startsEmptyWithSavedContactsIntact() throws Exception {
+        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute("find Alice");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Model reloadedModel = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        Logic reloadedLogic = new LogicManager(reloadedModel, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("reloadedPrefs.json"))));
+
+        assertEquals(List.of(ALICE_WITH_PROJECT), reloadedLogic.getFilteredPersonList());
+        assertTrue(reloadedLogic.getRecentFindPersonList().isEmpty());
+        assertEquals("", reloadedLogic.recentFindSearchProperty().get());
     }
 
     /**
