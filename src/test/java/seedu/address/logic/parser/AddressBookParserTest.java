@@ -111,7 +111,7 @@ public class AddressBookParserTest {
     public void parseCommand_sort() throws Exception {
         assertEquals(new SortCommand(), parser.parseCommand(SortCommand.COMMAND_WORD));
         assertEquals(new SortCommand(), parser.parseCommand(SortCommand.COMMAND_WORD + " 3"));
-    
+
     @Test
     public void parseCommand_projects() throws Exception {
         assertEquals(new ListProjectsCommand(), parser.parseCommand(ListProjectsCommand.COMMAND_WORD));
