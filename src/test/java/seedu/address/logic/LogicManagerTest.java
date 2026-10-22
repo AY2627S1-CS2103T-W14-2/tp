@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -70,6 +71,124 @@ public class LogicManagerTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
+    }
+
+    @Test
+    public void execute_search_updatesSummaryOnlyForSuccessfulSearches() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        logic.execute("  find   Alice  ");
+        logic.execute("find Alice");
+        logic.execute("find Benson");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Benson", logic.recentSearchProperty().get());
+
+        logic.execute("list");
+        assertThrows(ParseException.class, () -> logic.execute("find"));
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Benson", logic.recentSearchProperty().get());
+
+        logic.execute("findproject missing");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Project: missing", logic.recentSearchProperty().get());
+    }
+
+    @Test
+    public void execute_projectSearch_combinesCountsWithNameSearchAndCountsEachMatchOnce() throws Exception {
+        model.addPerson(ALICE_WITH_PROJECT);
+        model.addPerson(BENSON);
+        logic.execute("find Alice");
+        logic.execute("  findproject \u00a0CS2103T\u2003  ");
+        assertEquals(ALICE_WITH_PROJECT, logic.mostSearchedPersonProperty().get());
+        assertEquals("Project: CS2103T", logic.recentSearchProperty().get());
+
+        logic.execute("findproject Orbital");
+        assertEquals(BENSON, logic.mostSearchedPersonProperty().get());
+        logic.execute("find Alice");
+        assertEquals(ALICE_WITH_PROJECT, logic.mostSearchedPersonProperty().get());
+        logic.execute("findproject CS2103T");
+        assertEquals(ALICE_WITH_PROJECT, logic.mostSearchedPersonProperty().get());
+    }
+
+    @Test
+    public void execute_nameSearch_normalizesWhitespaceAndPreservesInternalSpacing() throws Exception {
+        model.addPerson(ALICE);
+        logic.execute("\u0000\tfind \u00a0Alice  Pauline\u2003\u00a0\t");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Alice  Pauline", logic.recentSearchProperty().get());
+        logic.execute("find ALICE Alice ali");
+        model.addPerson(BENSON);
+        logic.execute("find Benson");
+        logic.execute("find Benson");
+        assertEquals(BENSON, logic.mostSearchedPersonProperty().get());
+    }
+
+    @Test
+    public void execute_editAndUndo_preservesSearchFrequencyAndTieRecency() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        logic.execute("find Alice");
+        logic.execute("find Benson");
+        logic.execute("list");
+        logic.execute("edit 1 n/Alicia");
+        assertEquals(BENSON, logic.mostSearchedPersonProperty().get());
+        logic.execute("find Alicia");
+        logic.execute("undo");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Alicia", logic.recentSearchProperty().get());
+    }
+
+    @Test
+    public void execute_clearAndUndo_doesNotRestoreRemovedSearchCounts() throws Exception {
+        model.addPerson(ALICE);
+        logic.execute("find Alice");
+        logic.execute("clear");
+        assertNull(logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        logic.execute("undo");
+        assertNull(logic.mostSearchedPersonProperty().get());
+        logic.execute("find Alice");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+    }
+
+    @Test
+    public void execute_invalidSearch_doesNotChangeSummary() throws Exception {
+        model.addPerson(ALICE);
+        logic.execute("find Alice");
+        assertThrows(ParseException.class, () -> logic.execute("find " + "x".repeat(61)));
+        assertThrows(ParseException.class, () -> logic.execute("find \u00a0"));
+        assertThrows(ParseException.class, () -> logic.execute("findproject"));
+        assertThrows(ParseException.class, () -> logic.execute("findproject " + "x".repeat(61)));
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+    }
+
+    @Test
+    public void execute_searchSaveFailure_doesNotCountFailedSearchAndCanRetry() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        boolean[] failSave = {false};
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("searchFailure.json")) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        if (failSave[0]) {
+                            throw DUMMY_IO_EXCEPTION;
+                        }
+                        super.saveAddressBook(addressBook);
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("searchPrefs.json"))));
+        logic.execute("find Alice");
+        failSave[0] = true;
+        assertThrows(CommandException.class, () -> logic.execute("find Benson"));
+        assertThrows(CommandException.class, () -> logic.execute("findproject Orbital"));
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        failSave[0] = false;
+        logic.execute("find Alice Benson");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
     }
 
     @Test

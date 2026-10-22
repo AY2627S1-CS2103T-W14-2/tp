@@ -358,6 +358,23 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The [Recent find results](#viewing-recent-find-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
+* A compact summary above the contact list shows one **Most searched** person above the **Recent search**.
+  Each successful `find` or `findproject` adds one search to every matching person, even if several keywords
+  or projects match that person. The displayed contact details include their name, projects and Telegram username.
+  The person with the highest count is displayed. In a draw, the person matched by the more recent search wins;
+  if both matched the same search, the person first in the contact list wins. For example, `find Alice` followed
+  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
+* **Recent search** shows the latest successful search with its type: `Name: Alice` for `find Alice` or
+  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
+  no matches does not change anyone's count or tie priority. Invalid searches and searches reporting a save error
+  do not update the summary. `list` and other commands do not add search counts.
+* Editing a contact or adding a project preserves their count and search recency; their displayed details update
+  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
+  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
+  These commands leave the recent search text unchanged.
+* The summary starts hidden and resets when you restart LinkUp. If no saved contact has a search count, only
+  **Recent search** is shown. Long contact details and queries use an ellipsis to keep the summary compact; hover over
+  either value to read it in full. Only one most-searched person is ever shown.
 
 Examples:
 * `find John` returns `john` and `John Doe`

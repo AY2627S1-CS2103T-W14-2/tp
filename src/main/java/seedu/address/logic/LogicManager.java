@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
@@ -16,6 +17,7 @@ import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.FindCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -38,6 +40,7 @@ public class LogicManager implements Logic {
     private final Storage storage;
     private final AddressBookParser addressBookParser;
     private final ReadOnlyStringWrapper recentFindSearch = new ReadOnlyStringWrapper("");
+    private final SearchHistory searchHistory;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -46,6 +49,7 @@ public class LogicManager implements Logic {
         this.model = model;
         this.storage = storage;
         addressBookParser = new AddressBookParser();
+        searchHistory = new SearchHistory(model.getAddressBook().getPersonList());
     }
 
     @Override
@@ -72,6 +76,14 @@ public class LogicManager implements Logic {
         }
 
         saveAddressBook(model.getAddressBook());
+        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
+            String commandWord = command instanceof FindCommand
+                    ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
+            String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
+            searchHistory.record(searchType + FindCommandParser.trimSearchInput(
+                    commandText.trim().substring(commandWord.length())),
+                    model.getFilteredPersonList());
+        }
         return commandResult;
     }
 
@@ -104,6 +116,16 @@ public class LogicManager implements Logic {
     @Override
     public ReadOnlyStringProperty recentFindSearchProperty() {
         return recentFindSearch.getReadOnlyProperty();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<Person> mostSearchedPersonProperty() {
+        return searchHistory.mostSearchedPersonProperty();
+    }
+
+    @Override
+    public ReadOnlyStringProperty recentSearchProperty() {
+        return searchHistory.recentSearchProperty();
     }
 
     @Override

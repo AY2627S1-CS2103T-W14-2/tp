@@ -7,8 +7,11 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
@@ -60,6 +63,18 @@
           <padding>
             <Insets top="10" right="10" bottom="10" left="10" />
           </padding>
+          <VBox fx:id="searchSummary" spacing="5" styleClass="search-summary" visible="false" managed="false">
+            <HBox fx:id="mostSearchedRow" spacing="12" alignment="CENTER_LEFT">
+              <Label text="Most searched" minWidth="105" styleClass="search-summary-caption" />
+              <Label fx:id="mostSearchedName" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                     textOverrun="ELLIPSIS" styleClass="search-summary-name" />
+            </HBox>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+              <Label text="Recent search" minWidth="105" styleClass="search-summary-caption" />
+              <Label fx:id="recentSearch" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                     textOverrun="ELLIPSIS" styleClass="search-summary-query" />
+            </HBox>
+          </VBox>
           <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
         </VBox>
 
