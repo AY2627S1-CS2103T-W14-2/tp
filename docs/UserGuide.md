@@ -159,10 +159,10 @@ in lowercase.
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is required. A project name must contain 1–40 Unicode code points after whitespace normalisation;
-ISO control characters are not allowed. Surrounding whitespace is removed, repeated internal whitespace is
-collapsed, and project names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`.
-If `pr/` is missing, the command reports `Project is required. Use pr/PROJECT.`
+The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
+control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
+names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
+command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
 For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
@@ -201,8 +201,8 @@ Adds one project to one or more existing contacts, preserving their other projec
 Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
-* Supply exactly one `pr/PROJECT`. Project names contain 1–40 Unicode code points after surrounding whitespace
-  is removed and repeated whitespace is collapsed. Control characters remaining after normalisation are rejected.
+* Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace is removed
+  and repeated whitespace is collapsed. Line breaks and other control characters are rejected.
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
@@ -230,8 +230,8 @@ Other contacts associated with the old project remain unchanged.
 Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* Both names follow the existing project rule: 1–40 Unicode code points after whitespace normalisation,
-  with no ISO control characters. Matching ignores case.
+* Both names must contain 1–40 characters. Line breaks and other control characters are not allowed.
+  Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
   association on that contact. Capitalization corrections
   are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
@@ -255,8 +255,8 @@ remain saved, and the remaining projects retain their order.
 Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* The name follows the existing project rule: 1–40 Unicode code points after whitespace normalisation,
-  with no ISO control characters. Matching ignores case.
+* The name must contain 1–40 characters. Line breaks and other control characters are not allowed.
+  Matching ignores case, removes surrounding whitespace, and collapses repeated whitespace.
 * The specified project must belong to every selected contact. Missing or invalid indices, missing or
   invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
 * Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
@@ -313,7 +313,7 @@ unrelated projects are preserved. Use `replaceproject` to change an association 
 Format: `renameproject old/OLD_NAME new/NEW_NAME`
 
 * Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
-* Project names follow the existing 1–40 Unicode-code-point limit after whitespace normalisation.
+* Project names must contain 1–40 characters after surrounding and repeated whitespace is cleaned up.
 * Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
 * If the destination is new, the new name keeps the source's position in each project list.
 * Case-only changes, such as `orbital` to `Orbital`, update the displayed spelling across all matching
@@ -394,7 +394,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search considers only names.
 * Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
 * Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-* Keywords are separated by whitespace. The entire search input must contain 1–60 Unicode code points after
+* Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
   trimming surrounding whitespace. Internal spaces count towards this limit, including repeated spaces.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
@@ -442,7 +442,7 @@ Format: `findproject KEYWORD`
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
 * The keyword must contain 1–40 characters after trimming surrounding whitespace. Internal spaces count towards
-  this limit before they are collapsed. Each Unicode code point counts as one character.
+  this limit before they are collapsed.
 * Any associated project can match. Each contact appears once, with its contact details and projects, in the
   existing contact order. Contacts with no projects are excluded.
 * Every search checks all saved contacts and replaces the previous search results. Use `list` to show all contacts again.
