@@ -2,36 +2,117 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
-participant ":LogicManager" as Logic LOGIC_COLOR
-participant ":AddressBookParser" as Parser LOGIC_COLOR
-participant "command:ProjectCommand" as Command LOGIC_COLOR
-participant ":Model" as Model MODEL_COLOR
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":ProjectCommandParser" as ProjectCommandParser LOGIC_COLOR
+participant "p:ProjectCommand" as ProjectCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "before:AddressBook" as Before MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
 participant ":Storage" as Storage STORAGE_COLOR
+end box
 
-[-> Logic : execute(input)
-activate Logic
-Logic -> Parser : parseCommand(input)
-Parser --> Logic : command
-Logic -> Model : getAddressBook()
-Model --> Logic : current address book
-Logic -> Logic : copy address book as before
-Logic -> Command : execute(model)
-Command -> Model : getFilteredPersonList()
-Model --> Command : displayed contacts
-Command -> Command : validate all selections
+[-> LogicManager : execute("project 1 2 pr/Orbital")
+activate LogicManager
 
-alt invalid index or duplicate association
-    Command --> Logic : CommandException
-    [<-- Logic : error (no contact changed)
-else all selections valid
-    Command -> Command : build replacement contacts
-    loop each selected contact
-        Command -> Model : setPerson(original, replacement)
-    end
-    Command --> Logic : result
-    Logic -> Model : saveUndoState(before)
-    Logic -> Storage : saveAddressBook(current data)
-    [<-- Logic : success
+LogicManager -> AddressBookParser : parseCommand("project 1 2 pr/Orbital")
+activate AddressBookParser
+
+create ProjectCommandParser
+AddressBookParser -> ProjectCommandParser
+activate ProjectCommandParser
+ProjectCommandParser --> AddressBookParser
+deactivate ProjectCommandParser
+
+AddressBookParser -> ProjectCommandParser : parse("1 2 pr/Orbital")
+activate ProjectCommandParser
+
+create ProjectCommand
+ProjectCommandParser -> ProjectCommand
+activate ProjectCommand
+ProjectCommand --> ProjectCommandParser
+deactivate ProjectCommand
+
+ProjectCommandParser --> AddressBookParser : p
+deactivate ProjectCommandParser
+ProjectCommandParser -[hidden]-> AddressBookParser
+destroy ProjectCommandParser
+
+AddressBookParser --> LogicManager : p
+deactivate AddressBookParser
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+
+create Before
+LogicManager -> Before : AddressBook(addressBook)
+activate Before
+Before --> LogicManager
+deactivate Before
+
+LogicManager -> ProjectCommand : execute(m)
+activate ProjectCommand
+
+ProjectCommand -> ProjectCommand : getValidatedContacts(m)
+activate ProjectCommand
+ProjectCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> ProjectCommand : displayedContacts
+deactivate Model
+ProjectCommand --> ProjectCommand : originals
+deactivate ProjectCommand
+
+loop for each selected contact
+    ProjectCommand -> ProjectCommand : createUpdatedContact(original)
+    activate ProjectCommand
+    ProjectCommand --> ProjectCommand : replacement
+    deactivate ProjectCommand
 end
-deactivate Logic
+
+loop for each selected contact
+    ProjectCommand -> Model : setPerson(original, replacement)
+    activate Model
+    Model --> ProjectCommand
+    deactivate Model
+end
+
+ProjectCommand -> ProjectCommand : createSuccessResult(originals)
+activate ProjectCommand
+create CommandResult
+ProjectCommand -> CommandResult
+activate CommandResult
+CommandResult --> ProjectCommand : r
+deactivate CommandResult
+ProjectCommand --> ProjectCommand : r
+deactivate ProjectCommand
+
+ProjectCommand --> LogicManager : r
+deactivate ProjectCommand
+
+LogicManager -> Model : saveUndoState(before)
+activate Model
+Model --> LogicManager
+deactivate Model
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+[<-- LogicManager : r
+deactivate LogicManager
 @enduml

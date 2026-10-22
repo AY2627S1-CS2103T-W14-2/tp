@@ -407,7 +407,8 @@ The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or mor
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
 project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-The sequence diagram below shows how the command validates the complete batch before changing any contact.
+The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
+command validates the complete batch before changing either contact.
 
 <puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760"
       alt="Interactions inside the Logic and Model components for a multi-contact project command" />
