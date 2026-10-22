@@ -35,7 +35,8 @@ public class SearchSummaryUiTest {
     public void searchSummary_bindsVisibilityAndStaysCompactAtMinimumWidth() throws Exception {
         FutureTask<Void> task = new FutureTask<>(() -> {
             Model model = new ModelManager();
-            Person person = new PersonBuilder(ALICE).withName("Alexandria ".repeat(5).strip()).build();
+            Person person = new PersonBuilder(ALICE).withName("Alexandria ".repeat(5).strip())
+                    .withProjects("Orbital", "CS2103T").build();
             model.addPerson(person);
             Logic logic = new LogicManager(model, new StorageManager(
                     new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
@@ -57,28 +58,36 @@ public class SearchSummaryUiTest {
                 assertTrue(summary.isManaged());
                 assertFalse(mostSearchedRow.isVisible());
                 assertFalse(mostSearchedRow.isManaged());
-                assertEquals("missing", recent.getText());
+                assertEquals("Name: missing", recent.getText());
 
                 logic.execute("find Alexandria");
+                assertEquals("Name: Alexandria", recent.getText());
+                assertEquals("Name: Alexandria", recent.getTooltip().getText());
                 root.resize(450, 600);
                 root.applyCss();
                 root.layout();
                 assertTrue(mostSearchedRow.isVisible());
                 assertTrue(mostSearchedRow.isManaged());
-                assertEquals(person.getName().fullName, name.getText());
-                assertEquals(person.getName().fullName, name.getTooltip().getText());
+                String details = person.getName().fullName
+                        + " | Projects: Orbital, CS2103T | Telegram: @alice_pauline";
+                assertEquals(details, name.getText());
+                assertEquals(details, name.getTooltip().getText());
                 assertTrue(name.getWidth() > 0);
                 assertTrue(name.getWidth() < name.prefWidth(-1));
                 assertTrue(summary.getHeight() <= 70);
                 assertTrue(mostSearchedRow.getBoundsInParent().getMaxY() <= recent.getParent().getLayoutY());
 
                 logic.execute("edit 1 n/Alicia");
-                assertEquals("Alicia", name.getText());
-                assertEquals("Alicia", name.getTooltip().getText());
+                String editedDetails = "Alicia | Projects: Orbital, CS2103T | Telegram: @alice_pauline";
+                assertEquals(editedDetails, name.getText());
+                assertEquals(editedDetails, name.getTooltip().getText());
+                logic.execute("findproject Orbital");
+                assertEquals(editedDetails, name.getText());
+                assertEquals("Project: Orbital", recent.getText());
                 logic.execute("clear");
                 assertFalse(mostSearchedRow.isManaged());
-                assertEquals("Alexandria", recent.getText());
-                assertEquals("Alexandria", recent.getTooltip().getText());
+                assertEquals("Project: Orbital", recent.getText());
+                assertEquals("Project: Orbital", recent.getTooltip().getText());
             } finally {
                 stage.close();
             }

@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import java.nio.file.Path;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
@@ -137,7 +138,15 @@ public class MainWindow extends UiPart<Stage> {
         mostSearchedRow.managedProperty().bind(mostSearchedRow.visibleProperty());
         mostSearchedName.textProperty().bind(Bindings.createStringBinding(() -> {
             var person = logic.mostSearchedPersonProperty().get();
-            return person == null ? "" : person.getName().fullName;
+            if (person == null) {
+                return "";
+            }
+            String projects = person.getProjects().stream()
+                    .map(project -> project.projectName).collect(Collectors.joining(", "));
+            return person.getName().fullName
+                    + " | Projects: " + (projects.isEmpty() ? "None" : projects)
+                    + " | Telegram: " + (person.getTelegramUsername().isEmpty()
+                            ? "Not provided" : person.getTelegramUsername().toString());
         }, logic.mostSearchedPersonProperty()));
         Tooltip personTooltip = new Tooltip();
         personTooltip.textProperty().bind(mostSearchedName.textProperty());

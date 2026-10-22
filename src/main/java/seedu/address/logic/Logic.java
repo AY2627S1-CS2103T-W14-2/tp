@@ -28,7 +28,7 @@ public interface Logic {
     /** Returns the single most searched person in this session, or null before any matches. */
     ReadOnlyObjectProperty<Person> mostSearchedPersonProperty();
 
-    /** Returns the latest successful name search in this session. */
+    /** Returns the latest successful name or project search in this session. */
     ReadOnlyStringProperty recentSearchProperty();
 
     /**

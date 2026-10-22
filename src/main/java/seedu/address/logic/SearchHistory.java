@@ -13,7 +13,7 @@ import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 
 /**
- * Session search history. Each person returned by a name search earns one search;
+ * Session search history. Each person returned by a name or project search earns one search;
  * ties favour the most recently searched person, then address book order.
  */
 public class SearchHistory {
@@ -50,7 +50,7 @@ public class SearchHistory {
     }
 
     /**
-     * Records a successful name search, including searches with no matches.
+     * Records a successful name or project search, including searches with no matches.
      */
     public void record(String query, List<Person> matches) {
         recentSearch.set(query);
@@ -84,7 +84,7 @@ public class SearchHistory {
         return mostSearchedPerson.getReadOnlyProperty();
     }
 
-    /** Returns the latest successful name search, or an empty string before the first search. */
+    /** Returns the latest successful name or project search, or an empty string before the first search. */
     public ReadOnlyStringProperty recentSearchProperty() {
         return recentSearch.getReadOnlyProperty();
     }

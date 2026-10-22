@@ -12,6 +12,7 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -70,9 +71,12 @@ public class LogicManager implements Logic {
         }
 
         saveAddressBook(model.getAddressBook());
-        if (command instanceof FindCommand) {
-            searchHistory.record(FindCommandParser.trimSearchInput(
-                    commandText.trim().substring(FindCommand.COMMAND_WORD.length())),
+        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
+            String commandWord = command instanceof FindCommand
+                    ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
+            String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
+            searchHistory.record(searchType + FindCommandParser.trimSearchInput(
+                    commandText.trim().substring(commandWord.length())),
                     model.getFilteredPersonList());
         }
         return commandResult;
