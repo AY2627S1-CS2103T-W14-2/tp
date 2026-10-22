@@ -59,6 +59,7 @@
         "project-association-implementation": "Project association implementation",
         "removing-a-project-association": "Removing a project association",
         "edit-command-implementation": "Edit command implementation",
+        "sort-command-implementation": "Sort command implementation",
         "undo-command-implementation": "Undo command implementation",
         "persistence-and-save-failures": "Persistence and save failures",
         "deferred-features": "Deferred features",
@@ -76,6 +77,7 @@
         "editing-contacts": "Editing contacts",
         "validation-and-duplicate-rejection": "Validation and duplicate rejection",
         "undo-and-restart": "Undo and restart",
+        "sorting-contacts": "Sorting contacts",
         "missing-unreadable-and-legacy-files": "Missing, unreadable and legacy files"
       },
       "headingKeywords": {}
@@ -151,6 +153,7 @@
         "associating-an-existing-contact-with-a-project-project": "Associating an existing contact with a project: project",
         "removing-a-contact-s-project-association-deleteproject": "Removing a contact's project association: deleteproject",
         "listing-all-persons-list": "Listing all persons: list",
+        "sorting-contacts-by-name-sort": "Sorting contacts by name: sort",
         "editing-a-person-edit": "Editing a person: edit",
         "locating-persons-by-name-find": "Locating persons by name: find",
         "finding-contacts-by-project-findproject": "Finding contacts by project: findproject",
