@@ -13,7 +13,7 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
 contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
-with `project` and removed individually with `deleteproject`.
+with `project`, removed individually with `deleteproject` and replaced individually with `replaceproject`.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -179,6 +179,31 @@ Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
+### Replacing a contact's project association: `replaceproject`
+
+Replaces one project on one contact, preserving their other details and project order.
+Other contacts associated with the old project remain unchanged.
+
+Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
+
+* `INDEX` is a positive index in the currently displayed list, including search results.
+* Both names follow the existing 1-40 printable character project rules. Surrounding whitespace is
+  removed, repeated whitespace is collapsed, and matching ignores case.
+* The old project must belong to the selected contact. The new project must not duplicate another
+  association on that contact. Capitalization corrections
+  are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
+  spelling exactly matches the stored spelling, regardless of how the old name was typed.
+* Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or
+  invalid names and invalid indices produce an error without changing the contact.
+* The replacement keeps the old project's position. The active filter is preserved, so a contact
+  may disappear from `findproject` results when its replacement no longer matches.
+* Successful changes are saved and can be reversed with `undo`.
+* A space followed by `old/` or `new/` is interpreted as a command prefix, so these sequences
+  cannot be included literally in a project name in this command.
+
+Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
+first displayed contact. The success message identifies the old project, new project and contact.
+
 ### Removing a contact's project association: `deleteproject`
 
 Removes one project from one or more selected contacts. The contact and other contacts associated with the same project
@@ -256,6 +281,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
+  Use `replaceproject` to replace one project association. Removing an association is not supported. Address (`a/`) and tags (`t/`) are no longer
   Use `deleteproject` to remove one association. Renaming an association is not supported. Address (`a/`) and tags (`t/`) are no longer
   supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
@@ -394,6 +420,7 @@ Undo the last supported command. The supported commands are:
 * `edit`
 * `clear`
 * `project`
+* `replaceproject`
 * `sort`
 * `deleteproject`
 
@@ -503,6 +530,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
 **Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
