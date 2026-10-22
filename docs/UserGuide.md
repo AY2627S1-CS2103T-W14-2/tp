@@ -13,7 +13,8 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
 contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
-with `project`, removed individually with `deleteproject` and replaced individually with `replaceproject`.
+with `project`, removed with `deleteproject`, replaced individually with `replaceproject`, and renamed or
+merged across contacts with `renameproject`.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -270,6 +271,47 @@ Examples:
 * `sort` puts the whole contact list in name order.
 * `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
 
+### Renaming or merging a project: `renameproject`
+
+Renames a project across **all saved contacts**, including contacts hidden by a search. Contact details and
+unrelated projects are preserved. Use `replaceproject` to change an association on just one contact.
+
+Format: `renameproject old/OLD_NAME new/NEW_NAME`
+
+* Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
+* Project names follow the existing 1–40 Unicode-code-point limit after whitespace normalisation.
+* Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
+* If the destination is new, the new name keeps the source's position in each project list.
+* Case-only changes, such as `orbital` to `Orbital`, update the displayed spelling across all matching
+  associations. If every association already has the requested spelling, the command reports
+  `No changes made.` without saving or adding an undo entry.
+* An unknown source produces an error and changes nothing.
+* The current search filter is preserved. Contacts may enter or leave `findproject` results when their
+  renamed projects start or stop matching the search. Contacts hidden by the filter are still updated.
+* Successful changes are saved automatically. The message reports the number of contacts actually changed.
+  One `undo` reverses the entire rename or merge, including original capitalisation and project order.
+* Quotation marks and backslashes are literal characters. For example, `old/"CS2103T"` matches only a
+  project whose name includes the quotation marks; it does not match `CS2103T`.
+* As with `replaceproject`, a space followed by `old/` or `new/` is a command prefix. These sequences
+  cannot appear literally inside a name in this command; adding quotation marks does not escape them.
+
+**Merging into an existing project**
+
+If a different destination project already exists (ignoring case), the command merges immediately.
+If a contact belongs to both projects, the destination stays in its existing position and the source is removed.
+All destination associations use the requested spelling, including on contacts that did not belong to the
+source. Each changed contact is counted once. The success message reminds you to use `undo` to reverse it.
+
+Examples:
+
+* `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
+* `renameproject old/orbital new/Orbital` standardises display capitalisation.
+* If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
+
+Like other commands that change contacts, rename updates the current session before saving. If saving fails,
+the change remains in memory with an undo entry. Correct the storage problem, then use `undo` to restore the
+previous state or another successful command to save the current state.
+
 ### Editing a person: `edit`
 
 Changes the name, phone number, email or Telegram username of an existing contact.
@@ -289,9 +331,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
-  Use `replaceproject` to replace one project association. Removing an association is not supported. Address (`a/`) and tags (`t/`) are no longer
-  Use `deleteproject` to remove one association. Renaming an association is not supported. Address (`a/`) and tags (`t/`) are no longer
-  supported either.
+  Use `replaceproject` to replace one association, `deleteproject` to remove associations, or `renameproject`
+  to rename across all contacts. Address (`a/`) and tags (`t/`) are no longer supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
   hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
   a contact's own details, and you can give a contact the same name as another contact.
@@ -429,6 +470,7 @@ Undo the last supported command. The supported commands are:
 * `clear`
 * `project`
 * `replaceproject`
+* `renameproject` (the entire rename or merge)
 * `sort`
 * `deleteproject`
 
@@ -538,6 +580,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
+**Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
 **Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
