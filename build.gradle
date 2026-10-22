@@ -10,6 +10,14 @@ application {
     mainClass = 'seedu.address.Main'
 }
 
+tasks.withType(JavaExec).configureEach {
+    enableAssertions = true
+}
+
+tasks.withType(Test).configureEach {
+    enableAssertions = true
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
