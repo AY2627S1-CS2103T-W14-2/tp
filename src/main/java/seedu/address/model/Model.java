@@ -80,7 +80,15 @@ public interface Model {
     ObservableList<Person> getFilteredPersonList();
 
     /**
+     * Returns an unmodifiable, observable view of persons matching the latest search predicate.
+     * The view is initially empty and reflects changes to the underlying address book.
+     * Updating the main list to show all persons preserves this view's search predicate.
+     */
+    ObservableList<Person> getRecentFindList();
+
+    /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Also updates the recent search predicate unless {@code predicate} is {@link #PREDICATE_SHOW_ALL_PERSONS}.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);

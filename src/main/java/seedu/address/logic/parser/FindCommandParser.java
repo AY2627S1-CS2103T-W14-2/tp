@@ -24,7 +24,7 @@ public class FindCommandParser implements Parser<FindCommand> {
      */
     public FindCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String trimmedArgs = SURROUNDING_WHITESPACE.matcher(args).replaceAll("");
+        String trimmedArgs = trimSearchInput(args);
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
@@ -36,6 +36,11 @@ public class FindCommandParser implements Parser<FindCommand> {
         String[] nameKeywords = trimmedArgs.split(WHITESPACE);
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
+    }
+
+    /** Trims the surrounding whitespace accepted by name search, including Unicode space separators. */
+    public static String trimSearchInput(String input) {
+        return SURROUNDING_WHITESPACE.matcher(input).replaceAll("");
     }
 
 }

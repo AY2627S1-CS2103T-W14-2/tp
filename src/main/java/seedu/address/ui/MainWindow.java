@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
@@ -47,10 +48,16 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane personListPanelPlaceholder;
 
     @FXML
+    private StackPane recentFindPanelPlaceholder;
+
+    @FXML
     private StackPane resultDisplayPlaceholder;
 
     @FXML
     private StackPane statusbarPlaceholder;
+
+    @FXML
+    private StackPane mostSearchedDetails;
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
@@ -114,6 +121,14 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
+        RecentFindPanel recentFindPanel = new RecentFindPanel(logic.getRecentFindPersonList(),
+                logic.recentSearchProperty());
+        recentFindPanelPlaceholder.getChildren().add(recentFindPanel.getRoot());
+
+        logic.mostSearchedPersonProperty().addListener((observable, oldPerson, newPerson) ->
+                updateMostSearchedContact());
+        updateMostSearchedContact();
+
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
@@ -125,6 +140,16 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    /** Keeps the session favourite in sync with searches and contact changes. */
+    private void updateMostSearchedContact() {
+        var person = logic.mostSearchedPersonProperty().get();
+        Label placeholder = new Label("No contacts searched yet.");
+        placeholder.setWrapText(true);
+        mostSearchedDetails.getChildren().setAll(person == null
+                ? placeholder
+                : new SearchContactDetails(person, "mostSearchedName"));
     }
 
     /**

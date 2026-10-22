@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -22,6 +24,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -83,6 +86,57 @@ public class MainWindowTest {
                 stage.getIcons().forEach(icon -> assertFalse(icon.isError()));
                 assertNotNull(stage.getScene().lookup("#personListView"));
                 assertNotNull(stage.getScene().lookup("#commandTextField"));
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
+    @Test
+    public void recentFindResults_updateAndRemainAboveLargerPersonList() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            Person amy = new PersonBuilder().build();
+            Person bob = new PersonBuilder().withName("Bob Tan").withPhone("87654321")
+                    .withEmail("bob@example.com").withTelegramUsername("bob_tan").build();
+            model.addPerson(amy);
+            model.addPerson(bob);
+            model.setGuiSettings(new GuiSettings(800, 600, 100, 100));
+            Stage stage = new Stage();
+            MainWindow window = new MainWindow(stage, createLogic(model), temporaryFolder.resolve("contacts.json"));
+            try {
+                window.fillInnerParts();
+                window.show();
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                ListView<?> recent = (ListView<?>) stage.getScene().lookup("#recentFindListView");
+                ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
+                Label search = (Label) stage.getScene().lookup("#recentFindSearchLabel");
+                assertEquals("Latest search: No search yet", search.getText());
+                assertTrue(recent.getItems().isEmpty());
+                assertTrue(recent.getHeight() < persons.getHeight());
+                assertTrue(recent.localToScene(0, recent.getHeight()).getY()
+                        <= persons.localToScene(0, 0).getY());
+
+                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+                enter(input, "find Amy");
+                assertEquals(List.of(amy), recent.getItems());
+                assertEquals("Latest search: Name: Amy", search.getText());
+                enter(input, "list");
+                assertEquals(List.of(amy), recent.getItems());
+                assertEquals(List.of(amy, bob), persons.getItems());
+                assertEquals("Latest search: Name: Amy", search.getText());
+                enter(input, "findproject Team Alpha");
+                assertEquals("Latest search: Project: Team Alpha", search.getText());
+                enter(input, "find");
+                assertEquals("Latest search: Project: Team Alpha", search.getText());
+                enter(input, "find Bob");
+                assertEquals(List.of(bob), recent.getItems());
+                assertEquals("Latest search: Name: Bob", search.getText());
+                enter(input, "find Nobody");
+                assertTrue(recent.getItems().isEmpty());
+                assertEquals("Latest search: Name: Nobody", search.getText());
+                assertEquals(search.getText(), search.getTooltip().getText());
             } finally {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);
             }

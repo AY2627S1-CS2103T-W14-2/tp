@@ -74,7 +74,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Command words and prefixes are case-sensitive: use `findproject`, not `FindProject` or `findp`.
   Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
 
-* `INDEX` always refers to the current displayed list, including search results. Check the index again after
+* `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
+  section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `sort`, `exit`, and `clear`, are ignored.<br>
@@ -82,6 +83,38 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
+
+### Viewing recent search results
+
+The **Recent search** section sits above the **Current contact list**, beside **Most searched**.
+It shows contacts matching the latest name or project search and scrolls independently. Each result shows a matching contact's name and Telegram handle, with project tags
+underneath. Contacts without a Telegram username show `No Telegram Username` beside their name.
+For example, a result header reads `Alex Tan | @alex_tan` or `Alex Tan | No Telegram Username`.
+Hover over the header to see the full name and handle if the text is too long to fit.
+
+Project tags appear below the header as purple labels such as `Project: Orbital`, using the same styling as
+the main person cards. Tags wrap onto additional lines when needed, and results scroll independently to show
+all details. Contacts without projects have no project tags. Use the main person list to view phone numbers and emails.
+
+The shared search label appears once above the rows, for example `Latest search: Name: Alex` or
+`Latest search: Project: Team Alpha`.
+Hover over this text to see the full search if it is too long to fit. Before your first search, it shows
+`Latest search: No search yet`.
+
+* Running `find` or `findproject` replaces this section with the latest search results.
+  The search text updates automatically and includes `Name:` or `Project:` so you can distinguish search types.
+* Running `list` shows all contacts in the main list while keeping the latest results and search text in this section.
+* Results stay in sync with contact changes: editing, deleting, adding, clearing, or undoing can change which
+  contacts match the latest search and the details displayed.
+* Before the first search, the section prompts you to run a name or project search.
+  When no contacts match, it shows `No contacts match the latest search.`.
+  A search with no matches still displays its search text, so you can check what was searched.
+* Invalid search input leaves the previous results and search text unchanged. Recent results and search text
+  are cleared when you restart LinkUp.
+
+For example, run `find Alex` and then `list`. The main list shows all contacts, while the smaller section still
+shows contacts matching Alex and the label `Latest search: Name: Alex`. Use the indices in the main list for
+`edit`, `delete`, and `project`.
 
 ### Viewing help: `help`
 
@@ -243,7 +276,7 @@ The success message identifies the project and selected contacts.
 Shows a list of all persons in the address book.
 
 Clears the current search filter. Shows `Listed all contacts.` when contacts exist, or `No contacts saved yet.`
-when the list is empty.
+when the list is empty. The **Recent search** section retains the latest search results.
 
 Format: `list`
 
@@ -366,7 +399,30 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
 * No matches produces an empty list and the message `0 person(s) listed!`.
 * Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
+* The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
+  and keeps them visible after `list`.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
+* The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
+  shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
+  The **Current contact list** below provides the numbered contacts for commands.
+  Each successful `find` or `findproject` adds one search to every matching person, even if several keywords
+  or projects match that person. The displayed contact details include their name, projects and Telegram username.
+  The person with the highest count is displayed. In a draw, the person matched by the more recent search wins;
+  if both matched the same search, the person first in the contact list wins. For example, `find Alice` followed
+  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
+* **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
+  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
+  no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
+  If saving reports an error, the latest search label follows the results already displayed, but search counts
+  do not increase. `list` and other commands do not add search counts.
+* Editing a contact or adding a project preserves their count and search recency; their displayed details update
+  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
+  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
+  These commands leave the recent search text unchanged.
+* Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
+  section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
+  to read the full text. Project tags wrap below the contact header. Only one most searched contact is shown,
+  and its details scroll when needed.
 
 Examples:
 * `find John` returns `john` and `John Doe`
@@ -391,6 +447,8 @@ Format: `findproject KEYWORD`
 * Every search checks all saved contacts and replaces the previous search results. Use `list` to show all contacts again.
 * Matching contacts are displayed with the message `Found N contact(s) matching the project keyword.`
   If nothing matches, the displayed list is empty and the message is `No contacts found for the project keyword.`
+* The [Recent search results](#viewing-recent-search-results) section also updates to this search, replacing any
+  previous name or project search results.
 * Blank or excessively long keywords produce an error and leave the current results and saved contacts unchanged.
 
 Examples:
