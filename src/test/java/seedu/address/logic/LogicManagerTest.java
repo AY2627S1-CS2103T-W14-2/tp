@@ -32,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ListProjectsCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ParserUtil;
@@ -189,6 +190,23 @@ public class LogicManagerTest {
         assertEquals(new AddressBook(), savedData.readAddressBook().orElseThrow());
         assertFalse(model.canUndo());
         assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_projectsThenUndo_undoesPreviousModifyingCommand() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        logic.execute(PersonUtil.getAddCommand(person));
+        AddressBook afterAdd = new AddressBook(model.getAddressBook());
+
+        CommandResult result = logic.execute(ListProjectsCommand.COMMAND_WORD);
+
+        assertEquals("Listed 1 project across all contacts:\n- " + VALID_PROJECT_AMY + " (1 contact)",
+                result.getFeedbackToUser());
+        assertEquals(afterAdd, model.getAddressBook());
+
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertFalse(model.canUndo());
     }
 
     @Test

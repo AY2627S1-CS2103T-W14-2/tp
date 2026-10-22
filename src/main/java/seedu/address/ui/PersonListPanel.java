@@ -34,6 +34,12 @@ public class PersonListPanel extends UiPart<Region> {
      */
     class PersonListViewCell extends ListCell<Person> {
         @Override
+        protected boolean isItemChanged(Person oldItem, Person newItem) {
+            // Immutable replacements may compare equal while their project display spelling differs.
+            return oldItem != newItem;
+        }
+
+        @Override
         protected void updateItem(Person person, boolean empty) {
             super.updateItem(person, empty);
 

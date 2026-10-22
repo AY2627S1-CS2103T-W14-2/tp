@@ -89,4 +89,34 @@ public class ContactUiTest {
             assertEquals(List.of("bad", "bad", "list"), executed);
         });
     }
+    @Test
+    public void projectCaseCorrection_refreshesVisibleCard() throws Exception {
+        FxTestUtil.run(() -> {
+            seedu.address.model.Model model = new seedu.address.model.ModelManager();
+            model.addPerson(new PersonBuilder().withProjects("orbital").build());
+            PersonListPanel panel = new PersonListPanel(model.getFilteredPersonList());
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setScene(new javafx.scene.Scene(panel.getRoot(), 600, 400));
+            try {
+                stage.show();
+                panel.getRoot().applyCss();
+                panel.getRoot().layout();
+                new seedu.address.logic.commands.ReplaceProjectCommand(
+                        seedu.address.commons.core.index.Index.fromOneBased(1),
+                        new seedu.address.model.project.Project("orbital"),
+                        new seedu.address.model.project.Project("Orbital")).execute(model);
+                panel.getRoot().applyCss();
+                panel.getRoot().layout();
+                assertTrue(panel.getRoot().lookupAll(".label").stream().filter(Label.class::isInstance)
+                        .map(Label.class::cast).anyMatch(label -> label.getText().equals("Project: Orbital")));
+                assertFalse(panel.getRoot().lookupAll(".label").stream().filter(Label.class::isInstance)
+                        .map(Label.class::cast).anyMatch(label -> label.getText().equals("Project: orbital")));
+            } catch (seedu.address.logic.commands.exceptions.CommandException e) {
+                throw new AssertionError(e);
+            } finally {
+                stage.hide();
+            }
+        });
+    }
+
 }
