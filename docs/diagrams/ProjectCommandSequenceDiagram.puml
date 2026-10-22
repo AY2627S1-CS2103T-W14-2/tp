@@ -13,18 +13,18 @@ activate Logic
 Logic -> Parser : parseCommand(input)
 Parser --> Logic : command
 Logic -> Model : getAddressBook()
-Model --> Logic : before snapshot
+Model --> Logic : current address book
+Logic -> Logic : copy address book as before
 Logic -> Command : execute(model)
-activate Command
 Command -> Model : getFilteredPersonList()
 Model --> Command : displayed contacts
 Command -> Command : validate all selections
-Command -> Command : build replacement contacts
 
 alt invalid index or duplicate association
     Command --> Logic : CommandException
     [<-- Logic : error (no contact changed)
 else all selections valid
+    Command -> Command : build replacement contacts
     loop each selected contact
         Command -> Model : setPerson(original, replacement)
     end
@@ -33,6 +33,5 @@ else all selections valid
     Logic -> Storage : saveAddressBook(current data)
     [<-- Logic : success
 end
-deactivate Command
 deactivate Logic
 @enduml
