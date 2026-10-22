@@ -32,7 +32,7 @@ The updated interface places **Most searched** and **Recent search** side by sid
 
 **Requirements:** Java 25 on Windows, macOS or Linux.
 
-1. Download `LinkUp.jar` from the [release assets](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
+1. Download `LinkUp.jar` from the [release assets](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases/tag/v1.4).
 2. Place it in a writable folder and open a terminal in that folder.
 3. Run `java -jar LinkUp.jar`.
 4. Enter `help` to view the command reference.
