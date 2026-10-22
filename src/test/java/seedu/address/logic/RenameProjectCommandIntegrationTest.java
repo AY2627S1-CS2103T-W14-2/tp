@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Verifies typed renames and confirmed merges through real JSON storage, including exact display spelling.
+ * Verifies typed renames and immediate merges through real JSON storage, including exact display spelling.
  */
 public class RenameProjectCommandIntegrationTest {
     private static final String MERGE = "renameproject old/CS2103T new/Orbital";
@@ -74,7 +75,7 @@ public class RenameProjectCommandIntegrationTest {
         assertEquals("91234567", alice.getPhone().value);
         assertEquals("Alice@Example.com", alice.getEmail().value);
         assertTrue(alice.getTelegramUsername().isEmpty());
-        assertEquals(4, model.getFilteredPersonList().size());
+        assertEquals(List.of("David"), filteredNames());
         assertPersisted();
         logic.execute("undo");
         assertEquals(original, snapshot(model.getAddressBook()));
@@ -99,23 +100,19 @@ public class RenameProjectCommandIntegrationTest {
     }
 
     @Test
-    public void execute_merge_warnsWithoutSideEffectsThenCombinesInOneUndoStep() throws Exception {
+    public void execute_merge_combinesImmediatelyAndUndoesInOneStep() throws Exception {
         logic.execute("find Alice");
-        String diskBefore = Files.readString(storage.getAddressBookFilePath());
         int savesBefore = storage.saves;
-        assertWarning(logic.execute(MERGE));
-        assertEquals(original, snapshot(model.getAddressBook()));
-        assertEquals(diskBefore, Files.readString(storage.getAddressBookFilePath()));
-        assertEquals(savesBefore, storage.saves);
-        assertEquals(1, model.getFilteredPersonList().size());
-        assertFalse(model.canUndo());
-
-        CommandResult result = logic.execute("renameproject new/ Orbital old/ cs2103t ");
-        assertEquals("Merged project \"cs2103t\" into \"Orbital\" for 3 contact(s).", result.getFeedbackToUser());
+        CommandResult result = logic.execute(MERGE);
+        assertEquals("Merged project \"CS2103T\" into \"Orbital\" for 3 contact(s). "
+                + "Use undo to reverse this change.", result.getFeedbackToUser());
         assertEquals(savesBefore + 1, storage.saves);
         assertProjects(List.of(List.of("Orbital", "Internship"), List.of("Internship", "Orbital"),
                 List.of("Orbital", "Unrelated"), List.of("CS2103T Team B")));
+        assertEquals(List.of("Alice"), filteredNames());
         assertPersisted();
+        assertThrows(CommandException.class, () -> logic.execute(MERGE));
+        assertEquals(savesBefore + 1, storage.saves);
         logic.execute("undo");
         assertEquals(original, snapshot(model.getAddressBook()));
         assertPersisted();
@@ -123,82 +120,100 @@ public class RenameProjectCommandIntegrationTest {
     }
 
     @Test
-    public void execute_interveningCommands_cancelConfirmationIncludingFailures() throws Exception {
-        for (String intervening : List.of("list", "notacommand", "renameproject old/A",
-                "delete 999", "renameproject old/Missing new/Other",
-                "renameproject old/CS2103T Team B new/CS2103T Team B")) {
-            assertWarning(logic.execute(MERGE));
-            try {
-                logic.execute(intervening);
-            } catch (CommandException | ParseException expected) {
-                // Both successfully executed commands and rejected submissions cancel confirmation.
-            }
-            assertWarning(logic.execute(MERGE));
-            assertEquals(original, snapshot(model.getAddressBook()));
-            assertFalse(model.canUndo());
-            logic = createLogic(model); // A new session must also discard pending confirmation.
-        }
-        assertWarning(logic.execute(MERGE));
-    }
-
-    @Test
-    public void execute_changedDestinationSpellingOrSource_startsNewConfirmation() throws Exception {
-        assertWarning(logic.execute(MERGE));
-        assertWarning(logic.execute("renameproject old/CS2103T new/ORBITAL"));
-        assertEquals(original, snapshot(model.getAddressBook()));
-        assertWarning(logic.execute("renameproject old/Internship new/ORBITAL"));
-        assertEquals(original, snapshot(model.getAddressBook()));
-        logic.execute("renameproject old/internship new/ORBITAL");
+    public void execute_rename_preservesProjectFilterAndReevaluatesMembership() throws Exception {
+        logic.execute("findproject CS2103T");
+        logic.execute("renameproject old/CS2103T new/Team Alpha");
+        assertEquals(List.of("David"), filteredNames());
         assertPersisted();
-        assertEquals(List.of("CS2103T", "ORBITAL"), projectNames(model.getAddressBook()).getFirst());
+        logic.execute("undo");
+        assertEquals(original, snapshot(model.getAddressBook()));
+        assertFalse(model.canUndo());
     }
 
     @Test
-    public void execute_saveFailure_preservesDiskFilterAndEarlierUndoAndConsumesConfirmation() throws Exception {
+    public void execute_merge_preservesDestinationFilterAndIncludesNewMembers() throws Exception {
+        logic.execute("findproject orbital");
+        assertEquals(List.of("Bob", "Carol"), filteredNames());
+        logic.execute(MERGE);
+        assertEquals(List.of("Alice", "Bob", "Carol"), filteredNames());
+        assertPersisted();
+    }
+
+    @Test
+    public void execute_rename_keepsEmptySearchAndStillUpdatesHiddenContacts() throws Exception {
+        logic.execute("find Nobody");
+        logic.execute("renameproject old/CS2103T new/Team Alpha");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals("Team Alpha", projectNames(model.getAddressBook()).getFirst().getFirst());
+        assertPersisted();
+    }
+
+    @Test
+    public void execute_saveFailure_usesNormalCommandUndoAndKeepsFilter() throws Exception {
         logic.execute("project 4 pr/Extra");
         logic.execute("find Alice");
         String before = snapshot(model.getAddressBook());
         String diskBefore = Files.readString(storage.getAddressBookFilePath());
         int savesBefore = storage.saves;
-        assertWarning(logic.execute(MERGE));
         storage.fail = true;
-        assertThrows(CommandException.class, () -> logic.execute(MERGE));
-        assertEquals(before, snapshot(model.getAddressBook()));
+        CommandException failure = assertThrows(CommandException.class, () -> logic.execute(MERGE));
+        assertTrue(failure.getMessage().contains("Simulated write failure"));
+        assertEquals("Orbital", projectNames(model.getAddressBook()).getFirst().getFirst());
         assertEquals(diskBefore, Files.readString(storage.getAddressBookFilePath()));
         assertEquals(savesBefore, storage.saves);
-        assertEquals(1, model.getFilteredPersonList().size());
-        assertWarning(logic.execute(MERGE)); // Failure consumed confirmation.
+        assertEquals(List.of("Alice"), filteredNames());
+        assertTrue(model.canUndo());
         storage.fail = false;
         logic.execute("undo");
-        assertEquals(original, snapshot(model.getAddressBook())); // Only the earlier project addition is undone.
-        assertFalse(model.canUndo());
-    }
-
-    @Test
-    public void execute_ordinaryRenameSaveFailure_preservesStateAndCanRetry() throws Exception {
-        storage.fail = true;
-        assertThrows(CommandException.class, () -> logic.execute("renameproject old/orbital new/Orbital"));
+        assertEquals(before, snapshot(model.getAddressBook()));
+        assertPersisted();
+        logic.execute("undo");
         assertEquals(original, snapshot(model.getAddressBook()));
         assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_quotedSource_matchesOnlyNameContainingLiteralQuotes() throws Exception {
+        assertThrows(CommandException.class, () -> logic.execute("renameproject old/\"CS2103T\" new/Final"));
+        assertEquals(original, snapshot(model.getAddressBook()));
         assertEquals(0, storage.saves);
-        storage.fail = false;
-        logic.execute("renameproject old/orbital new/Orbital");
+        assertFalse(model.canUndo());
+        logic.execute("project 4 pr/\"CS2103T\"");
+        logic.execute("renameproject old/\"CS2103T\" new/Final");
+        assertProjects(List.of(List.of("CS2103T", "Internship"),
+                List.of("cs2103t", "Internship", "orbital"), List.of("ORBITAL", "Unrelated"),
+                List.of("CS2103T Team B", "Final")));
         assertPersisted();
     }
 
     @Test
-    public void execute_quotedNamesWithDelimitersAndEscapes_roundTripsAndUndoes() throws Exception {
-        String tricky = "Team new/\"Blue\"\\old/Alpha";
-        String encoded = tricky.replace("\\", "\\\\").replace("\"", "\\\"");
-        logic.execute("renameproject old/CS2103T new/\"" + encoded + "\"");
-        assertEquals(tricky, projectNames(model.getAddressBook()).getFirst().getFirst());
+    public void execute_literalQuotesAndBackslashes_roundTripsAndUndoes() throws Exception {
+        String literalName = "\"Team\\Blue\"";
+        logic.execute("renameproject old/CS2103T new/" + literalName);
+        assertEquals(literalName, projectNames(model.getAddressBook()).getFirst().getFirst());
         assertPersisted();
-        logic.execute("renameproject old/\"" + encoded + "\" new/Final");
+        logic.execute("renameproject old/" + literalName + " new/Final");
         assertEquals("Final", projectNames(model.getAddressBook()).getFirst().getFirst());
         logic.execute("undo");
-        assertEquals(tricky, projectNames(model.getAddressBook()).getFirst().getFirst());
+        assertEquals(literalName, projectNames(model.getAddressBook()).getFirst().getFirst());
         logic.execute("undo");
         assertEquals(original, snapshot(model.getAddressBook()));
+    }
+
+    @Test
+    public void execute_nonLatinDigitLocale_usesAsciiCountsForRenameAndMerge() throws Exception {
+        Locale originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("ar-EG"));
+            assertEquals("Renamed project \"orbital\" to \"Orbital\" for 2 contact(s). "
+                    + "Use undo to reverse this change.",
+                    logic.execute("renameproject old/orbital new/Orbital").getFeedbackToUser());
+            logic.execute("undo");
+            assertEquals("Merged project \"CS2103T\" into \"Orbital\" for 3 contact(s). "
+                    + "Use undo to reverse this change.", logic.execute(MERGE).getFeedbackToUser());
+        } finally {
+            Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
+        }
     }
 
     @Test
@@ -211,10 +226,11 @@ public class RenameProjectCommandIntegrationTest {
     }
 
     @Test
-    public void execute_directMerge_cannotBypassConfirmation() {
+    public void execute_directMerge_updatesModelImmediately() throws Exception {
         RenameProjectCommand command = new RenameProjectCommand(new Project("CS2103T"), new Project("Orbital"));
-        assertThrows(CommandException.class, () -> command.execute(model));
-        assertFalse(model.canUndo());
+        assertTrue(command.execute(model).getFeedbackToUser().startsWith("Merged project"));
+        assertProjects(List.of(List.of("Orbital", "Internship"), List.of("Internship", "Orbital"),
+                List.of("Orbital", "Unrelated"), List.of("CS2103T Team B")));
     }
 
     private Logic createLogic(Model targetModel) {
@@ -222,9 +238,8 @@ public class RenameProjectCommandIntegrationTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
     }
 
-    private void assertWarning(CommandResult result) {
-        assertTrue(result.getFeedbackToUser().contains("Enter the same command again to confirm."));
-        assertTrue(result.getFeedbackToUser().contains("all destination associations"));
+    private List<String> filteredNames() {
+        return model.getFilteredPersonList().stream().map(person -> person.getName().fullName).toList();
     }
 
     private void assertProjects(List<List<String>> expected) {

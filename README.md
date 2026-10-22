@@ -24,12 +24,13 @@ duplicate-contact handling, and data recovery.
 - Allow identical names while rejecting shared phone numbers, emails, or Telegram usernames.
 - Find contacts by partial name keywords or a project-name phrase.
 - Associate additional projects, delete contacts by displayed index, and undo supported changes during the session.
-- Rename projects across contacts, correct their display capitalisation, or confirm a merge into an existing project.
+- Rename projects across contacts, correct their display capitalisation, or merge into an existing project.
 - List all contacts, clear the address book, open command help, and exit the app.
 
 The MVP command set is `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Beyond the MVP, `edit` changes a contact's name, phone number, email or Telegram username. Projects are added
-with `project` and renamed globally with `renameproject`; replacing or removing an individual association is not supported.
+Beyond the MVP, `edit` changes a contact's name, phone number, email or Telegram username, and `sort` orders
+contacts by name. Projects are added with `project`, replaced on one contact with `replaceproject`, removed
+with `deleteproject`, and renamed or merged across all contacts with `renameproject`.
 
 ## UI
 

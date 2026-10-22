@@ -5,42 +5,40 @@ skinparam ArrowFontStyle plain
 participant ":LogicManager" as Logic LOGIC_COLOR
 participant ":AddressBookParser" as Parser LOGIC_COLOR
 participant "command:RenameProjectCommand" as Command LOGIC_COLOR
-participant "plan:RenamePlan" as Plan LOGIC_COLOR
 participant ":Model" as Model MODEL_COLOR
 participant ":Storage" as Storage STORAGE_COLOR
 
 [-> Logic : execute(input)
 activate Logic
-Logic -> Logic : take and clear pending confirmation
 Logic -> Parser : parseCommand(input)
 Parser --> Logic : command
 Logic -> Model : getAddressBook()
-Model --> Logic : current data
-Logic -> Command : prepare(current data)
-Command --> Logic : plan (validated replacement)
-alt merge needs a new confirmation
-    Logic -> Logic : remember command
-    [<-- Logic : warning (no save or undo entry)
-else immediate rename or confirmed merge
-    Logic -> Model : getAddressBook()
-    Model --> Logic : before snapshot
-    Logic -> Storage : saveAddressBook(plan.getUpdatedAddressBook())
-    note right of Storage
-        Write sibling temporary file,
-        then atomically replace data file.
+Model --> Logic : before snapshot
+Logic -> Command : execute(model)
+activate Command
+Command -> Model : getAddressBook()
+Model --> Command : all contacts
+Command -> Command : validate and build replacement
+alt invalid source or no changes
+    Command --> Logic : CommandException
+    [<-- Logic : error (no save or undo entry)
+else rename or merge
+    Command -> Model : setAddressBook(replacement)
+    note right of Model
+        Keep the current filter.
+        Re-evaluate matching contacts.
     end note
+    Command --> Logic : result (includes undo reminder)
+    Logic -> Model : saveUndoState(before)
+    Logic -> Storage : saveAddressBook(current data)
     alt save fails
         Storage --> Logic : IOException
-        [<-- Logic : save error (model and undo unchanged)
+        [<-- Logic : save error (in-memory change remains undoable)
     else save succeeds
         Storage --> Logic
-        Logic -> Plan : applyTo(model)
-        Plan -> Model : setAddressBook(replacement)
-        Plan -> Model : updateFilteredPersonList(show all)
-        Plan --> Logic : result
-        Logic -> Model : saveUndoState(before)
         [<-- Logic : success
     end
 end
+deactivate Command
 deactivate Logic
 @enduml

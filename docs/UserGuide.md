@@ -12,7 +12,8 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
-contact's name, phone number, email or Telegram username; projects are added with `project` and renamed or
+contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
+with `project`, removed with `deleteproject`, replaced individually with `replaceproject`, and renamed or
 merged across contacts with `renameproject`.
 
 <!-- * Table of Contents -->
@@ -76,7 +77,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * `INDEX` always refers to the current displayed list, including search results. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `sort`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -89,9 +90,8 @@ into your browser. You can also open help through the Help menu or `F1`.
 
 Format: `help`
 
-The reference includes all twelve commands. Resize the help window or scroll to reach later commands and
+The reference lists every command. Resize the help window or scroll to reach later commands and
 the Copy URL button.
-
 
 ### Adding a person: `add`
 
@@ -101,7 +101,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
 <box type="tip" seamless>
 
-**Tip:** Every new contact must have one initial project. Contacts saved before this requirement may still have no project;
+**Tip:** Every new contact must have one initial project. Contacts can have no projects after `deleteproject` or when loaded from older files;
 use `project` to associate them with one later.
 
 For a new phone number, enter `+` followed by a country calling code and a national number. The `+` must be
@@ -162,9 +162,9 @@ Address and tags are no longer contact fields. The `add` and `edit` commands rej
 
 ### Associating an existing contact with a project: `project`
 
-Adds one project to an existing contact, preserving their other projects and contact details.
+Adds one project to one or more existing contacts, preserving their other projects and contact details.
 
-Format: `project INDEX pr/PROJECT`
+Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
 * Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace
@@ -174,69 +174,69 @@ Format: `project INDEX pr/PROJECT`
 * The new project is appended after existing projects. The current search filter is preserved.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
   These input errors leave contacts unchanged.
-* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates a saved contact.
+* Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
+* Supply distinct positive indices separated by spaces, for example `project 1 3 5 pr/CS2103T`.
+  All indices refer to the displayed list at the start of the command; repeated indices are rejected with a message identifying the repeated index.
+* All selected contacts are checked before any changes are applied. If any index is invalid or any
+  contact already has the project, the entire command is rejected and undo history is unchanged.
+  Duplicate-project errors list every conflicting selected contact by displayed index and name, in input order.
+* A successful command appends the project to every selected contact and reports the selected contacts.
+  Other contacts are unchanged. One `undo` reverses the entire operation.
 
 Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
+* `project 1 3 5 pr/CS2103T` adds CS2103T to displayed contacts 1, 3 and 5 as one undoable operation.
 
-### Renaming or merging a project: `renameproject`
+### Replacing a contact's project association: `replaceproject`
 
-Renames a project across **all saved contacts**, including contacts hidden by a search. Contact details and
-unrelated projects are preserved. This command does not rename a project for just one contact.
+Replaces one project on one contact, preserving their other details and project order.
+Other contacts associated with the old project remain unchanged.
 
-Format: `renameproject old/OLD_NAME new/NEW_NAME`
+Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
-* Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
-* Project names follow the existing 1–40 Unicode-code-point limit after whitespace normalisation.
-* Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
-* If the destination is new, the rename happens immediately. The new name keeps its position in each project list.
-* Case-only changes, such as `orbital` to `Orbital`, update the displayed spelling immediately across all matching
-  associations. They do not merge separate projects. If every association already has the requested spelling,
-  the command reports `No changes made.` without saving or adding an undo entry.
-* An unknown source produces an error and changes nothing.
-* On success, all contacts are displayed and the message reports the number of contacts actually changed.
-  The whole operation is one `undo` step, including its original capitalisation and project ordering.
+* `INDEX` is a positive index in the currently displayed list, including search results.
+* Both names follow the existing 1-40 printable character project rules. Surrounding whitespace is
+  removed, repeated whitespace is collapsed, and matching ignores case.
+* The old project must belong to the selected contact. The new project must not duplicate another
+  association on that contact. Capitalization corrections
+  are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
+  spelling exactly matches the stored spelling, regardless of how the old name was typed.
+* Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or
+  invalid names and invalid indices produce an error without changing the contact.
+* The replacement keeps the old project's position. The active filter is preserved, so a contact
+  may disappear from `findproject` results when its replacement no longer matches.
+* Successful changes are saved and can be reversed with `undo`.
+* A space followed by `old/` or `new/` is interpreted as a command prefix, so these sequences
+  cannot be included literally in a project name in this command.
 
-**Merging into an existing project**
+Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
+first displayed contact. The success message identifies the old project, new project and contact.
 
-If a different destination project already exists (ignoring case), the first submission shows a warning:
+### Removing a contact's project association: `deleteproject`
 
-> Project "Orbital" already exists. This will merge "CS2103T" into "Orbital", combining memberships and using
-> the spelling "Orbital" for all destination associations. Enter the same command again to confirm.
+Removes one project from one or more selected contacts. The contact and other contacts associated with the same project
+remain saved, and the remaining projects retain their order.
 
-The actual warning also states how many contacts will change. This first submission does not change contacts,
-search results, saved data, or undo history. Enter the command again as your next submission to confirm.
-Prefix order, source capitalisation and normalised whitespace may differ; the destination's requested spelling
-must stay the same. Any other submitted command, including one that fails, cancels the pending confirmation.
-A different merge request starts a new warning. Closing the app also cancels confirmation.
+Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
-A confirmed merge removes duplicate memberships. If a contact belongs to both projects, the destination stays
-in its existing position and the source is removed. All destination associations use the requested spelling,
-including on contacts that did not belong to the source. Each changed contact is counted once.
+* `INDEX` is a positive index in the currently displayed list, including search results.
+* The name follows the existing 1-40 printable character project rules. Matching ignores case,
+  removes surrounding whitespace and collapses repeated whitespace.
+* The specified project must belong to every selected contact. Missing or invalid indices, missing or
+  invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
+* Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
+  Repeated-index errors identify the repeated index. If any index is invalid or any selected contact lacks
+  the project, the entire batch is rejected without changing contacts or undo history. Missing-association
+  errors list all affected selections by displayed index and name; out-of-range indices take precedence.
+* One `undo` restores all associations removed by a successful batch.
+* Removing the last project is allowed and leaves the contact with no projects.
+* The current search filter is preserved. A contact may disappear from `findproject` results after removal.
+* Successful removal is saved and can be reversed with `undo`.
 
-Examples:
-
-* `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
-* `renameproject old/orbital new/Orbital` standardises display capitalisation without a warning.
-* If `orbital` already exists, enter `renameproject old/CS2103T new/Orbital` twice consecutively to merge.
-
-**Quoted names**
-
-Names may be enclosed in double quotes. Quote the entire value when it starts with `old/` or `new/`, contains
-either prefix after whitespace, or begins with a literal double quote. Inside quoted values, use `\"` for a double quote and
-`\\` for a literal backslash; other escape sequences are rejected. Quotes must enclose the entire value.
-Unquoted backslashes and quotes that do not start a value are literal characters. Quoting is specific to
-`renameproject`; it does not change the syntax of other commands.
-
-Examples:
-
-* `renameproject old/"Team new/Alpha" new/"Team Beta"`
-* `renameproject old/"Team \"Blue\"" new/"Team \\ Blue"`
-
-Renames and merges are saved before changing the displayed contacts or undo history. If saving fails, those
-remain unchanged. Correct the storage problem and retry; a failed merge consumes confirmation, so it must be
-confirmed again.
+Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
+Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
+The success message identifies the project and selected contacts.
 
 ### Listing all persons: `list`
 
@@ -246,6 +246,71 @@ Clears the current search filter. Shows `Listed all contacts.` when contacts exi
 when the list is empty.
 
 Format: `list`
+
+### Sorting contacts by name: `sort`
+
+Sorts all saved contacts alphabetically by name and saves the new order.
+
+Format: `sort`
+
+* Names are compared ignoring case, so `alex Tan` comes before `Bernice Yu`. Names that differ only in case are
+  ordered by their exact spelling, and contacts with the same name are ordered by phone number, so the result is
+  always the same.
+* Names are compared character by character, so `Alex 10` comes before `Alex 2`.
+* The new order is saved and kept after you restart LinkUp. Contacts you add later are placed at the end until
+  you sort again.
+* All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
+  now in sorted order.
+* Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
+* On success, LinkUp shows `Sorted N contact(s) by name.`, where N is the number of saved contacts.
+* If the contacts are already in order, LinkUp shows `Contacts are already sorted by name.`. If there are no
+  contacts, it shows `No contacts saved yet.`. Neither case changes anything or adds an undo entry.
+* `undo` restores the previous order.
+
+Examples:
+* `sort` puts the whole contact list in name order.
+* `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
+
+### Renaming or merging a project: `renameproject`
+
+Renames a project across **all saved contacts**, including contacts hidden by a search. Contact details and
+unrelated projects are preserved. Use `replaceproject` to change an association on just one contact.
+
+Format: `renameproject old/OLD_NAME new/NEW_NAME`
+
+* Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
+* Project names follow the existing 1–40 Unicode-code-point limit after whitespace normalisation.
+* Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
+* If the destination is new, the new name keeps the source's position in each project list.
+* Case-only changes, such as `orbital` to `Orbital`, update the displayed spelling across all matching
+  associations. If every association already has the requested spelling, the command reports
+  `No changes made.` without saving or adding an undo entry.
+* An unknown source produces an error and changes nothing.
+* The current search filter is preserved. Contacts may enter or leave `findproject` results when their
+  renamed projects start or stop matching the search. Contacts hidden by the filter are still updated.
+* Successful changes are saved automatically. The message reports the number of contacts actually changed.
+  One `undo` reverses the entire rename or merge, including original capitalisation and project order.
+* Quotation marks and backslashes are literal characters. For example, `old/"CS2103T"` matches only a
+  project whose name includes the quotation marks; it does not match `CS2103T`.
+* As with `replaceproject`, a space followed by `old/` or `new/` is a command prefix. These sequences
+  cannot appear literally inside a name in this command; adding quotation marks does not escape them.
+
+**Merging into an existing project**
+
+If a different destination project already exists (ignoring case), the command merges immediately.
+If a contact belongs to both projects, the destination stays in its existing position and the source is removed.
+All destination associations use the requested spelling, including on contacts that did not belong to the
+source. Each changed contact is counted once. The success message reminds you to use `undo` to reverse it.
+
+Examples:
+
+* `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
+* `renameproject old/orbital new/Orbital` standardises display capitalisation.
+* If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
+
+Like other commands that change contacts, rename updates the current session before saving. If saving fails,
+the change remains in memory with an undo entry. Correct the storage problem, then use `undo` to restore the
+previous state or another successful command to save the current state.
 
 ### Editing a person: `edit`
 
@@ -266,7 +331,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
-  Removing or replacing a project association for just one contact is not supported. Use `renameproject`
+  Use `replaceproject` to replace one association, `deleteproject` to remove associations, or `renameproject`
   to rename across all contacts. Address (`a/`) and tags (`t/`) are no longer supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
   hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
@@ -334,6 +399,43 @@ Examples:
 * `findproject team alpha` finds contacts whose project names contain the phrase `team alpha`, ignoring case.
 * `findproject orbital` followed by `delete 1` deletes the first contact in those search results.
 
+### Listing all projects: `projects`
+
+Shows every project saved in LinkUp, with the number of contacts associated with each.
+
+Format: `projects`
+
+* The command takes **no parameters**. Surrounding spaces are allowed, but anything else after `projects` is
+  rejected with `Invalid command format!` followed by this command's usage. For example, `projects 2 pr/Orbital`
+  is rejected rather than treated as `projects`, so a mistyped `project 2 pr/Orbital` cannot be mistaken for success.
+* All saved contacts are counted, including contacts hidden by `find` or `findproject`. The displayed contact
+  list and its search filter stay unchanged.
+* Projects that differ only in letter case, such as `CS2103T tP` and `cs2103t TP`, count as one project. It is shown
+  with the spelling of the first contact that has it, in saved contact order.
+* Projects are sorted by comparing their names after conversion to lowercase. This is not language-specific
+  dictionary ordering; for example, `#Team` appears before `Alpha`, while `~Team`, `Élan`, and `数据` appear
+  after `Zeta`.
+* Each project is shown on its own line as `- PROJECT (N contacts)`, or `(1 contact)` for a single contact.
+  The lines have no index numbers: `INDEX` in other commands always refers to a contact, never to a project.
+* The first line reads `Listed N projects across all contacts:` (or `Listed 1 project across all contacts:`).
+* Contacts without any projects are not counted. If no contact has a project, the message is
+  `No projects saved yet.`
+* The list appears in the result box below the command box. Scroll the result box if there are more projects than
+  fit in it.
+* `projects` does not change any contact and does not add an `undo` entry.
+
+Examples:
+
+* With contacts in `Orbital`, `CS2101 OP` and `Hackathon 2026`, `projects` shows:
+  ```
+  Listed 3 projects across all contacts:
+  - CS2101 OP (2 contacts)
+  - Hackathon 2026 (1 contact)
+  - Orbital (3 contacts)
+  ```
+* `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
+  `hackathon 2026`, ignoring case.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -367,12 +469,15 @@ Undo the last supported command. The supported commands are:
 * `edit`
 * `clear`
 * `project`
+* `replaceproject`
 * `renameproject` (the entire rename or merge)
+* `sort`
+* `deleteproject`
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
-`No changes made.`. Commands such as `find`, `findproject`, `list`, and `help` do not add undo entries.
+`No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
 A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
@@ -390,8 +495,7 @@ Format: `exit`
 ### Saving the data
 
 LinkUp automatically attempts to save after each successfully executed command, including searches and `list`.
-Commands rejected during parsing or validation do not save. A pending merge warning also does not save.
-There is no separate save command.
+Commands rejected during parsing or validation do not save. There is no separate save command.
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
@@ -400,9 +504,6 @@ If a save error appears, the displayed contact list may already contain your cha
 Keep the application open, correct the storage or permission problem, then run `list` to retry saving the current
 contacts. Do not repeat an `add` blindly, as the contact may already be in the list. If you want to reverse the change,
 use `undo` after fixing storage. An undo that cannot save leaves the contacts and undo history unchanged and can be retried.
-
-Contact-file writes use a temporary file in the same directory followed by atomic replacement. A failed write
-or an unsupported atomic replacement leaves the existing contact file intact. The data directory must be writable.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
@@ -480,7 +581,11 @@ Action     | Format, Examples
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
 **Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
-**Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
+**Sort**   | `sort`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
+**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**List projects** | `projects`
 **Help**   | `help`
 **Undo**   | `undo`
 **Exit**   | `exit`

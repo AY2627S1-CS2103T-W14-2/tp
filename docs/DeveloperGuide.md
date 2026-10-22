@@ -148,7 +148,6 @@ The `Model` component,
 
 
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
@@ -179,13 +178,15 @@ goes beyond it, covering name, phone, email and Telegram username; see
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
-`renameproject`, `undo`, `help`, and `exit`. Command words are case-sensitive.
+`projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
+Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
 `EditCommandParser` accepts `n/`, `p/`, `e/`, and `tele/`, requires at least one of them, and rejects `pr/`.
-Replacing or removing individual associations is deferred; `renameproject` renames or merges across all contacts.
+Individual project replacement is supported by `replaceproject`, and removal by `deleteproject`.
+`renameproject` renames or merges a project across all contacts.
 Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
 field's value, so callers must use the documented grammar.
 
@@ -209,8 +210,8 @@ before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compare
 For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
 
 Both search commands replace the predicate on the full address book rather than searching only the previous
-results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
-`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
+results. `delete`, `edit`, `project`, `replaceproject`, and `deleteproject` resolve one-based indices against the displayed list.
+`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, `replaceproject`, `deleteproject` and a failed or
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
@@ -314,24 +315,76 @@ filter avoids introducing a separate project index or changes to storage and the
 
 ### Project association implementation
 
-The `project INDEX pr/PROJECT` command implements UC03. `AddressBookParser` delegates to
-`ProjectCommandParser`, which parses the displayed index and requires exactly one project prefix.
-`ParserUtil.parseProject` reuses the shared `Project` validation and normalisation rules.
+The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or more contacts.
+`AddressBookParser` delegates to `ProjectCommandParser`, which splits the index preamble on whitespace,
+validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
+project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-`ProjectCommand` resolves the index against `Model.getFilteredPersonList()`, checks whether the
-normalised project already exists, and copies the contact's immutable project list before appending
-the new project. It constructs a replacement `Person` with all other fields preserved and calls
-`Model.setPerson`. Keeping the active predicate preserves the user's search context.
+`ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
+and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
+A duplicate association or invalid index rejects the whole command, so earlier valid selections are
+not changed. Duplicate errors list all conflicting contacts by displayed index and name, in input order.
+Out-of-range indices take precedence over association conflicts; no updates occur in either case.
 
-Projects are stored as an ordered list to retain display order. Duplicate detection uses `Project.equals`,
-so casing and redundant whitespace do not create separate associations. Invalid indices and duplicate
-associations throw `CommandException` before any model mutation; malformed arguments throw `ParseException`.
+Each replacement appends the project while preserving existing project order and all contact details.
+Selected contacts are captured before mutation, so changes to filtered results cannot redirect later
+updates. The active predicate is retained. Contacts outside the selection remain unchanged.
 
-The existing `LogicManager` saves the updated address book through JSON storage after execution.
-No new storage format or UI component is required: both already support a contact's project list.
-Command tests cover filtered indices, preservation of fields and order, and duplicate rejection.
-Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
-filtered selection, rejected operations, and a JSON round trip.
+The existing `LogicManager` records one snapshot for the entire command and persists the resulting
+address book. One `undo` restores all affected contacts; rejected commands leave undo history intact.
+No new storage format is needed. FINE logs record parsing failures, rejected selections and success counts.
+
+Tests cover single-contact compatibility, multiple indices, malformed or repeated indices, normalization,
+validation before mutation, filtered-list changes, persistence, one-step undo and diagnostic output.
+Manual check: run `findproject Team`, then `project 1 2 pr/Orbital`; verify both selected contacts gain
+Orbital. Run `undo` once and verify both associations are removed. Try a valid index followed by an
+out-of-range index and verify neither contacts nor undo history change.
+
+
+### Replacing a project association
+
+`replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT` changes one association on one contact.
+`AddressBookParser` dispatches to `ReplaceProjectCommandParser`, which requires one of each prefix
+and reuses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for validation.
+
+`ReplaceProjectCommand` resolves the displayed index, locates the old project with `Project.equals`,
+and rejects missing associations, unchanged stored spelling or duplicate replacements before mutation.
+It copies the ordered
+project list, replaces the matching entry in place, and constructs a new `Person` preserving all
+other fields. `Model.setPerson` retains the active predicate; a changed contact may leave the results.
+This is a local association change, not a global project rename.
+
+The command returns `isUndoable() == true`, allowing `LogicManager` to save the prior snapshot
+only after successful execution. Existing JSON storage persists the replacement without schema changes.
+Parser and command tests cover normalization, boundaries, invalid inputs, duplicates and filtered indices.
+The integration test verifies dispatch, filter re-evaluation, JSON persistence and undo after rejected commands.
+
+### Removing a project association
+
+`deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
+including their last project.
+`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
+and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
+
+`DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
+It locates the project using `Project.equals`,
+which ignores case and normalizes whitespace. Invalid indices and missing associations are rejected
+before mutation. Missing-association errors list all conflicting selections; invalid indices take precedence.
+The parser rejects repeated indices with a specific message. The command copies each ordered project list,
+removes the matched entry and constructs
+an updated `Person` preserving all contact details. `Model.setPerson` preserves the active filter,
+which may remove the contact from the visible results. Other contacts are unchanged.
+
+Single-contact success retains the stored project spelling; batch success identifies the project
+and all selected contacts. FINE logs record
+successful removal and rejection reasons. `isUndoable()` enables the existing snapshot mechanism;
+failed commands do not replace undo history. One undo restores the entire batch.
+Existing JSON storage supports empty project lists.
+Parser and command tests cover validation, normalization, order, last-project removal and diagnostics.
+An integration test covers filtered selection, disappearance from results, persistence and undo after errors.
+
+Manual check: run `findproject CS2103T`, then `deleteproject 1 pr/cs2103t`. Confirm the selected
+contact leaves the results. Run `list` to verify the contact remains saved, then `undo` to restore its project.
 
 ### Edit command implementation
 
@@ -381,44 +434,67 @@ no-change detection and filter handling. `EditCommandParserTest` covers the pars
 
 ### Project renaming and merging
 
-`RenameProjectCommandParser` parses `old/` and `new/` in either order, rejecting missing, blank or repeated
-arguments and unexpected preamble. It uses a command-local scanner because the shared `ArgumentTokenizer`
-cannot distinguish a delimiter from literal prefix text inside a quoted project name. Double-quoted values
-support escaped quotes and backslashes; all decoded values go through `ParserUtil.parseProject`.
+`RenameProjectCommandParser` uses the shared `ArgumentTokenizer` to parse `old/` and `new/` in either order,
+rejecting missing, blank or repeated arguments and unexpected preamble. Values go through
+`ParserUtil.parseProject`. Quotes and backslashes remain literal, as in `replaceproject`; a space followed
+by a recognised prefix is always a delimiter, even inside quotation marks.
 
-`RenameProjectCommand.prepare` reads the full address book and builds a validated `RenamePlan` without mutation.
-Case-insensitive `Project.equals` identifies memberships, while exact display strings identify actual changes.
-The replacement preserves contact details (including legacy values), contact order and unrelated project order.
-For merges, an existing destination association retains its position; the source is removed when both occur.
-Destination-only contacts also receive the requested spelling. Changed contacts are counted once.
+`RenameProjectCommand.execute` reads the full address book and validates a complete replacement before
+changing the model. Case-insensitive `Project.equals` identifies memberships, while exact display strings
+identify actual changes. The replacement preserves contact details (including legacy values), contact order
+and unrelated project order. For merges, an existing destination association retains its position; the source
+is removed when both occur. Destination-only contacts also receive the requested spelling. Changed contacts
+are counted once, and `Locale.ROOT` keeps the displayed count independent of the system locale.
 
-`LogicManager` consumes its pending rename before parsing every submitted command, so parsing and execution
-failures cancel confirmation. A merge warning returns before saving or pushing an undo snapshot. Confirmation
-matches source identity and exact normalised destination spelling, independent of prefix order. Every attempt
-recomputes the plan against current model data. Pending state is session-only and consumed even if saving fails.
-Direct execution of a merging command rejects rather than bypassing the confirmation coordinator.
+Ordinary renames, case-only corrections and merges execute immediately through the same command path.
+`Model.setAddressBook` installs the replacement without changing the current filter. The live filtered list
+re-evaluates the renamed contacts, so a project search may gain or lose results. `LogicManager` records one
+undo snapshot and saves through the normal command flow. The success message mentions `undo`. There is no
+pending confirmation state or rename-specific branch in `LogicManager`.
 
-For a confirmed merge or immediate rename, LogicManager snapshots the original address book, saves the prepared
-replacement, then applies it through `Model.setAddressBook`, shows all contacts and pushes one undo snapshot.
-A save failure leaves model data, filter and undo history unchanged. Case-only changes must never be detected
-with `AddressBook.equals` or `Person.equals`, because their project comparisons ignore case.
+Case-only changes must never be detected with `AddressBook.equals` or `Person.equals`, because their project
+comparisons ignore case. The shared persistence and save-failure behaviour described below applies to rename:
+a failed save leaves the in-memory change and its undo entry available.
 
 <puml src="diagrams/RenameProjectSequenceDiagram.puml" width="850" />
 
-Contact persistence serialises to a sibling temporary file and uses `Files.move` with `ATOMIC_MOVE` and
-`REPLACE_EXISTING` only after serialisation succeeds. There is no non-atomic fallback: unsupported file systems
-report a save error. Temporary files are cleaned up, and existing legacy-data backup rules still run first.
-This protects the existing file from partial writes for all commands; only rename and undo defer their live
-model updates until persistence succeeds. Other mutation commands retain their existing failure behaviour.
+Tests cover literal quotes and backslashes, Unicode length boundaries, mixed display spelling, hidden contacts,
+merge overlap/order, filter re-evaluation, locale-independent counts, failed saves, restart, and one undo
+restoring exact strings. `RenameProjectUiTest` verifies visible project labels after case-only renaming and undo.
 
-Tests cover decoded quoted names, Unicode length boundaries, mixed display spelling, hidden contacts,
-merge overlap/order, confirmation cancellation, failed saves, restart, and a single undo restoring exact strings.
-`RenameProjectUiTest` verifies that real list cells refresh after case-only renaming and undo.
+### Sort command implementation
+
+`sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
+directly, since the command takes no arguments; extra text is ignored, as for `list` and `clear`.
+
+<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic and Model components for the `sort` command" />
+
+The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`), names
+that differ only in case are ordered by their exact text, and contacts with the same name are ordered by their
+saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
+so the order of any contact list is fully determined.
+
+`SortCommand#execute` throws a `CommandException` when there are no contacts (`No contacts saved yet.`) or when
+they are already in order (`Contacts are already sorted by name.`). Because `LogicManager` records an undo state
+and saves only after a command succeeds, these cases change nothing and add no undo entry, matching
+`edit`'s `No changes made.` handling. Otherwise it calls `Model#sortPersons`, which reaches
+`UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
+The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
+undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
+
+**Design choices:**
+
+* *Reorder and save the list, rather than show a sorted view (e.g. a JavaFX `SortedList`).* Indices then match
+  what is displayed and saved, the order survives a restart, and undo works through the existing snapshot
+  mechanism. The cost is that contacts added later appear at the end until the next `sort`.
+* *Break ties by exact name, then phone, rather than keeping the existing order.* The result depends only on
+  the contacts, not on their history, which keeps the behaviour predictable and easy to test.
 
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
-supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`, and `renameproject`.
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,
+`deleteproject`, `replaceproject`, `renameproject`, and `sort`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
@@ -440,9 +516,8 @@ There is no redo command.
 
 ### Persistence and save failures
 
-Apart from the save-before-apply paths for undo and project renaming, `LogicManager` saves the complete address
-book after each command executes successfully, including `find`, `findproject`, and `list`. Parsing and
-validation failures and pending merge warnings do not save.
+Apart from the special undo path above, `LogicManager` saves the complete address book after each command
+executes successfully, including `find`, `findproject`, and `list`. Parsing and validation failures do not save.
 The data path is `data/addressbook.json`, relative to the launch folder; `preferences.json` records GUI
 settings. Both paths are constants in `MainApp`. Shutdown saves preferences, not a separate copy of contact data.
 
@@ -453,7 +528,7 @@ This differs from validation failure, which leaves contacts unchanged.
 
 ### Deferred features
 
-Editing or removing individual project associations, notes, roles, sorting, archiving,
+Notes, roles, sorting by project, archiving,
 and redo are not implemented. The user stories below include backlog ideas; they are not claims about
 commands available in this release. No archiving design has been implemented yet.
 
@@ -493,15 +568,15 @@ not commitments.
   book, reducing the need to search across separate course or project contact
   lists.
 
-
 ### User stories
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
-Editing covers name, phone, email and Telegram username. `renameproject` renames or merges project names globally;
-individual associations cannot be replaced or removed. New contacts require all five add fields; optional missing
-Telegram/project data is supported only when loading legacy files. Notes, roles, project removal, sorting,
-archiving, multi-criteria search, and highlighting which project matched remain backlog items.
+Editing covers name, phone, email and Telegram username. Project associations can be replaced with
+`replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
+New contacts require all five add fields; optional missing Telegram/project data is supported only when
+loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
+multi-criteria search, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -819,17 +894,18 @@ each successful rename below, use `undo` to restore that fixture before trying t
 
 | Input | Expected result |
 | --- | --- |
-| `find David`, then `renameproject old/Team Alpha new/Team Gamma` | The hidden Alex's project is renamed; all contacts are shown. |
+| `find David`, then `renameproject old/Team Alpha new/Team Gamma` | The hidden Alex's project is renamed; only David remains displayed. |
+| `findproject Team Alpha`, then `renameproject old/Team Alpha new/Team Gamma` | No contacts remain in the current results; the renamed Alex is still saved. |
+| `findproject Orbital`, then `renameproject old/Team Alpha new/Orbital` | Both Alex contacts appear immediately; one undo restores all associations. |
 | `renameproject old/orbital new/ORBITAL` | Display spelling changes immediately; undo restores `Orbital`. |
-| `renameproject old/Team Alpha new/Orbital` | Warning only. Contacts, filter, file and undo history remain unchanged. |
-| Repeat the preceding command immediately | Memberships merge; one undo restores all original associations. |
-| Request that merge, enter an invalid command, then request it again | The final request warns again. |
-| `renameproject old/Team Alpha new/"Team new/Blue"` | The literal name is saved. Undo restores the original. |
+| `renameproject old/Team Alpha new/Orbital` | Memberships merge immediately; the message mentions undo. |
+| `renameproject old/"Team Alpha" new/Orbital` | Source not found: quotation marks are part of the name. |
+| `renameproject old/Team Alpha new/"Team Blue"` | The saved project name includes both quotation marks. |
 | `renameproject old/Missing new/Orbital` | Error; nothing changes. |
 
-After a successful rename, restart from the same test folder and verify the saved names. A failed rename save
-must leave contacts, filter and undo unchanged; a failed merge must require confirmation again after storage
-is fixed. Automated tests inject write failures without relying on platform-specific permissions.
+After a successful rename, restart from the same test folder and verify the saved names. If a save fails,
+expect the normal command behaviour: the in-memory rename and its undo entry remain. Once storage is fixed,
+`undo` restores and saves the previous state. Automated tests inject failures without OS-specific permissions.
 
 ### Undo and restart
 
@@ -837,6 +913,19 @@ is fixed. Automated tests inject write failures without relying on platform-spec
 2. Run `undo`. Expect the three contacts to return. `list` has not consumed or added an undo entry.
 3. Run `edit 1 n/Alex Updated`, then `undo`. Expect the original name and all contacts.
 4. Run `exit` and relaunch from the same folder. Expect the restored contacts and `undo` to report no history.
+
+### Sorting contacts
+
+Start from the prepared contacts.
+
+1. Add a contact whose name comes first alphabetically, e.g.
+   `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`. Expect it at the end of the list.
+2. Run `sort`. Expect `Sorted 4 contact(s) by name.` and the order Aaron Lim, Alex Tan (`+6587654321`),
+   Alex Tan (`+6591234567`), David Lim: the two namesakes are ordered by phone.
+3. Run `sort` again. Expect `Contacts are already sorted by name.` and no change.
+4. Run `undo`. Expect Aaron back at the end; the repeated `sort` did not add an undo entry.
+5. Run `find alex`, then `sort`. Expect the Alex results to stay displayed, now in name order.
+6. Run `exit` and relaunch from the same folder. Expect the sorted order from step 5 to be kept.
 
 ### Missing, unreadable and legacy files
 

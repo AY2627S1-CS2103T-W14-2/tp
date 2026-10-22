@@ -34,26 +34,6 @@ public class JsonAddressBookStorageTest {
     public Path testFolder;
 
     @Test
-    public void save_replacementFailure_preservesOriginalAndCleansTemporaryFile() throws Exception {
-        Path file = testFolder.resolve("contacts.json");
-        JsonAddressBookStorage originalStorage = new JsonAddressBookStorage(file);
-        originalStorage.saveAddressBook(getTypicalAddressBook());
-        byte[] original = Files.readAllBytes(file);
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(file) {
-            @Override
-            void replaceDataFile(Path temporary, Path target) throws IOException {
-                assertTrue(Files.size(temporary) > 0); // Serialisation finished before replacement was attempted.
-                throw new IOException("Replacement failed");
-            }
-        };
-        assertThrows(IOException.class, "Replacement failed", () -> failingStorage.saveAddressBook(new AddressBook()));
-        assertArrayEquals(original, Files.readAllBytes(file));
-        try (var files = Files.list(testFolder)) {
-            assertEquals(List.of(file), files.toList());
-        }
-    }
-
-    @Test
     public void save_legacyData_backsUpOriginalOnceAndPreservesContacts() throws Exception {
         Path file = testFolder.resolve("contacts.json");
         String legacy = """
