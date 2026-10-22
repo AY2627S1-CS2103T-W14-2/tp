@@ -13,7 +13,7 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 **MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
 Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
 contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
-with `project` and cannot be edited.
+with `project` and removed individually with `deleteproject`.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -92,7 +92,6 @@ Format: `help`
 The reference lists every command. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
-
 ### Adding a person: `add`
 
 Adds a person to the address book.
@@ -101,7 +100,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
 <box type="tip" seamless>
 
-**Tip:** Every new contact must have one initial project. Contacts saved before this requirement may still have no project;
+**Tip:** Every new contact must have one initial project. Contacts can have no projects after `deleteproject` or when loaded from older files;
 use `project` to associate them with one later.
 
 For a new phone number, enter `+` followed by a country calling code and a national number. The `+` must be
@@ -180,6 +179,31 @@ Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
 
+### Removing a contact's project association: `deleteproject`
+
+Removes one project from one or more selected contacts. The contact and other contacts associated with the same project
+remain saved, and the remaining projects retain their order.
+
+Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
+
+* `INDEX` is a positive index in the currently displayed list, including search results.
+* The name follows the existing 1-40 printable character project rules. Matching ignores case,
+  removes surrounding whitespace and collapses repeated whitespace.
+* The specified project must belong to every selected contact. Missing or invalid indices, missing or
+  invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
+* Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
+  Repeated-index errors identify the repeated index. If any index is invalid or any selected contact lacks
+  the project, the entire batch is rejected without changing contacts or undo history. Missing-association
+  errors list all affected selections by displayed index and name; out-of-range indices take precedence.
+* One `undo` restores all associations removed by a successful batch.
+* Removing the last project is allowed and leaves the contact with no projects.
+* The current search filter is preserved. A contact may disappear from `findproject` results after removal.
+* Successful removal is saved and can be reversed with `undo`.
+
+Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
+Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
+The success message identifies the project and selected contacts.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -232,7 +256,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
 * Each prefix can appear only once. `edit 1 n/Al n/Al` is rejected, even though both values are the same.
 * Projects cannot be edited. Supplying `pr/` rejects the whole command with
   `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`
-  Removing or renaming a project association is not supported. Address (`a/`) and tags (`t/`) are no longer
+  Use `deleteproject` to remove one association. Renaming an association is not supported. Address (`a/`) and tags (`t/`) are no longer
   supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
   hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
@@ -300,6 +324,43 @@ Examples:
 * `findproject team alpha` finds contacts whose project names contain the phrase `team alpha`, ignoring case.
 * `findproject orbital` followed by `delete 1` deletes the first contact in those search results.
 
+### Listing all projects: `projects`
+
+Shows every project saved in LinkUp, with the number of contacts associated with each.
+
+Format: `projects`
+
+* The command takes **no parameters**. Surrounding spaces are allowed, but anything else after `projects` is
+  rejected with `Invalid command format!` followed by this command's usage. For example, `projects 2 pr/Orbital`
+  is rejected rather than treated as `projects`, so a mistyped `project 2 pr/Orbital` cannot be mistaken for success.
+* All saved contacts are counted, including contacts hidden by `find` or `findproject`. The displayed contact
+  list and its search filter stay unchanged.
+* Projects that differ only in letter case, such as `CS2103T tP` and `cs2103t TP`, count as one project. It is shown
+  with the spelling of the first contact that has it, in saved contact order.
+* Projects are sorted by comparing their names after conversion to lowercase. This is not language-specific
+  dictionary ordering; for example, `#Team` appears before `Alpha`, while `~Team`, `Élan`, and `数据` appear
+  after `Zeta`.
+* Each project is shown on its own line as `- PROJECT (N contacts)`, or `(1 contact)` for a single contact.
+  The lines have no index numbers: `INDEX` in other commands always refers to a contact, never to a project.
+* The first line reads `Listed N projects across all contacts:` (or `Listed 1 project across all contacts:`).
+* Contacts without any projects are not counted. If no contact has a project, the message is
+  `No projects saved yet.`
+* The list appears in the result box below the command box. Scroll the result box if there are more projects than
+  fit in it.
+* `projects` does not change any contact and does not add an `undo` entry.
+
+Examples:
+
+* With contacts in `Orbital`, `CS2101 OP` and `Hackathon 2026`, `projects` shows:
+  ```
+  Listed 3 projects across all contacts:
+  - CS2101 OP (2 contacts)
+  - Hackathon 2026 (1 contact)
+  - Orbital (3 contacts)
+  ```
+* `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
+  `hackathon 2026`, ignoring case.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -334,11 +395,12 @@ Undo the last supported command. The supported commands are:
 * `clear`
 * `project`
 * `sort`
+* `deleteproject`
 
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
-`No changes made.`. Commands such as `find`, `findproject`, `list`, and `help` do not add undo entries.
+`No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
 A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
@@ -442,7 +504,9 @@ Action     | Format, Examples
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
 **List**   | `list`
 **Sort**   | `sort`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Project** | `project INDEX pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**List projects** | `projects`
 **Help**   | `help`
 **Undo**   | `undo`
 **Exit**   | `exit`

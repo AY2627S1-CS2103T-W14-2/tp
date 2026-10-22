@@ -148,7 +148,6 @@ The `Model` component,
 
 
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
@@ -178,14 +177,14 @@ goes beyond it, covering name, phone, email and Telegram username; see
 [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
-`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
+`AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`, `deleteproject`,
 `sort`, `undo`, `help`, and `exit`. Command words are case-sensitive.
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
 `EditCommandParser` accepts `n/`, `p/`, `e/`, and `tele/`, requires at least one of them, and rejects `pr/`.
-Replacing or removing projects is deferred.
+Individual project removal is supported by `deleteproject`; replacement is deferred.
 Unsupported prefixes are not a general extension mechanism: unrecognised text can become part of another
 field's value, so callers must use the documented grammar.
 
@@ -209,8 +208,8 @@ before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compare
 For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
 
 Both search commands replace the predicate on the full address book rather than searching only the previous
-results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
-`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
+results. `delete`, `edit`, `project`, and `deleteproject` resolve one-based indices against the displayed list.
+`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, `deleteproject`, and a failed or
 unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
@@ -333,6 +332,33 @@ Command tests cover filtered indices, preservation of fields and order, and dupl
 Parser tests cover malformed input and length boundaries. An integration test exercises command dispatch,
 filtered selection, rejected operations, and a JSON round trip.
 
+### Removing a project association
+
+`deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
+including their last project.
+`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
+and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
+
+`DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
+It locates the project using `Project.equals`,
+which ignores case and normalizes whitespace. Invalid indices and missing associations are rejected
+before mutation. Missing-association errors list all conflicting selections; invalid indices take precedence.
+The parser rejects repeated indices with a specific message. The command copies each ordered project list,
+removes the matched entry and constructs
+an updated `Person` preserving all contact details. `Model.setPerson` preserves the active filter,
+which may remove the contact from the visible results. Other contacts are unchanged.
+
+Single-contact success retains the stored project spelling; batch success identifies the project
+and all selected contacts. FINE logs record
+successful removal and rejection reasons. `isUndoable()` enables the existing snapshot mechanism;
+failed commands do not replace undo history. One undo restores the entire batch.
+Existing JSON storage supports empty project lists.
+Parser and command tests cover validation, normalization, order, last-project removal and diagnostics.
+An integration test covers filtered selection, disappearance from results, persistence and undo after errors.
+
+Manual check: run `findproject CS2103T`, then `deleteproject 1 pr/cs2103t`. Confirm the selected
+contact leaves the results. Run `list` to verify the contact remains saved, then `undo` to restore its project.
+
 ### Edit command implementation
 
 `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [tele/TELEGRAM]` replaces one or more details of the contact at a
@@ -410,7 +436,7 @@ undoable: `LogicManager` stores the previous address book, and `undo` restores t
 ### Undo command implementation
 
 The `undo` command restores the address book to the state before the most recent successful command that
-supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`, and
+supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,  `deleteproject`, and
 `sort`.
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
@@ -484,7 +510,6 @@ not commitments.
   project-related contacts and their details from one keyboard-driven address
   book, reducing the need to search across separate course or project contact
   lists.
-
 
 ### User stories
 

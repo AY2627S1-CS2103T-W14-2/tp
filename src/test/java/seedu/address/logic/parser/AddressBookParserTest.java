@@ -23,6 +23,7 @@ import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
+import seedu.address.logic.commands.ListProjectsCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -110,6 +111,16 @@ public class AddressBookParserTest {
     public void parseCommand_sort() throws Exception {
         assertEquals(new SortCommand(), parser.parseCommand(SortCommand.COMMAND_WORD));
         assertEquals(new SortCommand(), parser.parseCommand(SortCommand.COMMAND_WORD + " 3"));
+    public void parseCommand_projects() throws Exception {
+        assertEquals(new ListProjectsCommand(), parser.parseCommand(ListProjectsCommand.COMMAND_WORD));
+        assertEquals(new ListProjectsCommand(), parser.parseCommand("  " + ListProjectsCommand.COMMAND_WORD + "  "));
+        assertEquals(new ListProjectsCommand(), parser.parseCommand(ListProjectsCommand.COMMAND_WORD + "\t"));
+        assertThrows(ParseException.class, "Invalid command format!\n" + ListProjectsCommand.MESSAGE_USAGE, ()
+            -> parser.parseCommand(ListProjectsCommand.COMMAND_WORD + " 0"));
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListProjectsCommand.MESSAGE_USAGE), ()
+                    -> parser.parseCommand(ListProjectsCommand.COMMAND_WORD + " 2 pr/Hackathon"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("PROJECTS"));
     }
 
     @Test
