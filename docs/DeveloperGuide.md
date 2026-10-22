@@ -407,10 +407,10 @@ The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or mor
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
 project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-At a high level, execution follows this path:
-`parse all indices and the project → snapshot the displayed list → validate the entire selection → build
-replacement contacts → apply every replacement → record one undo snapshot and save once`.
-The command does not update any contact until every selected index and association has passed validation.
+The sequence diagram below shows how the command validates the complete batch before changing any contact.
+
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760"
+      alt="Interactions inside the Logic and Model components for a multi-contact project command" />
 
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
