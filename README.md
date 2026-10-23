@@ -18,13 +18,15 @@ LinkUp saves contacts under `data/addressbook.json` relative to the folder from 
 See the [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html) for validation rules,
 duplicate-contact handling, and data recovery.
 
-## MVP features
+## Features
 
 - Save names, international phone numbers, emails, Telegram usernames, and an initial project.
 - Allow identical names while rejecting shared phone numbers, emails, or Telegram usernames.
 - Find contacts by partial name keywords or a project-name phrase.
 - Associate additional projects, delete contacts by displayed index, and undo supported changes during the session.
-- Rename projects across contacts, correct their display capitalisation, or merge into an existing project.
+- Add a project to multiple contacts, replace or remove individual associations, list tracked projects, and rename
+  or merge projects across all contacts.
+- Edit contact details, sort contacts by name, and keep the latest and most frequently matched contacts visible.
 - List all contacts, clear the address book, open command help, and exit the app.
 
 The MVP command set is `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
@@ -44,7 +46,7 @@ Visit the [LinkUp product website](https://ay2627s1-cs2103t-w14-2.github.io/tp/)
 
 - [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
 - [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
-- [LinkUp v1.3 Release Notes](docs/ReleaseNotes.md)
+- [LinkUp v1.4 Release Notes](docs/ReleaseNotes.md)
 - [About Us](https://ay2627s1-cs2103t-w14-2.github.io/tp/AboutUs.html)
 
 ## Acknowledgement

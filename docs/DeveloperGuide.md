@@ -407,6 +407,12 @@ The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or mor
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
 project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
+The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
+command validates the complete batch before changing either contact.
+
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760"
+      alt="Interactions inside the Logic and Model components for a multi-contact project command" />
+
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
 A duplicate association or invalid index rejects the whole command, so earlier valid selections are
@@ -659,7 +665,8 @@ not commitments.
 ### User stories
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
-deleting, partial name search, project association and search, same-name contacts, duplicate detection, and undo.
+deleting, partial name search, project association and search, same-name contacts, duplicate detection, undo,
+recent search results, and a session-only most searched contact.
 Editing covers name, phone, email and Telegram username. Project associations can be replaced with
 `replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
 New contacts require all five add fields; optional missing Telegram/project data is supported only when
@@ -694,6 +701,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 | `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
+| `* *`    | student | keep the latest search results visible after listing all contacts      | refer back to the people I just found                            |
+| `* *`    | student | see which contact I have searched for most in this session             | return quickly to a frequently needed contact                    |
 | `*`      | student | search contacts using multiple criteria                                | narrow down ambiguous results                                    |
 | `*`      | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
 | `*`      | student | sort contacts by project                                               | see related contacts together                                    |
