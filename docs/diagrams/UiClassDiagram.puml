@@ -3,6 +3,8 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
+skinparam nodesep 35
+skinparam ranksep 45
 
 package UI <<Rectangle>>{
 Class "<<interface>>\nUi" as Ui
@@ -13,8 +15,14 @@ Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class RecentFindPanel
+Class SearchContactDetails
 Class StatusBarFooter
 Class CommandBox
+}
+
+package JavaFX <<Rectangle>> {
+Class VBox
 }
 
 package Model <<Rectangle>> {
@@ -33,10 +41,13 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
+MainWindow *-down-> "1" RecentFindPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
+MainWindow --> "1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+MainWindow *-down-> "0..1" SearchContactDetails
+RecentFindPanel -down-> "*" SearchContactDetails
 
 MainWindow -left-|> UiPart
 
@@ -44,14 +55,20 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+RecentFindPanel --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
+SearchContactDetails --|> VBox
 
 PersonCard ..> Model
+PersonListPanel ..> Model
+RecentFindPanel ..> Model
+SearchContactDetails ..> Model
 UiManager -right-> Logic
 MainWindow -left-> Logic
 
 PersonListPanel -[hidden]left- HelpWindow
+RecentFindPanel -[hidden]left- PersonListPanel
 HelpWindow -[hidden]left- CommandBox
 CommandBox -[hidden]left- ResultDisplay
 ResultDisplay -[hidden]left- StatusBarFooter
