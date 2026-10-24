@@ -11,6 +11,11 @@ end box
 
 box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
+participant "before:AddressBook" as Before MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
 end box
 
 [-> LogicManager : execute("sort")
@@ -22,61 +27,77 @@ activate AddressBookParser
 create SortCommand
 AddressBookParser -> SortCommand
 activate SortCommand
-
 SortCommand --> AddressBookParser
 deactivate SortCommand
 
 AddressBookParser --> LogicManager : s
 deactivate AddressBookParser
 
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+
+create Before
+LogicManager -> Before : AddressBook(addressBook)
+activate Before
+Before --> LogicManager
+deactivate Before
+
 LogicManager -> SortCommand : execute(m)
 activate SortCommand
 
 SortCommand -> Model : getAddressBook()
 activate Model
-
 Model --> SortCommand : addressBook
 deactivate Model
 
-SortCommand -> SortCommand : isSorted(persons)
+SortCommand -> SortCommand : isSorted(contacts)
 activate SortCommand
-SortCommand --> SortCommand
+SortCommand --> SortCommand : sorted
 deactivate SortCommand
 
-alt no contacts, or already in name order
+alt no contacts or already sorted
     SortCommand --> LogicManager : CommandException
-    deactivate SortCommand
-    note right of LogicManager
-        Nothing is sorted, saved or
-        added to the undo history.
-    end note
-    [<-- LogicManager : CommandException
-else contacts out of order
-    activate SortCommand
+else otherwise
     SortCommand -> Model : sortPersons(nameComparator)
     activate Model
-
     Model --> SortCommand
     deactivate Model
 
     create CommandResult
     SortCommand -> CommandResult
     activate CommandResult
-
-    CommandResult --> SortCommand
+    CommandResult --> SortCommand : r
     deactivate CommandResult
 
     SortCommand --> LogicManager : r
-    deactivate SortCommand
+end
+deactivate SortCommand
 
-    LogicManager -> Model : saveUndoState(previousAddressBook)
+alt execute(m) returned r
+    LogicManager -> Model : saveUndoState(before)
     activate Model
-
     Model --> LogicManager
     deactivate Model
 
-    [<-- LogicManager : r
-end
+    LogicManager -> Model : getAddressBook()
+    activate Model
+    Model --> LogicManager : addressBook
+    deactivate Model
 
+    LogicManager -> Storage : saveAddressBook(addressBook)
+    activate Storage
+    Storage --> LogicManager
+    deactivate Storage
+
+    [<-- LogicManager : r
+else execute(m) threw CommandException
+    note right of LogicManager
+        Nothing is sorted, saved or
+        added to the undo history.
+    end note
+    [<-- LogicManager : CommandException
+end
 deactivate LogicManager
 @enduml
