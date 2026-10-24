@@ -560,7 +560,7 @@ restoring exact strings. `RenameProjectUiTest` verifies visible project labels a
 `sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
 directly, since the command takes no arguments; extra text is ignored, as for `list` and `clear`.
 
-<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic and Model components for the `sort` command" />
+<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `sort` command" />
 
 The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`), names
 that differ only in case are ordered by their exact text, and contacts with the same name are ordered by their
