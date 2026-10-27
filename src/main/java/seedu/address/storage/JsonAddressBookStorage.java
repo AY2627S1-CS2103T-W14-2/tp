@@ -134,14 +134,16 @@ public class JsonAddressBookStorage {
     }
 
     /**
-     * Also preserves malformed JSON before the existing save behaviour replaces it.
+     * Returns true if any saved contact still has a retired address or tags field.
+     * Malformed JSON returns false: an unreadable file is already preserved at startup by
+     * {@link #backupAddressBook()}, so it is not backed up a second time as a migration.
      */
     private boolean needsLegacyBackup(byte[] original) throws IOException {
         JsonNode data;
         try {
             data = JsonUtil.fromJsonString(new String(original, StandardCharsets.UTF_8), JsonNode.class);
         } catch (JsonProcessingException e) {
-            return true;
+            return false;
         }
         if (data == null) {
             return false;

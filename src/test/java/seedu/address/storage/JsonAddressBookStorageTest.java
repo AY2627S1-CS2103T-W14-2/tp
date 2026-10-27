@@ -119,14 +119,33 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
-    public void save_malformedData_preservesOriginalBeforeReplacement() throws Exception {
+    public void save_malformedData_doesNotCreateLegacyBackup() throws Exception {
         Path file = testFolder.resolve("broken.json");
         Files.writeString(file, "{broken JSON");
-        byte[] original = Files.readAllBytes(file);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
         storage.saveAddressBook(getTypicalAddressBook());
-        assertArrayEquals(original, Files.readAllBytes(backupFiles().getFirst()));
+        assertTrue(backupFiles().isEmpty());
         assertEquals(getTypicalAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void backupThenSave_malformedData_keepsOnlyUnreadableBackup() throws Exception {
+        Path file = testFolder.resolve("broken.json");
+        Files.writeString(file, """
+                {"persons":[{"name":"Trailing Comma","phone":"+6597200001","email":"t@example.com",}]}
+                """);
+        byte[] original = Files.readAllBytes(file);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+
+        // Startup preserves the unreadable file, then the first command saves an empty address book.
+        Path backup = storage.backupAddressBook().orElseThrow();
+        storage.saveAddressBook(new AddressBook());
+
+        assertEquals(List.of(backup), backupFiles());
+        assertTrue(backup.getFileName().toString().startsWith("broken.json.unreadable-"));
+        assertArrayEquals(original, Files.readAllBytes(backup));
+        assertEquals(new AddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     private List<Path> backupFiles() throws IOException {
