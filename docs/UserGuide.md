@@ -128,7 +128,7 @@ the Copy URL button.
 
 ### Adding a person: `add`
 
-Adds a person to the address book.
+Adds a contact to LinkUp.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
