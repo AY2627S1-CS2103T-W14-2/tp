@@ -507,6 +507,10 @@ a Telegram username cannot be cleared, so a parser or helper bug fails loudly in
    no-change check runs first.
 5. `Model#setPerson` replaces the contact once and the filter is reset to show all contacts.
 
+The activity diagram below shows these checks. Each rejection ends the command before the model changes.
+
+<puml src="diagrams/EditActivityDiagram.puml" alt="Activity diagram of the checks in EditCommand#execute" />
+
 Every rejection is a `CommandException` thrown before the model changes. Because `LogicManager` records an undo
 snapshot and saves only after a command returns normally, a failed or unchanged edit leaves contacts, the filter,
 the saved file and the undo history as they were, without any change to `LogicManager`. One successful edit,
@@ -559,7 +563,7 @@ restoring exact strings. `RenameProjectUiTest` verifies visible project labels a
 `sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
 directly, since the command takes no arguments; extra text is ignored, as for `list` and `clear`.
 
-<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic and Model components for the `sort` command" />
+<puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `sort` command" />
 
 The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`), names
 that differ only in case are ordered by their exact text, and contacts with the same name are ordered by their
