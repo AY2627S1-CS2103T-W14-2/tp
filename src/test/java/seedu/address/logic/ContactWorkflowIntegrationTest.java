@@ -53,8 +53,9 @@ public class ContactWorkflowIntegrationTest {
 
     @Test
     public void execute_sameNameWorkflow_preservesIdentityAndNormalisedDataAfterReload() throws Exception {
-        assertEquals("Added contact: Alex Tan [Team Alpha]", logic.execute(ADD_ALEX).getFeedbackToUser());
-        assertEquals("Added contact: Alex Tan [Orbital]", logic.execute(ADD_NAMESAKE).getFeedbackToUser());
+        // The index in each message tells the two namesakes apart.
+        assertEquals("Added contact 1: Alex Tan [Team Alpha]", logic.execute(ADD_ALEX).getFeedbackToUser());
+        assertEquals("Added contact 2: Alex Tan [Orbital]", logic.execute(ADD_NAMESAKE).getFeedbackToUser());
         assertSavedContacts(ALEX, NAMESAKE);
         // Person equality ignores email case, so verify the stored spelling separately.
         assertEquals("alex@example.com", storage.readAddressBook().orElseThrow()
