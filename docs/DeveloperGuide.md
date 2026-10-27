@@ -7,7 +7,7 @@
 # LinkUp Developer Guide
 
 <!-- * Table of Contents -->
-<page-nav-print />
+<page-nav-print />q
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -410,8 +410,7 @@ project prefix. `ParserUtil.parseProject` reuses shared project validation and n
 The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
 command validates the complete batch before changing either contact.
 
-<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760"
-      alt="Interactions inside the Logic and Model components for a multi-contact project command" />
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760" alt="Interactions inside the Logic and Model components for a multi-contact project command" />
 
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
