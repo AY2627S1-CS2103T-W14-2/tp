@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.regex.Pattern;
+
 /**
  * Represents a Person's name in the address book.
  * Guarantees: immutable; is valid for new input or was valid in an older saved contact.
@@ -14,11 +16,13 @@ public class Name {
                     + "Only English letters, digits, spaces, apostrophes, hyphens, and periods are allowed.";
     private static final String VALIDATION_REGEX = "[A-Za-z0-9 .'-]{1,60}";
     private static final String LEGACY_VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("[\\s\\p{Z}]+");
 
     public final String fullName;
 
     /**
      * Constructs a {@code Name}.
+     * Surrounding whitespace is removed and repeated internal whitespace is collapsed to one space.
      *
      * @param name A valid name.
      */
@@ -29,7 +33,16 @@ public class Name {
     private Name(String name, boolean fromStorage) {
         requireNonNull(name);
         checkArgument(fromStorage ? isValidStoredName(name) : isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = fromStorage ? name : name.trim();
+        fullName = fromStorage ? name : normalize(name);
+    }
+
+    /**
+     * Returns the whitespace-normalized form of the given name: any run of whitespace, including tabs and
+     * non-breaking spaces, becomes one space, and surrounding whitespace is removed.
+     */
+    public static String normalize(String name) {
+        requireNonNull(name);
+        return WHITESPACE_PATTERN.matcher(name).replaceAll(" ").strip();
     }
 
     /**
@@ -45,16 +58,20 @@ public class Name {
      */
     public static boolean isValidStoredName(String test) {
         requireNonNull(test);
-        return isValidName(test) || test.matches(LEGACY_VALIDATION_REGEX);
+        // Saved names are checked without collapsing internal whitespace, so loading rules do not change.
+        return isValidNormalizedName(test.trim()) || test.matches(LEGACY_VALIDATION_REGEX);
     }
 
     /**
-     * Returns true if a given string is a valid name.
+     * Returns true if a given string is a valid name once its whitespace is normalized.
      */
     public static boolean isValidName(String test) {
         requireNonNull(test);
-        String trimmedName = test.trim();
-        return trimmedName.matches(VALIDATION_REGEX) && trimmedName.matches(".*[A-Za-z].*");
+        return isValidNormalizedName(normalize(test));
+    }
+
+    private static boolean isValidNormalizedName(String name) {
+        return name.matches(VALIDATION_REGEX) && name.matches(".*[A-Za-z].*");
     }
 
 

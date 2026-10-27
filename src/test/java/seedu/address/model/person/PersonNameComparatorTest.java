@@ -22,7 +22,9 @@ public class PersonNameComparatorTest {
     @Test
     public void compare_namesWithDigitsSpacesAndPunctuation_characterByCharacter() {
         assertOrdered("Alex 10", "Alex 2"); // as documented in the user guide
-        assertOrdered("Alex  Tan", "Alex Tan"); // a second space comes before a letter
+        // a second space comes before a letter; only saved names can keep a double space
+        assertOrdered(PersonBuilder.named("Alex Tan").withStoredName("Alex  Tan").build(),
+                PersonBuilder.named("Alex Tan").build());
         assertOrdered("O'Connor", "Oliver"); // an apostrophe comes before a letter
     }
 
