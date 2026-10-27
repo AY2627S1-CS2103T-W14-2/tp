@@ -508,6 +508,10 @@ a Telegram username cannot be cleared, so a parser or helper bug fails loudly in
    no-change check runs first.
 5. `Model#setPerson` replaces the contact once and the filter is reset to show all contacts.
 
+The activity diagram below shows these checks. Each rejection ends the command before the model changes.
+
+<puml src="diagrams/EditActivityDiagram.puml" alt="Activity diagram of the checks in EditCommand#execute" />
+
 Every rejection is a `CommandException` thrown before the model changes. Because `LogicManager` records an undo
 snapshot and saves only after a command returns normally, a failed or unchanged edit leaves contacts, the filter,
 the saved file and the undo history as they were, without any change to `LogicManager`. One successful edit,

@@ -1,0 +1,52 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+skinparam DefaultTextAlignment left
+
+start
+:Get the displayed contact list;
+
+'The beta syntax cannot place a condition outside the diamond,
+'so each rejection is written as the true branch.
+if () then ([INDEX out of range])
+    :Throw CommandException
+    (invalid displayed index);
+    note right
+        Every rejection happens before the
+        model changes, so LogicManager neither
+        saves nor records an undo step.
+    end note
+    stop
+else ([else])
+endif
+
+:Get the contact at INDEX;
+:Build the edited contact: supplied
+fields replace saved ones; other fields
+and the ordered projects are copied;
+
+if () then ([nothing changes])
+    :Throw CommandException
+    ("No changes made.");
+    stop
+else ([else])
+endif
+
+if () then ([detail clashes])
+    :Throw CommandException
+    (duplicate-detail message);
+    note right
+        Checks phone, email and Telegram
+        username against every other contact,
+        including those hidden by a search.
+    end note
+    stop
+else ([else])
+endif
+
+:Replace the contact in the model;
+:Show all contacts;
+stop
+@enduml
