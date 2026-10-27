@@ -410,8 +410,7 @@ project prefix. `ParserUtil.parseProject` reuses shared project validation and n
 The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
 command validates the complete batch before changing either contact.
 
-<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760"
-      alt="Interactions inside the Logic and Model components for a multi-contact project command" />
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760" alt="Interactions inside the Logic and Model components for a multi-contact project command" />
 
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
@@ -507,6 +506,10 @@ a Telegram username cannot be cleared, so a parser or helper bug fails loudly in
    the filter, and `Command#rejectIfConflicting` reports the first clash. Unchanged values cannot clash, so the
    no-change check runs first.
 5. `Model#setPerson` replaces the contact once and the filter is reset to show all contacts.
+
+The activity diagram below shows these checks. Each rejection ends the command before the model changes.
+
+<puml src="diagrams/EditActivityDiagram.puml" alt="Activity diagram of the checks in EditCommand#execute" />
 
 Every rejection is a `CommandException` thrown before the model changes. Because `LogicManager` records an undo
 snapshot and saves only after a command returns normally, a failed or unchanged edit leaves contacts, the filter,
