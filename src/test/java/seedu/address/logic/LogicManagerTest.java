@@ -111,6 +111,25 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_commandWordInAnyCase_behavesLikeLowercase() throws Exception {
+        // issue #171
+        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute("FIND Alice");
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        logic.execute("FindProject CS2103T");
+        assertEquals("Project: CS2103T", logic.recentSearchProperty().get());
+
+        logic.execute("DELETE 1");
+        assertFalse(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        logic.execute("UNDO");
+        assertTrue(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        // the restored contacts are saved, as for "undo"
+        ReadOnlyAddressBook saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        assertEquals(List.of(ALICE_WITH_PROJECT), saved.getPersonList());
+    }
+
+    @Test
     public void execute_nameSearch_normalizesWhitespaceAndPreservesInternalSpacing() throws Exception {
         model.addPerson(ALICE);
         logic.execute("\u0000\tfind \u00a0Alice  Pauline\u2003\u00a0\t");

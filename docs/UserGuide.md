@@ -71,7 +71,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Command words and prefixes are case-sensitive: use `findproject`, not `FindProject` or `findp`.
+* Command words ignore case, so `FIND alex` and `Find alex` work like `find alex`, but they cannot be shortened:
+  use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
   Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
 
 * `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
