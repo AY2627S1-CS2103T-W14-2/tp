@@ -104,6 +104,15 @@ public class PersonBuilder {
     }
 
     /**
+     * Restores a saved Telegram username, including one that only the pre-v1.5 rule accepts.
+     * Use {@link #withTelegramUsername(String)} for newly entered usernames.
+     */
+    public PersonBuilder withStoredTelegramUsername(String telegramUsername) {
+        this.telegramUsername = TelegramUsername.fromStoredValue(telegramUsername);
+        return this;
+    }
+
+    /**
      * Gives the {@code Person} that we are building no Telegram username, as for legacy contacts.
      */
     public PersonBuilder withoutTelegramUsername() {

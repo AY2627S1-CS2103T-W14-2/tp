@@ -156,8 +156,8 @@ is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
 in lowercase.
 
-The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
-optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
+The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
+letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
 The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
 control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
@@ -567,7 +567,8 @@ use `undo` after fixing storage. An undo that cannot save leaves the contacts an
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
 case when accepted by the legacy loading rules, even if they do not meet today's input rules.
-Previously saved local phone numbers also load unchanged.
+Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
+with a digit or underscore or end with an underscore.
 Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more

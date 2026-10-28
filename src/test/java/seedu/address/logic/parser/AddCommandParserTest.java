@@ -248,6 +248,12 @@ public class AddCommandParserTest {
                 + PROJECT_DESC_BOB,
                 TelegramUsername.MESSAGE_CONSTRAINTS);
 
+        // Telegram username that Telegram itself rejects (issue #189)
+        for (String username : new String[] {"1alex", "_alex", "alex_", "@12345"}) {
+            assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " tele/" + username
+                    + PROJECT_DESC_BOB, TelegramUsername.MESSAGE_CONSTRAINTS);
+        }
+
         // invalid project
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
                 + INVALID_PROJECT_DESC, Project.MESSAGE_CONSTRAINTS);

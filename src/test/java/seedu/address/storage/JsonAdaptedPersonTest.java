@@ -118,6 +118,17 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_legacyTelegramUsername_preservesSavedValue() throws Exception {
+        // Accepted before v1.5; new input now needs a leading letter and no trailing underscore
+        for (String oldUsername : new String[] {"alex_", "1alex", "_alex"}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, oldUsername,
+                    VALID_PROJECTS);
+
+            assertEquals(oldUsername, person.toModelType().getTelegramUsername().value);
+        }
+    }
+
+    @Test
     public void toModelType_missingTelegramUsername_returnsLegacyPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, null,
                 VALID_PROJECTS);

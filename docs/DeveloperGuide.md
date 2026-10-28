@@ -204,11 +204,11 @@ field's value, so callers must use the documented grammar.
 | `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
-| `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
+| `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
 
-`JsonAdaptedPerson` restores names, phones and emails through their stored-value validation paths, preserving
-legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
+`JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
+paths, preserving legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
 projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
 
 ### Name search and displayed indices
