@@ -190,6 +190,16 @@ The Java package remains `seedu.address`, and internal names such as `AddressBoo
 `projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
 Command words are case-sensitive.
 
+Before trimming or regex matching, `AddressBookParser.parseCommand` checks the raw `String.length()`
+against `MAX_COMMAND_LENGTH` (1,000 UTF-16 code units). This includes the command word, prefixes, values,
+and all leading, internal and trailing whitespace; supplementary Unicode characters count as two units.
+Oversized input throws `ParseException` with `MESSAGE_COMMAND_TOO_LONG`, before command dispatch or
+execution, so contacts, filters, search history and storage remain unchanged. The constant-time length
+check bounds the input passed to command parsers, preventing long whitespace runs from causing excessive
+regex processing (for example, `findproject a` followed by 40,000 spaces and `b`). Existing field and
+keyword limits are validated separately. `AddressBookParserTest` covers the boundary, whitespace,
+Unicode counting and rejection of the reported input within two seconds.
+
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
@@ -1025,6 +1035,12 @@ then 41. The shorter query is accepted (with no matches); the longer one reports
 changing the current results. Run `list` to restore the displayed contacts. Then `project 1 pr/` with 40
 consecutive `x` characters succeeds, while 41 fails.
 Run `undo` after the accepted project change to restore the fixture.
+
+To check the overall command limit, paste `help` followed by 996 spaces: it should open help.
+With 997 spaces, it should instead report `Command must not exceed 1000 characters...`.
+On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
+the command box and execute. Verify that the same command-length error appears within two seconds
+and that the displayed contacts, recent search and saved data remain unchanged.
 
 ### Renaming projects
 
