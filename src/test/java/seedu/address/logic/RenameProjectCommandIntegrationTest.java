@@ -62,6 +62,27 @@ public class RenameProjectCommandIntegrationTest {
     }
 
     @Test
+    public void execute_typedCaseVariant_reportsFirstSavedSourceEvenWhenHidden() throws Exception {
+        logic.execute("find David");
+        assertEquals("Renamed project \"orbital\" to \"Space\" for 2 contact(s). "
+                + "Use undo to reverse this change.",
+                logic.execute("renameproject old/ORBITAL new/Space").getFeedbackToUser());
+        assertPersisted();
+        logic.execute("undo");
+        assertEquals(original, snapshot(model.getAddressBook()));
+    }
+
+    @Test
+    public void execute_quotedProject_escapesLiteralQuotesInFeedback() throws Exception {
+        assertEquals("Renamed project \"CS2103T\" to \"\\\"Quoted\\\"\" for 2 contact(s). "
+                + "Use undo to reverse this change.",
+                logic.execute("renameproject old/CS2103T new/\"Quoted\"").getFeedbackToUser());
+        assertEquals("Renamed project \"\\\"Quoted\\\"\" to \"Final\" for 2 contact(s). "
+                + "Use undo to reverse this change.",
+                logic.execute("renameproject old/\"Quoted\" new/Final").getFeedbackToUser());
+    }
+
+    @Test
     public void execute_rename_updatesHiddenContactsAndPreservesDetailsThenUndoes() throws Exception {
         logic.execute("find David");
         int savesBefore = storage.saves;

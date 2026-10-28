@@ -52,7 +52,7 @@ public class ProjectCommandTest {
     public void execute_duplicateNormalizedProject_failureWithoutMutation() {
         model.addPerson(new PersonBuilder().withProjects("Team Alpha").build());
         assertCommandFailure(new ProjectCommand(Index.fromOneBased(1), new Project(" team   ALPHA ")),
-                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "team ALPHA",
+                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "Team Alpha",
                         "1: " + model.getFilteredPersonList().get(0).getName()));
     }
 
@@ -114,7 +114,7 @@ public class ProjectCommandTest {
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(3)), project),
                 model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(2)), project),
-                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "Orbital", "2: Bob"));
+                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "ORBITAL", "2: Bob"));
     }
 
     @Test

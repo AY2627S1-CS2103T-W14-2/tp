@@ -22,6 +22,18 @@ public class DeleteProjectCommandTest {
     private final Project project = new Project("Orbital");
 
     @Test
+    public void execute_batch_usesFirstSavedSpellingBeforeRemovingAllAssociations() throws Exception {
+        Model target = new ModelManager();
+        target.addPerson(PersonBuilder.named("Alice").withProjects("orbital").build());
+        target.addPerson(PersonBuilder.named("Bob").withProjects("Orbital").build());
+        CommandResult result = new DeleteProjectCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(1)),
+                new Project("ORBITAL")).execute(target);
+        assertEquals("Removed project orbital from contacts 2: Bob, 1: Alice.", result.getFeedbackToUser());
+        assertEquals(List.of(), target.getAddressBook().getPersonList().getFirst().getProjects());
+        assertEquals(List.of(), target.getAddressBook().getPersonList().getLast().getProjects());
+    }
+
+    @Test
     public void execute_filteredContact_preservesFieldsOrderAndFilter() throws Exception {
         Person first = PersonBuilder.named("Alice").withProjects("Orbital").build();
         Person target = PersonBuilder.named("Bob").withProjects("CS2103T", "Orbital", "CS2101").build();
