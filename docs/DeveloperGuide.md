@@ -376,9 +376,11 @@ not a clash when another field changes.
 The `findproject KEYWORD` command implements UC02 using the existing filtered contact list.
 
 1. `AddressBookParser` routes `findproject` to `FindProjectCommandParser`.
-2. The parser removes surrounding whitespace, rejects a blank phrase, and checks the 40-character limit before
+2. The parser removes surrounding whitespace, rejects a phrase that is blank once `Project.normalize()` has removed
+   invisible characters (e.g. one made only of zero-width spaces), and checks the 40-character limit before
    collapsing internal whitespace. Length is measured in Unicode code points, consistent with the project model.
-   The surrounding-whitespace rule covers the same whitespace and Unicode separator characters as `Project.normalize()`.
+   The surrounding-whitespace rule also trims U+001C–U+001F, which `Project.normalize()` keeps so that `Project`
+   rejects them as control characters; a search phrase is never stored, so this only widens what a search ignores.
 3. `ProjectContainsKeywordPredicate` uses `Project.normalize()` and `Locale.ROOT` to normalise the search phrase
    once. It checks whether any project returned by `Person.getProjects()` contains that whole phrase, ignoring case.
 4. `FindProjectCommand` passes the predicate to `Model.updateFilteredPersonList(...)` and returns the result count
