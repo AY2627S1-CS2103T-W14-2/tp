@@ -14,7 +14,7 @@ import seedu.address.model.project.Project;
  * Parses a project search phrase and creates a {@code FindProjectCommand}.
  */
 public class FindProjectCommandParser implements Parser<FindProjectCommand> {
-    // Project.normalize() collapses whitespace/separators, then strip() removes Java whitespace at the edges.
+    // Whitespace, Unicode separators and Java whitespace (which includes U+001C..U+001F) at either end.
     private static final Pattern SURROUNDING_WHITESPACE =
             Pattern.compile("^[\\s\\p{Z}\\p{javaWhitespace}]+|[\\s\\p{Z}\\p{javaWhitespace}]+$");
 

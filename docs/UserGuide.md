@@ -445,6 +445,8 @@ Format: `findproject KEYWORD`
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
+* Invisible formatting characters, such as a zero-width space copied from a chat app, are ignored when matching,
+  as in project names. A keyword made only of such characters is rejected like a blank keyword.
 * The keyword must contain 1–40 characters after trimming surrounding whitespace. Internal spaces count towards
   this limit before they are collapsed.
 * Any associated project can match. Each contact appears once, with its contact details and projects, in the
