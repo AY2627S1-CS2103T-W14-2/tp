@@ -33,27 +33,46 @@ public class ProjectTest {
 
     @Test
     public void constructor_invisibleFormatCharacters_removed() {
-        assertEquals("AlphaBeta", new Project("Alpha​Beta").projectName); // zero-width space (issue #177)
-        assertEquals("CS2103T", new Project("﻿CS2103T").projectName); // byte order mark
-        assertEquals("TeamB", new Project("Team­B").projectName); // soft hyphen
-        assertEquals("Alpha", new Project("‮Alpha").projectName); // right-to-left override
-        assertEquals("Alpha Beta", new Project("Alpha ​ Beta").projectName); // spaces still collapse
-        assertEquals(new Project("AlphaBeta"), new Project("Alpha⁠Beta")); // word joiner
+        assertEquals("AlphaBeta", new Project("Alpha\u200BBeta").projectName); // zero-width space (issue #177)
+        assertEquals("CS2103T", new Project("\uFEFFCS2103T").projectName); // byte order mark
+        assertEquals("TeamB", new Project("Team\u00ADB").projectName); // soft hyphen
+        assertEquals("Alpha", new Project("\u202EAlpha").projectName); // right-to-left override
+        assertEquals("Alpha Beta", new Project("Alpha \u200B Beta").projectName); // spaces still collapse
+        assertEquals(new Project("AlphaBeta"), new Project("Alpha\u2060Beta")); // word joiner
     }
 
     @Test
     public void constructor_joinersNeededByEmojiAndScripts_preserved() {
-        String technologist = "Team 👨‍💻"; // man, zero-width joiner, laptop
-        String persian = "می‌خواهم"; // uses a zero-width non-joiner
+        String technologist = "Team \uD83D\uDC68\u200D\uD83D\uDCBB"; // man, zero-width joiner, laptop
+        String persian = "\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645"; // uses a zero-width non-joiner
         assertEquals(technologist, new Project(technologist).projectName);
         assertEquals(persian, new Project(persian).projectName);
     }
 
     @Test
+    public void constructor_strayJoiners_removed() {
+        assertEquals("AlphaBeta", new Project("Alpha\u200DBeta").projectName); // joiner between Latin letters
+        assertEquals("AlphaBeta", new Project("Alpha\u200CBeta").projectName); // non-joiner between Latin letters
+        assertEquals("Team 2", new Project("Team 2\u200D").projectName); // at the end
+        assertEquals("Team", new Project("\u200DTeam").projectName); // at the start
+        assertEquals("CS2103T-Team", new Project("CS2103T\u200D-Team").projectName); // next to punctuation
+        assertEquals("Team 2", new Project("Team \u200D 2").projectName); // between spaces
+        assertEquals(new Project("AlphaBeta"), new Project("Alpha\u200D\u200DBeta")); // repeated joiners
+    }
+
+    @Test
+    public void constructor_joinersBetweenEmojiOrScriptLetters_preserved() {
+        String family = "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67"; // man, woman, girl joined into one emoji
+        String hindi = "\u0915\u094D\u200D\u0937"; // a Devanagari conjunct shaped by a joiner
+        assertEquals(family, new Project(family).projectName);
+        assertEquals(hindi, new Project(hindi).projectName);
+    }
+
+    @Test
     public void isValidProjectName_invisibleFormatCharacters_notCounted() {
-        assertFalse(Project.isValidProjectName("​")); // nothing visible is left
-        assertFalse(Project.isValidProjectName("​ ﻿"));
-        assertTrue(Project.isValidProjectName("a".repeat(40) + "​")); // limit counts visible characters
+        assertFalse(Project.isValidProjectName("\u200B")); // nothing visible is left
+        assertFalse(Project.isValidProjectName("\u200B \uFEFF"));
+        assertTrue(Project.isValidProjectName("a".repeat(40) + "\u200B")); // limit counts visible characters
     }
 
     @Test

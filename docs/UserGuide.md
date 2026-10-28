@@ -162,7 +162,9 @@ optional, and uppercase letters are accepted. The username is stored in lowercas
 The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
 control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
 names are compared case-insensitively. Invisible formatting characters, such as a zero-width space copied from
-a chat app, are removed, so a pasted name matches the same name typed by hand. Supply exactly one non-empty
+a chat app, are removed, so a pasted name matches the same name typed by hand. The only invisible characters kept
+are the joiners that combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi;
+a joiner next to an English letter, a digit, a space or punctuation is removed too. Supply exactly one non-empty
 `pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 

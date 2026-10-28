@@ -33,8 +33,8 @@ import seedu.address.storage.StorageManager;
  */
 public class ProjectInvisibleCharactersIntegrationTest {
 
-    private static final String ZERO_WIDTH_SPACE = "​";
-    private static final String WORD_JOINER = "⁠";
+    private static final String ZERO_WIDTH_SPACE = "\u200B";
+    private static final String WORD_JOINER = "\u2060";
 
     @TempDir
     public Path temporaryFolder;
@@ -64,6 +64,15 @@ public class ProjectInvisibleCharactersIntegrationTest {
         // The typed name reaches the project, so it can no longer get stuck.
         logic.execute("deleteproject 1 pr/AlphaBeta");
         assertEquals(List.of(), projectNamesOfFirstContact());
+    }
+
+    @Test
+    public void execute_pastedJoinerBetweenLetters_sameProjectAsTypedName() throws Exception {
+        String zeroWidthJoiner = String.valueOf((char) 0x200D);
+        logic.execute("project 1 pr/AlphaBeta");
+
+        assertThrows(CommandException.class, () -> logic.execute("project 1 pr/Alpha" + zeroWidthJoiner + "Beta"));
+        assertEquals(List.of("AlphaBeta"), projectNamesOfFirstContact());
     }
 
     @Test
