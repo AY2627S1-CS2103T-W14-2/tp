@@ -396,13 +396,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
   trimming surrounding whitespace. Internal spaces count towards this limit, including repeated spaces.
+* Use plain keywords, such as `find alex`, without prefixes such as `n/`. Keywords containing `/`
+  (for example, `find n/alex`) produce an error explaining the correct format.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
 * No matches produces an empty list and the message `0 person(s) listed!`.
 * Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
-* Blank or overlong input produces an error without changing the current results or saved contacts.
+* Blank, overlong, or slash-containing input produces an error without changing the current results or saved contacts.
 * The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
   shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
   The **Current contact list** below provides the numbered contacts for commands.
