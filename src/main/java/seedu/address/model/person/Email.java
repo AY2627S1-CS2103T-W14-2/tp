@@ -18,9 +18,9 @@ public class Email {
             + "The local part may contain letters, digits, and common email symbols, with dots only between "
             + "non-empty parts. The domain needs at least two dot-separated labels of letters, digits, or "
             + "inner hyphens. Whitespace is not allowed.";
-    /** Longest address that mail servers accept (RFC 5321 path limit, minus the enclosing angle brackets). */
+    /** Standard maximum length of an address (RFC 5321 path limit of 256, minus the enclosing angle brackets). */
     public static final int MAX_LENGTH = 254;
-    /** Longest part before the {@code @} that mail servers accept (RFC 5321). */
+    /** Standard maximum length of the part before the {@code @} (RFC 5321). */
     public static final int MAX_LOCAL_PART_LENGTH = 64;
     public static final String MESSAGE_TOO_LONG = "Email is too long. Use at most " + MAX_LENGTH
             + " characters, with at most " + MAX_LOCAL_PART_LENGTH + " before the @.";
@@ -77,9 +77,9 @@ public class Email {
     }
 
     /**
-     * Returns true if {@code test} is longer than any deliverable email address: more than {@link #MAX_LENGTH}
-     * characters, or more than {@link #MAX_LOCAL_PART_LENGTH} before the first {@code @} (or in total, if there
-     * is no {@code @}).
+     * Returns true if {@code test} exceeds the standard size limits for an email address: more than
+     * {@link #MAX_LENGTH} characters, or more than {@link #MAX_LOCAL_PART_LENGTH} before the first {@code @}
+     * (or in total, if there is no {@code @}).
      */
     public static boolean isTooLong(String test) {
         requireNonNull(test);

@@ -9,6 +9,14 @@ import org.junit.jupiter.api.Test;
 
 public class EmailTest {
 
+    private static final String LOCAL_PART_64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
+    /** Exactly 254 characters, with realistic domain labels of at most 63 characters. */
+    private static final String TOTAL_254 = LOCAL_PART_64 + "@"
+            + "b".repeat(63) + "." + "c".repeat(63) + "." + "d".repeat(57) + ".com";
+    /** One character over the total limit. */
+    private static final String TOTAL_255 = LOCAL_PART_64 + "@"
+            + "b".repeat(63) + "." + "c".repeat(63) + "." + "d".repeat(58) + ".com";
+
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Email(null));
@@ -77,24 +85,24 @@ public class EmailTest {
 
     @Test
     public void isValidEmail_lengthLimits() {
-        String localPart64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
-        assertTrue(Email.isValidEmail(localPart64 + "@example.com")); // local part at its limit
-        assertFalse(Email.isValidEmail(localPart64 + "a@example.com")); // local part one over
+        assertTrue(Email.isValidEmail(LOCAL_PART_64 + "@example.com")); // local part at its limit
+        assertFalse(Email.isValidEmail(LOCAL_PART_64 + "a@example.com")); // local part one over
 
-        String total254 = localPart64 + "@" + "b".repeat(185) + ".com";
-        assertEquals(Email.MAX_LENGTH, total254.length());
-        assertTrue(Email.isValidEmail(total254)); // whole address at its limit
-        assertFalse(Email.isValidEmail(localPart64 + "@" + "b".repeat(186) + ".com")); // one over
+        assertEquals(Email.MAX_LENGTH, TOTAL_254.length());
+        assertEquals(Email.MAX_LENGTH + 1, TOTAL_255.length());
+        assertTrue(Email.isValidEmail(TOTAL_254)); // whole address at its limit
+        assertFalse(Email.isValidEmail(TOTAL_255)); // one over
+        assertTrue(Email.isValidStoredEmail(TOTAL_254));
+        assertFalse(Email.isValidStoredEmail(TOTAL_255));
     }
 
     @Test
     public void isTooLong() {
-        String localPart64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
-        assertFalse(Email.isTooLong(localPart64 + "@example.com"));
-        assertTrue(Email.isTooLong(localPart64 + "a@example.com"));
-        assertFalse(Email.isTooLong(localPart64 + "@" + "b".repeat(185) + ".com"));
-        assertTrue(Email.isTooLong(localPart64 + "@" + "b".repeat(186) + ".com"));
-        assertTrue(Email.isTooLong(localPart64 + "a")); // no @: the whole value counts as the local part
+        assertFalse(Email.isTooLong(LOCAL_PART_64 + "@example.com"));
+        assertTrue(Email.isTooLong(LOCAL_PART_64 + "a@example.com"));
+        assertFalse(Email.isTooLong(TOTAL_254));
+        assertTrue(Email.isTooLong(TOTAL_255));
+        assertTrue(Email.isTooLong(LOCAL_PART_64 + "a")); // no @: the whole value counts as the local part
         assertFalse(Email.isTooLong("alex@example.com"));
     }
 
