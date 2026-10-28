@@ -201,7 +201,7 @@ field's value, so callers must use the documented grammar.
 
 | Value class | Current new-input rule and normalisation |
 | --- | --- |
-| `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` trims and collapses any whitespace run (including tabs and Unicode spaces) to one space, as `Project` does. Saved names keep their stored spacing. |
+| `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |

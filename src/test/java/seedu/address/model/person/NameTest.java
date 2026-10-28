@@ -33,7 +33,7 @@ public class NameTest {
         assertFalse(Name.isValidName("12345")); // must contain a letter
         assertFalse(Name.isValidName("Émile")); // only English letters are accepted for new input
         assertFalse(Name.isValidName("A".repeat(61))); // exceeds the 60-character limit
-        assertFalse(Name.isValidName("A".repeat(31) + "  " + "B".repeat(30))); // 61 after collapsing spaces
+        assertFalse(Name.isValidName("A".repeat(30) + "  " + "B".repeat(30))); // 61 after collapsing spaces
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only

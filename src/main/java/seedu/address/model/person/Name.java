@@ -37,8 +37,8 @@ public class Name {
     }
 
     /**
-     * Returns the whitespace-normalized form of the given name: any run of whitespace, including tabs and
-     * non-breaking spaces, becomes one space, and surrounding whitespace is removed.
+     * Returns the whitespace-normalized form of the given name: any run of spaces, tabs, line breaks or Unicode
+     * space separators (such as non-breaking spaces) becomes one space, and surrounding whitespace is removed.
      */
     public static String normalize(String name) {
         requireNonNull(name);

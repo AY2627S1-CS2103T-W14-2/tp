@@ -146,9 +146,10 @@ numbers are rejected. LinkUp checks the format only; it does not verify the coun
 number is assigned or callable.
 
 Names must contain 1–60 characters after surrounding spaces are removed and repeated spaces are reduced to one.
-For example, `n/Emma   First` is saved as `Emma First`; tabs and other pasted spacing count as spaces too.
-English letters, digits, spaces, apostrophes, hyphens, and periods are accepted; at least one English letter is
-required. The name keeps its capitalization for display.
+For example, `n/Emma   First` is saved as `Emma First`, and pasted spacing such as a non-breaking space also
+counts as a space. A pasted tab is different: the command box removes it, so `Emma<tab>First` is saved as
+`EmmaFirst`. English letters, digits, spaces, apostrophes, hyphens, and periods are accepted; at least one
+English letter is required. The name keeps its capitalization for display.
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
