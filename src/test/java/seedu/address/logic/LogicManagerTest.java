@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -24,7 +25,10 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +40,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ListProjectsCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -149,6 +154,31 @@ public class LogicManagerTest {
         assertNull(logic.mostSearchedPersonProperty().get());
         logic.execute("find Alice");
         assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+    }
+
+    @Test
+    public void execute_oversizedCommands_rejectPromptlyWithoutChangingState() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        logic.execute("find Alice");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        Path savedFile = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(savedFile);
+        String projectInput = "project " + IntStream.rangeClosed(1, 100_000)
+                .mapToObj(Integer::toString).collect(Collectors.joining(" ")) + " pr/X";
+        for (String input : List.of("findproject a" + " ".repeat(40_000) + "b", projectInput)) {
+            assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+                    assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG,
+                            () -> logic.execute(input)));
+        }
+
+        assertEquals(original, model.getAddressBook());
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getRecentFindPersonList());
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertEquals(savedData, Files.readString(savedFile));
+        assertFalse(model.canUndo());
     }
 
     @Test
