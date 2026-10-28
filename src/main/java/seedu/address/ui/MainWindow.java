@@ -140,6 +140,35 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        getRoot().addEventFilter(KeyEvent.KEY_TYPED, event -> redirectTypingToCommandBox(event, commandBox));
+    }
+
+    /**
+     * Sends a typed character to the command box when focus is elsewhere, such as after the user clicks
+     * a contact, so that keyboard input is not lost.
+     */
+    private void redirectTypingToCommandBox(KeyEvent event, CommandBox commandBox) {
+        if (isTypedIntoEditableField(event) || !isPlainCharacter(event)) {
+            return;
+        }
+        commandBox.appendAndFocus(event.getCharacter());
+        event.consume();
+    }
+
+    /**
+     * Returns true if {@code event} is typed into a field that accepts the text itself, such as the command box.
+     */
+    private static boolean isTypedIntoEditableField(KeyEvent event) {
+        return event.getTarget() instanceof TextInputControl input && input.isEditable();
+    }
+
+    /**
+     * Returns true if {@code event} types a visible character rather than a control key or a shortcut.
+     */
+    private static boolean isPlainCharacter(KeyEvent event) {
+        String character = event.getCharacter();
+        boolean hasShortcutModifier = event.isControlDown() || event.isMetaDown() || event.isAltDown();
+        return !hasShortcutModifier && !character.isEmpty() && !Character.isISOControl(character.charAt(0));
     }
 
     /** Keeps the session favourite in sync with searches and contact changes. */

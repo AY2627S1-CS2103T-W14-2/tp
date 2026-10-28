@@ -36,7 +36,8 @@ merged across contacts with `renameproject`.
    if no data file exists, LinkUp supplies sample contacts.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.
+   If you click a contact or the result box, just keep typing: your input goes to the command box.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
