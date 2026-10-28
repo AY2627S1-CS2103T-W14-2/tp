@@ -125,7 +125,7 @@ public class MainWindow extends UiPart<Stage> {
                 logic.recentSearchProperty());
         recentFindPanelPlaceholder.getChildren().add(recentFindPanel.getRoot());
 
-        logic.mostSearchedPersonProperty().addListener((observable, oldPerson, newPerson) ->
+        logic.mostSearchedPersonProperty().addListener(observable ->
                 updateMostSearchedContact());
         updateMostSearchedContact();
 
