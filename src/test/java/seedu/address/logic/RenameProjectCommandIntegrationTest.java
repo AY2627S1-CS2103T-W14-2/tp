@@ -220,6 +220,8 @@ public class RenameProjectCommandIntegrationTest {
     public void execute_invalidOrMissingSource_doesNotSaveOrChangeHistory() throws Exception {
         assertThrows(CommandException.class, () -> logic.execute("renameproject old/Unknown new/Orbital"));
         assertThrows(ParseException.class, () -> logic.execute("renameproject old/CS2103T new/"));
+        assertThrows(ParseException.class, () -> logic.execute("renameproject old/ new/Space"));
+        assertThrows(ParseException.class, () -> logic.execute("renameproject 1 old/Orbital new/Space"));
         assertEquals(original, snapshot(model.getAddressBook()));
         assertEquals(0, storage.saves);
         assertFalse(model.canUndo());
