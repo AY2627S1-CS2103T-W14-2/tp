@@ -78,9 +78,8 @@ public class LogicManager implements Logic {
 
         if (command.isUndoable()) {
             model.saveUndoState(before);
+            saveAddressBook(model.getAddressBook());
         }
-
-        saveAddressBook(model.getAddressBook());
         if (isSearch) {
             searchHistory.record(model.getFilteredPersonList());
         }
