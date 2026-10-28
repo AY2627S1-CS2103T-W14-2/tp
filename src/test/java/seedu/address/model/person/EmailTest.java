@@ -76,6 +76,39 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_lengthLimits() {
+        String localPart64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
+        assertTrue(Email.isValidEmail(localPart64 + "@example.com")); // local part at its limit
+        assertFalse(Email.isValidEmail(localPart64 + "a@example.com")); // local part one over
+
+        String total254 = localPart64 + "@" + "b".repeat(185) + ".com";
+        assertEquals(Email.MAX_LENGTH, total254.length());
+        assertTrue(Email.isValidEmail(total254)); // whole address at its limit
+        assertFalse(Email.isValidEmail(localPart64 + "@" + "b".repeat(186) + ".com")); // one over
+    }
+
+    @Test
+    public void isTooLong() {
+        String localPart64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
+        assertFalse(Email.isTooLong(localPart64 + "@example.com"));
+        assertTrue(Email.isTooLong(localPart64 + "a@example.com"));
+        assertFalse(Email.isTooLong(localPart64 + "@" + "b".repeat(185) + ".com"));
+        assertTrue(Email.isTooLong(localPart64 + "@" + "b".repeat(186) + ".com"));
+        assertTrue(Email.isTooLong(localPart64 + "a")); // no @: the whole value counts as the local part
+        assertFalse(Email.isTooLong("alex@example.com"));
+    }
+
+    @Test
+    public void validation_manyDottedParts_rejectedWithoutStackOverflow() {
+        // Issue #196: this local part used to overflow the stack in the recursive pattern.
+        String dotted = "a.".repeat(17_770) + "a@example.com";
+        assertFalse(Email.isValidEmail(dotted));
+        assertFalse(Email.isValidStoredEmail(dotted));
+        assertThrows(IllegalArgumentException.class, () -> new Email(dotted));
+        assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue(dotted));
+    }
+
+    @Test
     public void constructor_newEmail_storesLowercase() {
         assertEquals("alex.tan@example.com", new Email("Alex.Tan@Example.COM").value);
     }
@@ -85,6 +118,7 @@ public class EmailTest {
         assertEquals("Alex@Example", Email.fromStoredValue("Alex@Example").value);
         assertEquals("Alex@Example.COM", Email.fromStoredValue("Alex@Example.COM").value);
         assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue("not-an-email"));
+        assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue("A".repeat(65) + "@Example.COM"));
     }
 
     @Test

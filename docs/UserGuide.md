@@ -154,7 +154,8 @@ digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate 
 Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
 is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
-in lowercase.
+in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the limits
+mail servers accept, so longer addresses cannot receive email.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
