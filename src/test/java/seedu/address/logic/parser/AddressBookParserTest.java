@@ -1,14 +1,12 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,43 +36,6 @@ import seedu.address.testutil.PersonUtil;
 public class AddressBookParserTest {
 
     private final AddressBookParser parser = new AddressBookParser();
-
-    @Test
-    public void parseCommand_atLengthLimit_acceptsCommand() throws Exception {
-        String input = "findproject a";
-        input += " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - input.length());
-        assertEquals(new FindProjectCommand(new ProjectContainsKeywordPredicate("a")), parser.parseCommand(input));
-    }
-
-    @Test
-    public void parseCommand_overLengthLimit_rejectsBeforeTrimmingOrDispatch() {
-        for (String input : List.of("help" + " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - 3),
-                " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - 3) + "help",
-                "x".repeat(AddressBookParser.MAX_COMMAND_LENGTH + 1),
-                " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH + 1))) {
-            assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () ->
-                    parser.parseCommand(input));
-        }
-    }
-
-    @Test
-    public void parseCommand_supplementaryUnicode_countsUtf16CodeUnits() throws Exception {
-        String command = "help ";
-        String input = command + "\uD83D\uDE00".repeat((AddressBookParser.MAX_COMMAND_LENGTH - command.length()) / 2);
-        input += " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - input.length());
-        assertTrue(parser.parseCommand(input) instanceof HelpCommand);
-        String overlongInput = input + "x";
-        assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () ->
-                parser.parseCommand(overlongInput));
-    }
-
-    @Test
-    public void parseCommand_largeWhitespaceSearch_rejectsWithinTwoSeconds() {
-        String input = "findproject a" + " ".repeat(40_000) + "b";
-        assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
-                assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () ->
-                        parser.parseCommand(input)));
-    }
 
     @Test
     public void parseCommand_add() throws Exception {

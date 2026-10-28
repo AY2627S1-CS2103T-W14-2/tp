@@ -62,13 +62,6 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 
 **Notes about the command format:**<br>
 
-* The complete command must be at most **1,000 characters**, including the command word, prefixes, values,
-  and all spaces (including leading and trailing spaces). Each supplementary Unicode character, such as
-  most emoji, counts as two characters. Longer commands are rejected with `Command must not exceed 1000
-  characters, including the command word and all whitespace. Each supplementary Unicode character counts
-  as two characters.` Shorten the input and try again. Rejection leaves saved contacts and search results unchanged.
-  Individual field and search keyword limits still apply.
-
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
