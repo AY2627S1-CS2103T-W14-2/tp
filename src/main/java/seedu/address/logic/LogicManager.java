@@ -77,10 +77,17 @@ public class LogicManager implements Logic {
         }
 
         if (command.isUndoable()) {
+            try {
+                saveAddressBook(model.getAddressBook());
+            } catch (CommandException e) {
+                // Restore the data; undo history is recorded only after the save succeeds.
+                model.setAddressBook(before);
+                throw e;
+            }
             model.saveUndoState(before);
+        } else {
+            saveAddressBook(model.getAddressBook());
         }
-
-        saveAddressBook(model.getAddressBook());
         if (isSearch) {
             searchHistory.record(model.getFilteredPersonList());
         }

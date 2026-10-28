@@ -525,6 +525,41 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addSaveFailure_rollsBackContactAndUndoHistory() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addFailure.json");
+        boolean[] failSave = {false};
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataPath) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                if (failSave[0]) {
+                    throw DUMMY_IO_EXCEPTION;
+                }
+                super.saveAddressBook(addressBook);
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("addFailurePrefs.json"))));
+
+        String addAmy = PersonUtil.getAddCommand(new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build());
+        String addBenson = PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build());
+        logic.execute(addAmy);
+        AddressBook afterSuccessfulAdd = new AddressBook(model.getAddressBook());
+        failSave[0] = true;
+
+        assertThrows(CommandException.class, () -> logic.execute(addBenson));
+        assertEquals(afterSuccessfulAdd, model.getAddressBook());
+        assertEquals(afterSuccessfulAdd.getPersonList(), model.getFilteredPersonList());
+        assertTrue(model.canUndo());
+        assertEquals(afterSuccessfulAdd, addressBookStorage.readAddressBook().orElseThrow());
+
+        failSave[0] = false;
+        logic.execute("list");
+        assertEquals(afterSuccessfulAdd, addressBookStorage.readAddressBook().orElseThrow());
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
@@ -692,12 +727,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
-        assertTrue(model.canUndo());
-        model.undo();
-        assertEquals(new AddressBook(), model.getAddressBook());
+        assertCommandFailure(addCommand, CommandException.class, expectedMessage, new ModelManager());
+        assertFalse(model.canUndo());
     }
 }
