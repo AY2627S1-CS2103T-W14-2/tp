@@ -570,10 +570,10 @@ that differ only in case are ordered by their exact text, and contacts with the 
 saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
 so the order of any contact list is fully determined.
 
-`SortCommand#execute` throws a `CommandException` when there are no contacts (`No contacts saved yet.`) or when
-they are already in order (`Contacts are already sorted by name.`). Because `LogicManager` records an undo state
-and saves only after a command succeeds, these cases change nothing and add no undo entry, matching
-`edit`'s `No changes made.` handling. Otherwise it calls `Model#sortPersons`, which reaches
+When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
+by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
+message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
@@ -1061,7 +1061,8 @@ Start from the prepared contacts.
    `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`. Expect it at the end of the list.
 2. Run `sort`. Expect `Sorted 4 contact(s) by name.` and the order Aaron Lim, Alex Tan (`+6587654321`),
    Alex Tan (`+6591234567`), David Lim: the two namesakes are ordered by phone.
-3. Run `sort` again. Expect `Contacts are already sorted by name.` and no change.
+3. Run `sort` again. Expect `Contacts are already sorted by name.` as a normal message (the command box clears)
+   and no change.
 4. Run `undo`. Expect Aaron back at the end; the repeated `sort` did not add an undo entry.
 5. Run `find alex`, then `sort`. Expect the Alex results to stay displayed, now in name order.
 6. Run `exit` and relaunch from the same folder. Expect the sorted order from step 5 to be kept.

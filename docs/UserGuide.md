@@ -298,7 +298,8 @@ Format: `sort`
 * Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
 * On success, LinkUp shows `Sorted N contact(s) by name.`, where N is the number of saved contacts.
 * If the contacts are already in order, LinkUp shows `Contacts are already sorted by name.`. If there are no
-  contacts, it shows `No contacts saved yet.`. Neither case changes anything or adds an undo entry.
+  contacts, it shows `No contacts saved yet.`. These are normal messages, not errors: the command box clears as
+  usual. Neither case changes anything or adds an undo entry.
 * `undo` restores the previous order.
 
 Examples:
