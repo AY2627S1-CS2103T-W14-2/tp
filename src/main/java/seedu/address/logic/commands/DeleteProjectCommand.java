@@ -65,12 +65,14 @@ public class DeleteProjectCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> originals = getValidatedContacts(model);
+        Project savedProject = model.getAddressBook().getPersonList().stream()
+                .flatMap(person -> person.getProjects().stream()).filter(project::equals).findFirst().orElseThrow();
         List<Person> replacements = originals.stream().map(this::createUpdatedContact).toList();
         for (int i = 0; i < originals.size(); i++) {
             model.setPerson(originals.get(i), replacements.get(i));
         }
         logger.fine("Removed project association from " + originals.size() + " contact(s)");
-        return createSuccessResult(originals);
+        return createSuccessResult(originals, savedProject);
     }
 
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
@@ -106,7 +108,7 @@ public class DeleteProjectCommand extends Command {
     }
 
     /** Formats the existing single-contact or batch success message using the original indices. */
-    private CommandResult createSuccessResult(List<Person> contacts) {
+    private CommandResult createSuccessResult(List<Person> contacts, Project savedProject) {
         if (contacts.size() == 1) {
             Person contact = contacts.get(0);
             Project removedProject = contact.getProjects().get(contact.getProjects().indexOf(project));
@@ -116,7 +118,7 @@ public class DeleteProjectCommand extends Command {
         for (int i = 0; i < contacts.size(); i++) {
             selectedContacts.add(indices.get(i).getOneBased() + ": " + contacts.get(i).getName());
         }
-        return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
+        return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, savedProject,
                 String.join(", ", selectedContacts)));
     }
 

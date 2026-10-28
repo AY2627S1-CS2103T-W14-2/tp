@@ -91,7 +91,9 @@ public class ProjectCommand extends Command {
             selectedContacts.add(contact);
         }
         if (!conflicts.isEmpty()) {
-            throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, project,
+            Project savedProject = model.getAddressBook().getPersonList().stream()
+                    .flatMap(person -> person.getProjects().stream()).filter(project::equals).findFirst().orElseThrow();
+            throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, savedProject,
                     String.join("\n", conflicts)));
         }
         return selectedContacts;
