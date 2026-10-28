@@ -78,7 +78,7 @@ public class AddCommandParserTest {
     @Test
     public void parse_nameWithRepeatedWhitespace_storesSingleSpaces() {
         Person expectedPerson = new PersonBuilder(BOB).withProjects(VALID_PROJECT_BOB).build();
-        assertParseSuccess(parser, " n/Bob \t  Choo" + PHONE_DESC_BOB + EMAIL_DESC_BOB
+        assertParseSuccess(parser, " n/Bob \t\u00A0 Choo" + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
     }
 

@@ -56,8 +56,8 @@ public class NameTest {
     public void constructor_repeatedWhitespace_collapsesToOneSpace() {
         assertEquals("Emma First", new Name("Emma   First").fullName);
         assertEquals("Emma First", new Name("Emma\tFirst").fullName);
-        assertEquals("Emma First", new Name("Emma First").fullName); // non-breaking space from copy-paste
-        assertEquals("Mary Jane O'Neil", new Name(" Mary \t Jane  O'Neil ").fullName);
+        assertEquals("Emma First", new Name("Emma\u00A0First").fullName); // non-breaking space from copy-paste
+        assertEquals("Mary Jane O'Neil", new Name(" Mary \t Jane\u2003 O'Neil ").fullName);
         assertEquals(new Name("Emma First"), new Name("Emma  First"));
     }
 
