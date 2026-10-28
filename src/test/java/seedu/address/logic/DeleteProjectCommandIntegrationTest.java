@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -13,6 +14,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
+import seedu.address.model.project.Project;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -21,6 +23,28 @@ import seedu.address.testutil.PersonBuilder;
 public class DeleteProjectCommandIntegrationTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void execute_renamedProjectContainingPrefix_removesPersistsAndUndoes() throws Exception {
+        Model model = new ModelManager();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json"));
+        Logic logic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
+
+        logic.execute("add n/Alice Tan p/+6591111111 e/alice@example.com tele/alice_tan pr/Alpha");
+        logic.execute("renameproject old/Alpha new/Team pr/X");
+        Person renamed = model.getAddressBook().getPersonList().getFirst();
+        assertEquals(List.of(new Project("Team pr/X")), renamed.getProjects());
+        logic.execute("projects");
+        logic.execute("deleteproject 1 pr/Team pr/X");
+        assertEquals(new PersonBuilder(renamed).withProjects().build(),
+                model.getAddressBook().getPersonList().getFirst());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+
+        logic.execute("undo");
+        assertEquals(renamed, model.getAddressBook().getPersonList().getFirst());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
 
     @Test
     public void execute_removalPersistsAndRetainsFilter_failedCommandsPreserveUndo() throws Exception {
@@ -45,7 +69,7 @@ public class DeleteProjectCommandIntegrationTest {
         logic.execute("find Bob");
         assertThrows(CommandException.class, () -> logic.execute("deleteproject 1 pr/Missing"));
         assertThrows(ParseException.class, () -> logic.execute("deleteproject 1 pr/"));
-        assertThrows(ParseException.class, () -> logic.execute("deleteproject 1 pr/A pr/B"));
+        assertThrows(CommandException.class, () -> logic.execute("deleteproject 1 pr/A pr/B"));
         assertEquals(expected, model.getFilteredPersonList().get(0));
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
 

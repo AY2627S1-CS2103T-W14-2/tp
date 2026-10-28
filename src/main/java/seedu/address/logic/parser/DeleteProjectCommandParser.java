@@ -15,7 +15,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.project.Project;
 
 /**
- * Parses displayed contact indices and one project name.
+ * Parses displayed contact indices and one project name. Everything after the first
+ * project prefix is part of the name, including any further literal {@code pr/} text.
  */
 public class DeleteProjectCommandParser implements Parser<DeleteProjectCommand> {
     private static final Logger logger = LogsCenter.getLogger(DeleteProjectCommandParser.class);
@@ -23,9 +24,15 @@ public class DeleteProjectCommandParser implements Parser<DeleteProjectCommand> 
     @Override
     public DeleteProjectCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_PROJECT);
+        String projectPrefix = " " + PREFIX_PROJECT.getPrefix();
+        int projectPrefixPosition = args.indexOf(projectPrefix);
+        if (projectPrefixPosition == -1) {
+            logger.fine("Project parsing rejected: missing project prefix");
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                    DeleteProjectCommand.MESSAGE_USAGE));
+        }
         List<Index> indices = new ArrayList<>();
-        for (String token : arguments.getPreamble().strip().split("\\s+")) {
+        for (String token : args.substring(0, projectPrefixPosition).strip().split("\\s+")) {
             Index index;
             try {
                 index = ParserUtil.parseIndex(token);
@@ -41,17 +48,12 @@ public class DeleteProjectCommandParser implements Parser<DeleteProjectCommand> 
             }
             indices.add(index);
         }
-        if (arguments.getValue(PREFIX_PROJECT).isEmpty()) {
-            logger.fine("Project parsing rejected: missing project prefix");
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                    DeleteProjectCommand.MESSAGE_USAGE));
-        }
         try {
-            arguments.verifyNoDuplicatePrefixesFor(PREFIX_PROJECT);
-            Project project = ParserUtil.parseProject(arguments.getValue(PREFIX_PROJECT).get());
+            Project project = ParserUtil.parseProject(
+                    args.substring(projectPrefixPosition + projectPrefix.length()));
             return new DeleteProjectCommand(indices, project);
         } catch (ParseException e) {
-            logger.fine("Project parsing rejected: invalid project or repeated prefix");
+            logger.fine("Project parsing rejected: invalid project");
             throw e;
         }
     }
