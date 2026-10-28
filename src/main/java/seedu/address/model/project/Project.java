@@ -19,13 +19,21 @@ public class Project {
     // Invisible format characters (e.g. zero-width space, byte order mark, direction marks), except the zero-width
     // non-joiner and joiner, which some scripts and emoji sequences such as a man technologist need.
     private static final Pattern INVISIBLE_FORMAT_PATTERN = Pattern.compile("[\\p{Cf}&&[^\\u200C\\u200D]]");
-    private static final String JOINER = "[\\u200C\\u200D]";
+    // One or more consecutive zero-width non-joiners or joiners, handled as a whole so that cleaning is idempotent.
+    // The run is matched only from its first joiner and without backtracking, so long runs take linear time.
+    private static final String JOINER_RUN = "[\\u200C\\u200D]++";
+    private static final String RUN_START = "(?<![\\u200C\\u200D])";
     // Characters that never need a joiner: Latin letters, digits, punctuation and spaces.
     private static final String PLAIN_CHARACTER = "[\\p{IsLatin}\\p{Nd}\\p{P}\\s\\p{Z}]";
-    // A joiner next to a plain character, or at either end, joins nothing visible, so it is removed. Joiners
-    // between emoji or between letters of scripts such as Persian or Hindi are kept.
-    private static final Pattern STRAY_JOINER_PATTERN = Pattern.compile("(?<=" + PLAIN_CHARACTER + ")" + JOINER
-            + "|" + JOINER + "(?=" + PLAIN_CHARACTER + ")|^" + JOINER + "|" + JOINER + "$");
+    // A joiner run next to a plain character, or at either end, joins nothing visible, so it is removed. Joiners
+    // between emoji or between letters of scripts such as Persian or Hindi are kept. \A and \z are used instead of
+    // ^ and $, which would also match before a final line terminator such as U+0085.
+    private static final Pattern STRAY_JOINER_PATTERN = Pattern.compile(RUN_START + "(?:(?<=" + PLAIN_CHARACTER
+            + ")" + JOINER_RUN + "|" + JOINER_RUN + "(?=" + PLAIN_CHARACTER + ")|\\A" + JOINER_RUN + "|" + JOINER_RUN
+            + "\\z)");
+    // The single spaces left at either end after collapsing whitespace. Used instead of String#strip, which also
+    // removes the separators U+001C..U+001F: those are control characters here and must stay so they are rejected.
+    private static final Pattern EDGE_SPACE_PATTERN = Pattern.compile("\\A | \\z");
 
     public final String projectName;
     private final String canonicalProjectName;
@@ -40,7 +48,7 @@ public class Project {
     public Project(String projectName) {
         requireNonNull(projectName);
         String normalizedProjectName = normalize(projectName);
-        checkArgument(isValidProjectName(normalizedProjectName), MESSAGE_CONSTRAINTS);
+        checkArgument(isValidProjectName(projectName), MESSAGE_CONSTRAINTS);
         this.projectName = normalizedProjectName;
         canonicalProjectName = normalizedProjectName.toLowerCase(Locale.ROOT);
     }
@@ -54,7 +62,8 @@ public class Project {
         requireNonNull(projectName);
         String withoutFormatCharacters = INVISIBLE_FORMAT_PATTERN.matcher(projectName).replaceAll("");
         String visibleProjectName = STRAY_JOINER_PATTERN.matcher(withoutFormatCharacters).replaceAll("");
-        return WHITESPACE_PATTERN.matcher(visibleProjectName).replaceAll(" ").strip();
+        String collapsed = WHITESPACE_PATTERN.matcher(visibleProjectName).replaceAll(" ");
+        return EDGE_SPACE_PATTERN.matcher(collapsed).replaceAll("");
     }
 
     /**
@@ -62,6 +71,10 @@ public class Project {
      */
     public static boolean isValidProjectName(String test) {
         requireNonNull(test);
+        // Malformed text: removing a character between two unpaired surrogates would join them into a new one.
+        if (test.codePoints().anyMatch(codePoint -> Character.getType(codePoint) == Character.SURROGATE)) {
+            return false;
+        }
         String normalizedProjectName = normalize(test);
         int nameLength = normalizedProjectName.codePointCount(0, normalizedProjectName.length());
         return nameLength >= 1

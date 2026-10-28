@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.commands.ProjectCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -73,6 +76,67 @@ public class ProjectInvisibleCharactersIntegrationTest {
 
         assertThrows(CommandException.class, () -> logic.execute("project 1 pr/Alpha" + zeroWidthJoiner + "Beta"));
         assertEquals(List.of("AlphaBeta"), projectNamesOfFirstContact());
+    }
+
+    @Test
+    public void execute_joinersOnlyProject_rejectedAndNothingSaved() {
+        String fiveJoiners = String.valueOf((char) 0x200D).repeat(5);
+
+        // Previously accepted and saved as three joiners, which then stopped LinkUp from starting.
+        assertThrows(ParseException.class, () -> logic.execute("project 1 pr/" + fiveJoiners));
+        assertEquals(List.of(), projectNamesOfFirstContact());
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_separatorsAroundJoiner_rejectedAndNothingSaved() {
+        String separatorsAroundJoiner = ZERO_WIDTH_SPACE + (char) 0x1C + (char) 0x200D + (char) 0x1C + ZERO_WIDTH_SPACE;
+
+        // Previously reported as valid but threw an unchecked exception when the project was built.
+        assertThrows(ParseException.class, () -> logic.execute("project 1 pr/" + separatorsAroundJoiner));
+        assertEquals(List.of(), projectNamesOfFirstContact());
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_unpairedSurrogates_rejectedAndNothingSaved() {
+        String splitSurrogates = "" + (char) 0xDB40 + ZERO_WIDTH_SPACE + (char) 0xDC01;
+
+        // Previously reported as valid but threw an unchecked exception when the project was built.
+        assertThrows(ParseException.class, () -> logic.execute("project 1 pr/" + splitSurrogates));
+        assertEquals(List.of(), projectNamesOfFirstContact());
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void readAddressBook_savedUnpairedSurrogates_throwsDataLoadingException() throws Exception {
+        Path file = temporaryFolder.resolve("malformed.json");
+        Files.writeString(file, "{\"persons\":[{\"name\":\"Ann Lee\",\"phone\":\"+6591234567\","
+                + "\"email\":\"ann@example.com\",\"telegramUsername\":\"ann_lee\","
+                + "\"projects\":[\"\\uDB40\\u200B\\uDC01\"]}]}");
+
+        // A data loading failure lets startup back up the file and start empty instead of crashing.
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+    }
+
+    @Test
+    public void execute_joinerRunBetweenLetters_savedAndReloadedAsVisibleName() throws Exception {
+        String threeJoiners = String.valueOf((char) 0x200D).repeat(3);
+        logic.execute("project 1 pr/Alpha" + threeJoiners + "Beta");
+        assertEquals(List.of("AlphaBeta"), projectNamesOfFirstContact());
+
+        // Loading the saved file (as startup does) gives back the same project.
+        Person reloaded = new JsonAddressBookStorage(storage.getAddressBookFilePath()).readAddressBook()
+                .orElseThrow().getPersonList().get(0);
+        assertEquals(List.of(new Project("AlphaBeta")), reloaded.getProjects());
+    }
+
+    @Test
+    public void execute_findProjectWithInvisibleCharactersOnly_rejectedWithUsage() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindProjectCommand.MESSAGE_USAGE);
+        ParseException failure = assertThrows(ParseException.class, () ->
+                logic.execute("findproject " + ZERO_WIDTH_SPACE));
+        assertEquals(expectedMessage, failure.getMessage());
     }
 
     @Test

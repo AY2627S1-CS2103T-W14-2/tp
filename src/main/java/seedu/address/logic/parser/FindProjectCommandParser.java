@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import seedu.address.logic.commands.FindProjectCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.ProjectContainsKeywordPredicate;
+import seedu.address.model.project.Project;
 
 /**
  * Parses a project search phrase and creates a {@code FindProjectCommand}.
@@ -20,13 +21,14 @@ public class FindProjectCommandParser implements Parser<FindProjectCommand> {
     /**
      * Parses the whole argument as one phrase, validating its length before internal whitespace is collapsed.
      *
-     * @throws ParseException if the phrase is blank or exceeds the search keyword limit.
+     * @throws ParseException if the phrase is blank (including one made only of invisible characters) or exceeds the
+     *     search keyword limit.
      */
     @Override
     public FindProjectCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String trimmedKeyword = SURROUNDING_WHITESPACE.matcher(args).replaceAll("");
-        if (trimmedKeyword.isEmpty()) {
+        if (Project.normalize(trimmedKeyword).isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindProjectCommand.MESSAGE_USAGE));
         }
         if (trimmedKeyword.codePointCount(0, trimmedKeyword.length()) > FindProjectCommand.MAX_KEYWORD_LENGTH) {

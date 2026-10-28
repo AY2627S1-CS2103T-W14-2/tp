@@ -3,8 +3,11 @@ package seedu.address.model.project;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,6 +61,89 @@ public class ProjectTest {
         assertEquals("CS2103T-Team", new Project("CS2103T\u200D-Team").projectName); // next to punctuation
         assertEquals("Team 2", new Project("Team \u200D 2").projectName); // between spaces
         assertEquals(new Project("AlphaBeta"), new Project("Alpha\u200D\u200DBeta")); // repeated joiners
+    }
+
+    @Test
+    public void constructor_joinerRuns_removedAsAWhole() {
+        String joiner = String.valueOf((char) 0x200D);
+        String nonJoiner = String.valueOf((char) 0x200C);
+        assertEquals("AlphaBeta", new Project("Alpha" + joiner.repeat(3) + "Beta").projectName);
+        assertEquals("AlphaBeta", new Project("Alpha" + joiner.repeat(4) + "Beta").projectName);
+        assertEquals("AlphaBeta", new Project("Alpha" + joiner + nonJoiner + joiner + "Beta").projectName);
+        assertEquals("Team", new Project("Team " + joiner.repeat(3)).projectName);
+        assertEquals("Team", new Project(joiner.repeat(5) + "Team").projectName);
+    }
+
+    @Test
+    public void isValidProjectName_joinersOnly_rejected() {
+        String joiner = String.valueOf((char) 0x200D);
+        String nonJoiner = String.valueOf((char) 0x200C);
+        assertFalse(Project.isValidProjectName(joiner.repeat(3)));
+        assertFalse(Project.isValidProjectName(joiner.repeat(5)));
+        assertFalse(Project.isValidProjectName(nonJoiner + joiner + nonJoiner));
+        assertThrows(IllegalArgumentException.class, () -> new Project(joiner.repeat(5)));
+    }
+
+    @Test
+    public void normalize_separatorControlCharacters_stableAndRejected() {
+        String zeroWidthSpace = String.valueOf((char) 0x200B);
+        String joiner = String.valueOf((char) 0x200D);
+        String man = "\uD83D\uDC68";
+        for (char separator = 0x1C; separator <= 0x1F; separator++) {
+            // String#strip would remove these at the ends and expose the joiner, so a second cleaning differed.
+            String exposingJoiner = zeroWidthSpace + separator + joiner + man;
+            String once = Project.normalize(exposingJoiner);
+            assertEquals(once, Project.normalize(once));
+
+            String separatorsAroundJoiner = zeroWidthSpace + separator + joiner + separator + zeroWidthSpace;
+            assertFalse(Project.isValidProjectName(separatorsAroundJoiner));
+            assertThrows(IllegalArgumentException.class, () -> new Project(separatorsAroundJoiner));
+
+            // Control characters are rejected anywhere, including at either end.
+            assertFalse(Project.isValidProjectName("Team" + separator));
+            assertFalse(Project.isValidProjectName(separator + "Team"));
+            assertFalse(Project.isValidProjectName("Team" + separator + "B"));
+        }
+    }
+
+    @Test
+    public void isValidProjectName_unpairedSurrogates_rejected() {
+        String zeroWidthSpace = String.valueOf((char) 0x200B);
+        String tagHigh = String.valueOf((char) 0xDB40);
+        String tagLow = String.valueOf((char) 0xDC01);
+        String[] malformed = {tagHigh + zeroWidthSpace + tagLow, "Team " + tagHigh + zeroWidthSpace + tagLow,
+            "A" + tagHigh, tagLow + "A", (char) 0xD83D + zeroWidthSpace + (char) 0xDC68};
+        for (String name : malformed) {
+            // Cleaning would otherwise join the halves into a new character that a later cleaning changes again.
+            assertFalse(Project.isValidProjectName(name));
+            assertThrows(IllegalArgumentException.class, () -> new Project(name));
+        }
+        assertTrue(Project.isValidProjectName("\uD83D\uDC68")); // a correctly paired emoji is still accepted
+    }
+
+    @Test
+    public void normalize_longJoinerRunBetweenEmoji_keptQuickly() {
+        String run = "\uD83D\uDC68" + String.valueOf((char) 0x200D).repeat(100_000) + "\uD83D\uDCBB";
+        // Matching each run once keeps this linear; trying every position in the run took seconds.
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () -> assertEquals(run, Project.normalize(run)));
+    }
+
+    @Test
+    public void normalize_cleaningTwice_sameAsOnceAndAgreesWithValidation() {
+        String joiner = String.valueOf((char) 0x200D);
+        String[] inputs = {"Alpha" + joiner.repeat(3) + "Beta", joiner.repeat(5), "Team " + joiner.repeat(4),
+            "Alpha\u200B\u200D\u200DBeta", " \u200D \u200D ", "Team \uD83D\uDC68\u200D\uD83D\uDCBB",
+            "\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645", "\u0915\u094D\u200D\u0937", "CS2103T  Team",
+            "Team" + joiner + (char) 0x85, "-" + (char) 0x2003 + (char) 0xFEFF + (char) 0x85 + (char) 0xA0};
+        for (String input : inputs) {
+            String once = Project.normalize(input);
+            assertEquals(once, Project.normalize(once), input);
+            assertEquals(Project.isValidProjectName(input), Project.isValidProjectName(once), input);
+            if (Project.isValidProjectName(input)) {
+                // A stored name rebuilds unchanged, as it does when the data file is loaded again.
+                assertEquals(once, new Project(new Project(input).projectName).projectName, input);
+            }
+        }
     }
 
     @Test
