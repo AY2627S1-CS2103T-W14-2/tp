@@ -159,12 +159,13 @@ in lowercase.
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
-control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
-names are compared case-insensitively. Invisible formatting characters, such as a zero-width space copied from
-a chat app, are removed, so a pasted name matches the same name typed by hand. The only invisible characters kept
-are the joiners that combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi;
-a joiner next to an English letter, a digit, a space or punctuation is removed too. Supply exactly one non-empty
+The project is required. A project name must contain 1–40 characters and cannot contain control characters; the
+command box removes pasted line breaks and tabs. Surrounding whitespace is removed, repeated internal whitespace is
+collapsed, and project names are compared case-insensitively. Invisible formatting characters, such as a zero-width
+space copied from a chat app, are removed, so a pasted name matches the same name typed by hand. Joiners that
+combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi are kept; a joiner next to an
+English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the Hangul filler
+(U+3164), are not removed. Supply exactly one non-empty
 `pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
