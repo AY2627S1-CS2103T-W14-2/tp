@@ -93,6 +93,23 @@ public class MainWindowTest {
     }
 
     @Test
+    public void uiManager_startupMessage_shownInResultBox() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = new Stage();
+            try {
+                new UiManager(createLogic(new ModelManager()), temporaryFolder.resolve("contacts.json"),
+                        "Could not read the data file.").start(stage);
+                TextArea result = (TextArea) stage.getScene().lookup("#resultDisplay");
+                assertEquals("Could not read the data file.", result.getText());
+                // Long lines wrap, so every part of the message stays readable in a narrow window
+                assertTrue(result.isWrapText());
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
+    @Test
     public void recentFindResults_updateAndRemainAboveLargerPersonList() throws Exception {
         FxTestUtil.run(() -> {
             Model model = new ModelManager();
