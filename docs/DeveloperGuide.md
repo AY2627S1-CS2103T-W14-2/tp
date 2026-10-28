@@ -205,7 +205,7 @@ field's value, so callers must use the documented grammar.
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
-| `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
+| `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case. `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), keeping only the zero-width non-joiner and joiner that some scripts and emoji sequences need, so pasted names cannot create look-alike duplicates (issue #177). It then collapses whitespace. Saved names are normalised the same way when loaded. |
 
 `JsonAdaptedPerson` restores names, phones and emails through their stored-value validation paths, preserving
 legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing

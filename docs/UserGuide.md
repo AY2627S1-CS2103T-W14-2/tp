@@ -161,7 +161,9 @@ optional, and uppercase letters are accepted. The username is stored in lowercas
 
 The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
 control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
-names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
+names are compared case-insensitively. Invisible formatting characters, such as a zero-width space copied from
+a chat app, are removed, so a pasted name matches the same name typed by hand. Supply exactly one non-empty
+`pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.

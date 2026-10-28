@@ -32,6 +32,31 @@ public class ProjectTest {
     }
 
     @Test
+    public void constructor_invisibleFormatCharacters_removed() {
+        assertEquals("AlphaBeta", new Project("Alpha​Beta").projectName); // zero-width space (issue #177)
+        assertEquals("CS2103T", new Project("﻿CS2103T").projectName); // byte order mark
+        assertEquals("TeamB", new Project("Team­B").projectName); // soft hyphen
+        assertEquals("Alpha", new Project("‮Alpha").projectName); // right-to-left override
+        assertEquals("Alpha Beta", new Project("Alpha ​ Beta").projectName); // spaces still collapse
+        assertEquals(new Project("AlphaBeta"), new Project("Alpha⁠Beta")); // word joiner
+    }
+
+    @Test
+    public void constructor_joinersNeededByEmojiAndScripts_preserved() {
+        String technologist = "Team 👨‍💻"; // man, zero-width joiner, laptop
+        String persian = "می‌خواهم"; // uses a zero-width non-joiner
+        assertEquals(technologist, new Project(technologist).projectName);
+        assertEquals(persian, new Project(persian).projectName);
+    }
+
+    @Test
+    public void isValidProjectName_invisibleFormatCharacters_notCounted() {
+        assertFalse(Project.isValidProjectName("​")); // nothing visible is left
+        assertFalse(Project.isValidProjectName("​ ﻿"));
+        assertTrue(Project.isValidProjectName("a".repeat(40) + "​")); // limit counts visible characters
+    }
+
+    @Test
     public void isValidProjectName() {
         assertFalse(Project.isValidProjectName(""));
         assertFalse(Project.isValidProjectName("   "));

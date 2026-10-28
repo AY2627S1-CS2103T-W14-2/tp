@@ -16,13 +16,17 @@ public class Project {
     public static final String MESSAGE_CONSTRAINTS =
             "Project names should contain 1 to 40 characters and no line breaks or other control characters";
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("[\\s\\p{Z}]+");
+    // Invisible format characters (e.g. zero-width space, byte order mark, direction marks), except the zero-width
+    // non-joiner and joiner, which some scripts and emoji sequences such as a man technologist need.
+    private static final Pattern INVISIBLE_FORMAT_PATTERN = Pattern.compile("[\\p{Cf}&&[^\\u200C\\u200D]]");
 
     public final String projectName;
     private final String canonicalProjectName;
 
     /**
      * Constructs a {@code Project}.
-     * Surrounding whitespace is removed and repeated internal whitespace is collapsed.
+     * Invisible format characters are removed, surrounding whitespace is removed and repeated internal whitespace
+     * is collapsed.
      *
      * @param projectName A valid project name.
      */
@@ -35,11 +39,13 @@ public class Project {
     }
 
     /**
-     * Returns the whitespace-normalized form of the given project name.
+     * Returns the normalized form of the given project name: invisible format characters that would make two
+     * names look identical but compare differently are removed, then whitespace is collapsed and trimmed.
      */
     public static String normalize(String projectName) {
         requireNonNull(projectName);
-        return WHITESPACE_PATTERN.matcher(projectName).replaceAll(" ").strip();
+        String visibleProjectName = INVISIBLE_FORMAT_PATTERN.matcher(projectName).replaceAll("");
+        return WHITESPACE_PATTERN.matcher(visibleProjectName).replaceAll(" ").strip();
     }
 
     /**
