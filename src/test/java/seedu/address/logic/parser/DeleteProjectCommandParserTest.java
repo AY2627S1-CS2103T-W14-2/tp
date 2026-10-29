@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.DeleteProjectCommand;
 import seedu.address.model.project.Project;
 
@@ -42,9 +41,14 @@ public class DeleteProjectCommandParserTest {
     }
 
     @Test
-    public void parse_repeatedProjectPrefix_failure() {
-        assertParseFailure(parser, "1 pr/Orbital pr/CS2103T",
-                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_PROJECT));
+    public void parse_projectContainsPrefix_preservesLiteralName() {
+        for (String name : new String[] {"Team pr/X", "Orbital pr/CS2103T", "pr/X", "Team pr/", "A pr/B pr/C"}) {
+            assertParseSuccess(parser, "1 pr/" + name,
+                    new DeleteProjectCommand(Index.fromOneBased(1), new Project(name)));
+        }
+        assertParseSuccess(parser, " 2 1 pr/ Team   pr/X ",
+                new DeleteProjectCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(1)),
+                        new Project("Team pr/X")));
     }
     @Test
     public void parse_multipleIndices_acceptsWhitespaceAndSelectionOrder() {
