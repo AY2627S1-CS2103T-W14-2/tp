@@ -35,6 +35,21 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_slashInKeyword_throwsHelpfulParseException() {
+        for (String input : List.of("n/alex", "n/ alex", "alex n/bob", "alex/bob", "alex/", "/",
+                "\u00a0n/alex\u2003")) {
+            assertParseFailure(parser, input, FindCommand.MESSAGE_SLASH_IN_KEYWORD);
+        }
+    }
+
+    @Test
+    public void parse_validNamePunctuation_returnsFindCommand() {
+        FindCommand expected = new FindCommand(
+                new NameContainsKeywordsPredicate(List.of("O'Neil", "Anne-Marie", "Jr.", "123")));
+        assertParseSuccess(parser, "O'Neil Anne-Marie Jr. 123", expected);
+    }
+
+    @Test
     public void parse_maxLengthInput_returnsFindCommand() {
         String keyword = "a".repeat(60);
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(List.of(keyword)));

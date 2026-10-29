@@ -21,7 +21,10 @@ public class FindCommand extends Command {
             + "and displays them as a list with index numbers.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]... (1 to " + MAX_KEYWORD_LENGTH
             + " characters in total after trimming surrounding whitespace)\n"
+            + "Use plain keywords without prefixes such as n/. Keywords cannot contain '/'.\n"
             + "Example: " + COMMAND_WORD + " ali bob char";
+    public static final String MESSAGE_SLASH_IN_KEYWORD = "Find takes plain keywords, without prefixes such as n/. "
+            + "Keywords cannot contain '/'. Example: find alex";
     public static final String MESSAGE_KEYWORD_TOO_LONG = "Name search input must not exceed " + MAX_KEYWORD_LENGTH
             + " characters after trimming surrounding whitespace.";
 
