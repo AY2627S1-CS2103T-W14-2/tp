@@ -34,6 +34,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ListProjectsCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ParserUtil;
@@ -329,6 +330,20 @@ public class LogicManagerTest {
         assertEquals(new AddressBook(), savedData.readAddressBook().orElseThrow());
         assertFalse(model.canUndo());
         assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_sortWithNothingToSortThenUndo_undoesPreviousModifyingCommand() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        logic.execute(PersonUtil.getAddCommand(person));
+
+        // one contact is already in order, so sort succeeds without recording an undo entry
+        CommandResult result = logic.execute(SortCommand.COMMAND_WORD);
+
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, result.getFeedbackToUser());
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertFalse(model.canUndo());
     }
 
     @Test
