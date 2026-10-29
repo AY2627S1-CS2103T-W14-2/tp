@@ -598,7 +598,8 @@ LinkUp does not infer a country code, so `91234567` and `+6591234567` are differ
 
 **Caution:**
 If your changes make the data file invalid, LinkUp starts with an empty contact list at the next run. Before
-starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`.
+starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`,
+and the result box says that the file could not be read and names the backup.
 The next successfully executed command attempts to save the current contact list over the original file.
 To recover, close LinkUp, fix the problem in the backup, and copy it over the original data file. If the
 backup cannot be created (for example, because the disk is full or the folder is read-only), LinkUp shows an

@@ -22,13 +22,15 @@ public class ProjectTest {
     public void constructor_invalidProjectName_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new Project("   "));
         assertThrows(IllegalArgumentException.class, () -> new Project("\u00A0"));
+        assertThrows(IllegalArgumentException.class, () -> new Project("Alpha\nBeta"));
+        assertThrows(IllegalArgumentException.class, () -> new Project("Alpha\tBeta"));
         assertThrows(IllegalArgumentException.class, () -> new Project("CS2103T\u0085Project"));
         assertThrows(IllegalArgumentException.class, () -> new Project("a".repeat(41)));
     }
 
     @Test
     public void constructor_validProjectName_normalizesWhitespaceAndPreservesCase() {
-        Project project = new Project("\u00A0CS2103T\u2003\u2003Team\tProject\u00A0");
+        Project project = new Project("\u00A0CS2103T\u2003\u2003Team   Project\u00A0");
 
         assertEquals("CS2103T Team Project", project.projectName);
         assertEquals("CS2103T Team Project", project.toString());
@@ -166,6 +168,8 @@ public class ProjectTest {
         assertFalse(Project.isValidProjectName(""));
         assertFalse(Project.isValidProjectName("   "));
         assertFalse(Project.isValidProjectName("\u00A0"));
+        assertFalse(Project.isValidProjectName("Alpha\nBeta"));
+        assertFalse(Project.isValidProjectName("Alpha\tBeta"));
         assertFalse(Project.isValidProjectName("CS2103T\u0085Project"));
         assertFalse(Project.isValidProjectName("a".repeat(41)));
 

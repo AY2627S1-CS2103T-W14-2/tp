@@ -47,8 +47,8 @@ public class Project {
      */
     public Project(String projectName) {
         requireNonNull(projectName);
-        String normalizedProjectName = normalize(projectName);
         checkArgument(isValidProjectName(projectName), MESSAGE_CONSTRAINTS);
+        String normalizedProjectName = normalize(projectName);
         this.projectName = normalizedProjectName;
         canonicalProjectName = normalizedProjectName.toLowerCase(Locale.ROOT);
     }
@@ -73,6 +73,10 @@ public class Project {
         requireNonNull(test);
         // Malformed text: removing a character between two unpaired surrogates would join them into a new one.
         if (test.codePoints().anyMatch(codePoint -> Character.getType(codePoint) == Character.SURROGATE)) {
+            return false;
+        }
+        // Control characters such as tabs and line breaks are rejected before whitespace is collapsed.
+        if (test.codePoints().anyMatch(Character::isISOControl)) {
             return false;
         }
         String normalizedProjectName = normalize(test);
