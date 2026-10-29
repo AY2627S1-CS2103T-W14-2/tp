@@ -33,6 +33,11 @@ import seedu.address.logic.parser.exceptions.ParseException;
  */
 public class AddressBookParser {
 
+    /** Maximum raw command length in UTF-16 code units, including all whitespace. */
+    public static final int MAX_COMMAND_LENGTH = 1000;
+    public static final String MESSAGE_COMMAND_TOO_LONG = "Command is too long (maximum " + MAX_COMMAND_LENGTH
+            + " characters, including spaces). Shorten it and try again.";
+
     /**
      * Used for initial separation of command word and args.
      */
@@ -47,6 +52,10 @@ public class AddressBookParser {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public Command parseCommand(String userInput) throws ParseException {
+        // Check the raw length before trimming or regex processing to bound parsing work.
+        if (userInput.length() > MAX_COMMAND_LENGTH) {
+            throw new ParseException(MESSAGE_COMMAND_TOO_LONG);
+        }
         final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
         if (!matcher.matches()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));

@@ -192,6 +192,16 @@ before dispatching, so `FIND alex` works like `find alex` even on a computer set
 `toLowerCase()` would turn `I` into a dotless `ı`. Prefixes and arguments are not changed, so prefixes stay
 case-sensitive (`N/` is not `n/`).
 
+Before trimming or regex matching, `AddressBookParser.parseCommand` checks the raw `String.length()`
+against `MAX_COMMAND_LENGTH` (1,000 UTF-16 code units). This includes the command word, prefixes, values,
+and all leading, internal and trailing whitespace; supplementary Unicode characters count as two units.
+Oversized input throws `ParseException` with `MESSAGE_COMMAND_TOO_LONG`, before command dispatch or
+execution, so contacts, filters, search history and storage remain unchanged. The constant-time length
+check bounds the input passed to command parsers, preventing long whitespace runs from causing excessive
+regex processing (for example, `findproject a` followed by 40,000 spaces and `b`). Existing field and
+keyword limits are validated separately. `AddressBookParserTest` covers the boundary, whitespace,
+Unicode counting and rejection of the reported input within two seconds.
+
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
 `EditCommand` can replace the name, phone, email and Telegram username, and always keeps the contact's projects.
@@ -1050,6 +1060,13 @@ changing the current results. Run `list` to restore the displayed contacts. Then
 consecutive `x` characters succeeds, while 41 fails.
 Run `undo` after the accepted project change to restore the fixture.
 
+To check the overall command limit, paste `help` followed by 996 spaces: it should open help.
+With 997 spaces, it should instead report
+`Command is too long (maximum 1000 characters, including spaces). Shorten it and try again.`
+On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
+the command box and execute. Verify that the same command-length error appears within two seconds
+and that the displayed contacts, recent search and saved data remain unchanged.
+
 ### Renaming projects
 
 Start from the three-contact fixture in "Prepare deterministic contacts" with no subsequent changes. After
@@ -1110,3 +1127,4 @@ when startup cannot back up unreadable data, expect an error dialog and no main 
 fails, expect an error and the contacts, filter, search summary, and undo history to return to their previous
 state. Fix storage and retry the original modifying command. A failed undo save must preserve contacts, the
 filter, and undo history so undo can be retried.
+
