@@ -103,6 +103,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_overlongDottedEmail_throwsIllegalValueExceptionNotStackOverflow() {
+        // Issue #196: a saved email like this used to crash loading instead of being reported as invalid data.
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE,
+                "a.".repeat(17_770) + "a@example.com", VALID_TELEGRAM_USERNAME, VALID_PROJECTS);
+        assertThrows(IllegalValueException.class, Email.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
     public void toModelType_nullEmail_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, VALID_TELEGRAM_USERNAME,
                 VALID_PROJECTS);

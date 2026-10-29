@@ -84,6 +84,12 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_overlongEmail_rejectedWithSpecificMessage() {
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/" + "a.".repeat(17_770) + "a@example.com"
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Email.MESSAGE_TOO_LONG);
+    }
+
+    @Test
     public void parse_localPhone_rejectedForNewContact() {
         assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
