@@ -59,7 +59,7 @@ public class FindCommandIntegrationTest {
 
         CommandResult result = logic.execute("find LEX");
 
-        assertEquals("2 person(s) listed!", result.getFeedbackToUser());
+        assertEquals("2 contact(s) listed!", result.getFeedbackToUser());
         assertEquals(List.of(alex, alexander), logic.getFilteredPersonList());
         assertEquals(original, model.getAddressBook());
         assertEquals(original, addressBookStorage.readAddressBook().orElseThrow());
@@ -81,7 +81,7 @@ public class FindCommandIntegrationTest {
         assertEquals(List.of(alex, alexander), logic.getFilteredPersonList());
 
         CommandResult result = logic.execute("find nobody");
-        assertEquals("0 person(s) listed!", result.getFeedbackToUser());
+        assertEquals("0 contact(s) listed!", result.getFeedbackToUser());
         assertTrue(logic.getFilteredPersonList().isEmpty());
 
         logic.execute("find bo");

@@ -34,7 +34,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.3";
+    public static final String VERSION = "V1.5";
 
     static final String MESSAGE_BACKUP_FAILED = "LinkUp could not load %1$s, and could not back it up (%2$s).\n\n"
             + "LinkUp will not start, so that the file is not overwritten. Copy the file somewhere safe, "
@@ -62,7 +62,7 @@ public class MainApp extends Application {
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("===============================[ Initializing LinkUp ]==============================");
         super.init();
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
@@ -180,7 +180,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting LinkUp " + MainApp.VERSION);
         if (startupErrorMessage != null) {
             showStartupErrorAndExit(startupErrorMessage);
             return;
@@ -202,7 +202,7 @@ public class MainApp extends Application {
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("=============================== [ Stopping LinkUp ] ================================");
         if (model == null) {
             return; // startup stopped before any data was loaded, so there is nothing to save
         }

@@ -53,14 +53,15 @@ public class ContactWorkflowIntegrationTest {
 
     @Test
     public void execute_sameNameWorkflow_preservesIdentityAndNormalisedDataAfterReload() throws Exception {
-        assertEquals("Added contact: Alex Tan [Team Alpha]", logic.execute(ADD_ALEX).getFeedbackToUser());
-        assertEquals("Added contact: Alex Tan [Orbital]", logic.execute(ADD_NAMESAKE).getFeedbackToUser());
+        // The index in each message tells the two namesakes apart.
+        assertEquals("Added contact 1: Alex Tan [Team Alpha]", logic.execute(ADD_ALEX).getFeedbackToUser());
+        assertEquals("Added contact 2: Alex Tan [Orbital]", logic.execute(ADD_NAMESAKE).getFeedbackToUser());
         assertSavedContacts(ALEX, NAMESAKE);
         // Person equality ignores email case, so verify the stored spelling separately.
         assertEquals("alex@example.com", storage.readAddressBook().orElseThrow()
                 .getPersonList().get(0).getEmail().value);
 
-        assertEquals("2 person(s) listed!", logic.execute("find LEX").getFeedbackToUser());
+        assertEquals("2 contact(s) listed!", logic.execute("find LEX").getFeedbackToUser());
         assertEquals(List.of(ALEX, NAMESAKE), logic.getFilteredPersonList());
         logic.execute("project 2 pr/ Team   Alpha");
         Person associated = new PersonBuilder(NAMESAKE).withProjects("Orbital", "Team Alpha").build();
@@ -69,7 +70,10 @@ public class ContactWorkflowIntegrationTest {
 
         logic.execute("findproject ORB");
         assertEquals(List.of(associated), logic.getFilteredPersonList());
-        assertEquals("Deleted contact: Alex Tan.", logic.execute("delete 1").getFeedbackToUser());
+        // The phone number tells this Alex Tan apart from the other contact with the same name.
+        assertEquals("Deleted contact: Alex Tan; Phone: +6587654321; Email: other@example.com; "
+                + "Telegram: @other_alex; Projects: Orbital, Team Alpha",
+                logic.execute("delete 1").getFeedbackToUser());
         assertEquals(List.of(), logic.getFilteredPersonList());
         assertSavedContacts(ALEX);
 
