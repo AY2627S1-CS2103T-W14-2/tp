@@ -25,7 +25,7 @@ public class DeleteCommand extends Command {
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted contact: %1$s.";
+    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted contact: %1$s";
 
     private static final Logger logger = LogsCenter.getLogger(DeleteCommand.class);
 
@@ -53,7 +53,7 @@ public class DeleteCommand extends Command {
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
         model.deletePerson(personToDelete);
         logger.fine("Deleted contact at index " + targetIndex.getOneBased());
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, personToDelete.getName()));
+        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }
 
     @Override

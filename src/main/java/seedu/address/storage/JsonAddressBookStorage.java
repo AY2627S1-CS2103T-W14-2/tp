@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -29,6 +29,8 @@ public class JsonAddressBookStorage {
     private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
 
     private Path filePath;
+    // The exact bytes last backed up as unreadable, so a save does not back up the same broken file twice.
+    private byte[] unreadableBytesBackedUp;
 
     public JsonAddressBookStorage(Path filePath) {
         this.filePath = filePath;
@@ -66,7 +68,7 @@ public class JsonAddressBookStorage {
         try {
             return Optional.of(jsonAddressBook.get().toModelType());
         } catch (IllegalValueException ive) {
-            logger.info("Illegal values found in " + filePath + ": " + ive.getMessage());
+            logger.info("Illegal values found in " + filePath + ": " + ive.getClass().getSimpleName());
             throw new DataLoadingException(ive);
         }
     }
@@ -105,17 +107,18 @@ public class JsonAddressBookStorage {
         if (!Files.exists(filePath)) {
             return Optional.empty();
         }
-        Path backup = Files.createTempFile(filePath.toAbsolutePath().getParent(),
-                filePath.getFileName() + ".unreadable-", ".bak");
-        Files.copy(filePath, backup, StandardCopyOption.REPLACE_EXISTING);
+        byte[] original = Files.readAllBytes(filePath);
+        Path backup = writeBackup(filePath, ".unreadable-", original);
+        unreadableBytesBackedUp = original;
         logger.info("Preserved unreadable contact data in " + backup);
         return Optional.of(backup);
     }
 
     /**
-     * Preserves the original bytes before retired contact fields are lost on save.
-     * A unique sibling file prevents overwriting earlier backups. Any backup failure
-     * propagates to the caller before the original file is modified.
+     * Preserves the original bytes before a save replaces them: a file with retired contact fields gets a
+     * {@code .pre-v1.3} backup and malformed JSON gets an {@code .unreadable} backup. A unique sibling file
+     * prevents overwriting earlier backups. Any backup failure propagates to the caller before the original
+     * file is modified.
      */
     void backupLegacyData(Path filePath) throws IOException {
         byte[] original;
@@ -124,25 +127,50 @@ public class JsonAddressBookStorage {
         } catch (NoSuchFileException e) {
             return;
         }
-        if (original.length == 0 || !needsLegacyBackup(original)) {
+        if (original.length == 0) {
             return;
         }
-        Path backup = Files.createTempFile(filePath.toAbsolutePath().getParent(),
-                filePath.getFileName() + ".pre-v1.3-", ".bak");
-        Files.write(backup, original);
-        logger.info("Preserved legacy contact data in " + backup);
-    }
-
-    /**
-     * Also preserves malformed JSON before the existing save behaviour replaces it.
-     */
-    private boolean needsLegacyBackup(byte[] original) throws IOException {
         JsonNode data;
         try {
             data = JsonUtil.fromJsonString(new String(original, StandardCharsets.UTF_8), JsonNode.class);
         } catch (JsonProcessingException e) {
-            return true;
+            backupMalformedData(filePath, original);
+            return;
         }
+        if (!hasRetiredFields(data)) {
+            return;
+        }
+        Path backup = writeBackup(filePath, ".pre-v1.3-", original);
+        logger.info("Preserved legacy contact data in " + backup);
+    }
+
+    /**
+     * Backs up malformed JSON, unless {@link #backupAddressBook()} already backed up these exact bytes at
+     * startup, so one broken file gets one backup but a file broken after startup is never lost.
+     */
+    private void backupMalformedData(Path filePath, byte[] original) throws IOException {
+        boolean isDataFile = filePath.equals(this.filePath);
+        if (isDataFile && Arrays.equals(original, unreadableBytesBackedUp)) {
+            return;
+        }
+        Path backup = writeBackup(filePath, ".unreadable-", original);
+        if (isDataFile) {
+            unreadableBytesBackedUp = original;
+        }
+        logger.info("Preserved unreadable contact data in " + backup);
+    }
+
+    private static Path writeBackup(Path filePath, String infix, byte[] bytes) throws IOException {
+        Path backup = Files.createTempFile(filePath.toAbsolutePath().getParent(),
+                filePath.getFileName() + infix, ".bak");
+        Files.write(backup, bytes);
+        return backup;
+    }
+
+    /**
+     * Returns true if any saved contact still has a retired address or tags field.
+     */
+    private static boolean hasRetiredFields(JsonNode data) {
         if (data == null) {
             return false;
         }

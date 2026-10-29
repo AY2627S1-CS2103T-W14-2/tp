@@ -35,7 +35,7 @@ public class ProjectCommandTest {
         assertEquals(expected, model.getFilteredPersonList().get(0));
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(first, model.getAddressBook().getPersonList().get(0));
-        assertEquals(String.format(ProjectCommand.MESSAGE_SUCCESS, project, target.getName()),
+        assertEquals(String.format(ProjectCommand.MESSAGE_SUCCESS, project, Messages.format(expected)),
                 result.getFeedbackToUser());
     }
 

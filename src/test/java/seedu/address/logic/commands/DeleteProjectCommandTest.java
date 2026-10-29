@@ -47,7 +47,7 @@ public class DeleteProjectCommandTest {
         assertEquals(expected, model.getFilteredPersonList().get(0));
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(first, model.getAddressBook().getPersonList().get(0));
-        assertEquals(String.format(DeleteProjectCommand.MESSAGE_SUCCESS, project, target.getName()),
+        assertEquals(String.format(DeleteProjectCommand.MESSAGE_SUCCESS, project, Messages.format(expected)),
                 result.getFeedbackToUser());
     }
 
@@ -74,9 +74,9 @@ public class DeleteProjectCommandTest {
         model.addPerson(original);
         CommandResult result = new DeleteProjectCommand(Index.fromOneBased(1),
                 new Project(" team   ALPHA ")).execute(model);
-        assertEquals(new PersonBuilder(original).withProjects("Other").build(),
-                model.getFilteredPersonList().get(0));
-        assertEquals(String.format(DeleteProjectCommand.MESSAGE_SUCCESS, "Team Alpha", original.getName()),
+        Person expected = new PersonBuilder(original).withProjects("Other").build();
+        assertEquals(expected, model.getFilteredPersonList().get(0));
+        assertEquals(String.format(DeleteProjectCommand.MESSAGE_SUCCESS, "Team Alpha", Messages.format(expected)),
                 result.getFeedbackToUser());
     }
 

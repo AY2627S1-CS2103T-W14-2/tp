@@ -3,7 +3,6 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -20,6 +19,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class SortCommandTest {
 
@@ -31,6 +31,17 @@ public class SortCommandTest {
         Model expectedModel = modelWith(ALICE_NAMESAKE, ALICE, BENSON, CARL);
 
         assertCommandSuccess(sortCommand, model, String.format(SortCommand.MESSAGE_SUCCESS, 4), expectedModel);
+    }
+
+    @Test
+    public void execute_namesWithNumbers_ordersNumbersByValue() {
+        Person alexTwo = PersonBuilder.named("Alex 2").build();
+        Person alexTen = PersonBuilder.named("Alex 10").build();
+        Person alexYeoh = PersonBuilder.named("Alex Yeoh").build();
+        Model model = modelWith(alexTen, alexYeoh, alexTwo);
+        Model expectedModel = modelWith(alexTwo, alexTen, alexYeoh);
+
+        assertCommandSuccess(sortCommand, model, String.format(SortCommand.MESSAGE_SUCCESS, 3), expectedModel);
     }
 
     @Test
@@ -46,15 +57,15 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_alreadySorted_throwsCommandExceptionAndKeepsOrder() {
-        assertCommandFailure(sortCommand, modelWith(ALICE_NAMESAKE, ALICE, BENSON), SortCommand.MESSAGE_ALREADY_SORTED);
+    public void execute_alreadySorted_reportsWithoutDataChange() {
+        assertNothingToSort(modelWith(ALICE_NAMESAKE, ALICE, BENSON), SortCommand.MESSAGE_ALREADY_SORTED);
         // a single contact is always in order
-        assertCommandFailure(sortCommand, modelWith(CARL), SortCommand.MESSAGE_ALREADY_SORTED);
+        assertNothingToSort(modelWith(CARL), SortCommand.MESSAGE_ALREADY_SORTED);
     }
 
     @Test
-    public void execute_noContacts_throwsCommandException() {
-        assertCommandFailure(sortCommand, new ModelManager(), ListCommand.MESSAGE_NO_CONTACTS);
+    public void execute_noContacts_reportsWithoutDataChange() {
+        assertNothingToSort(new ModelManager(), ListCommand.MESSAGE_NO_CONTACTS);
     }
 
     @Test
@@ -68,6 +79,15 @@ public class SortCommandTest {
         assertEquals(sortCommand.hashCode(), new SortCommand().hashCode());
         assertNotEquals(sortCommand, null);
         assertNotEquals(sortCommand, new ListCommand());
+    }
+
+    /**
+     * Asserts that sorting {@code model} succeeds with {@code expectedMessage}, leaves the contacts unchanged,
+     * and reports that no data changed, so no undo entry is recorded.
+     */
+    private void assertNothingToSort(Model model, String expectedMessage) {
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        assertCommandSuccess(sortCommand, model, CommandResult.withoutDataChange(expectedMessage), expectedModel);
     }
 
     private static Model modelWith(Person... persons) {

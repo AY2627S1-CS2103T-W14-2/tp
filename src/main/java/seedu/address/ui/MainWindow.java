@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -26,6 +27,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+
+    /** Starting divider positions: result box above search sections above the contact list. */
+    private static final double[] DEFAULT_SECTION_DIVIDER_POSITIONS = {0.2, 0.52};
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -58,6 +62,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane mostSearchedDetails;
+
+    @FXML
+    private SplitPane mainSections;
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
@@ -125,7 +132,7 @@ public class MainWindow extends UiPart<Stage> {
                 logic.recentSearchProperty());
         recentFindPanelPlaceholder.getChildren().add(recentFindPanel.getRoot());
 
-        logic.mostSearchedPersonProperty().addListener((observable, oldPerson, newPerson) ->
+        logic.mostSearchedPersonProperty().addListener(observable ->
                 updateMostSearchedContact());
         updateMostSearchedContact();
 
@@ -140,6 +147,42 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        getRoot().addEventFilter(KeyEvent.KEY_TYPED, event -> redirectTypingToCommandBox(event, commandBox));
+    }
+
+    /**
+     * Sends a typed character to the command box when focus is elsewhere, such as after the user clicks
+     * a contact, so that keyboard input is not lost.
+     */
+    private void redirectTypingToCommandBox(KeyEvent event, CommandBox commandBox) {
+        if (isTypedIntoEditableField(event) || !isPlainCharacter(event)) {
+            return;
+        }
+        commandBox.appendAndFocus(event.getCharacter());
+        event.consume();
+    }
+
+    /**
+     * Returns true if {@code event} is typed into a field that accepts the text itself, such as the command box.
+     */
+    private static boolean isTypedIntoEditableField(KeyEvent event) {
+        return event.getTarget() instanceof TextInputControl input && input.isEditable();
+    }
+
+    /**
+     * Returns true if {@code event} types a visible character rather than a control key or a shortcut.
+     */
+    private static boolean isPlainCharacter(KeyEvent event) {
+        String character = event.getCharacter();
+        boolean hasShortcutModifier = event.isControlDown() || event.isMetaDown() || event.isAltDown();
+        return !hasShortcutModifier && !character.isEmpty() && !Character.isISOControl(character.charAt(0));
+    }
+
+    /**
+     * Shows {@code message} in the result box, e.g. to explain why the contact list is empty at startup.
+     */
+    void showStartupMessage(String message) {
+        resultDisplay.setFeedbackToUser(message);
     }
 
     /** Keeps the session favourite in sync with searches and contact changes. */
@@ -178,6 +221,8 @@ public class MainWindow extends UiPart<Stage> {
 
     void show() {
         primaryStage.show();
+        // Set after showing, so the positions apply to the final window size rather than the initial layout
+        mainSections.setDividerPositions(DEFAULT_SECTION_DIVIDER_POSITIONS);
     }
 
     /**
@@ -204,7 +249,7 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
+            logger.info("Command executed successfully.");
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
             if (commandResult.isShowHelp()) {
@@ -217,7 +262,7 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
+            logger.info("An error occurred while executing a command.");
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
         }

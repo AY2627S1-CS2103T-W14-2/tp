@@ -72,6 +72,7 @@ public class ParserUtilTest {
         String nameWithWhitespace = WHITESPACE + VALID_NAME + WHITESPACE;
         Name expectedName = new Name(VALID_NAME);
         assertEquals(expectedName, ParserUtil.parseName(nameWithWhitespace));
+        assertEquals(expectedName, ParserUtil.parseName("Rachel" + WHITESPACE + "\u00A0 Walker"));
     }
 
     @Test
@@ -117,6 +118,16 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseEmail(INVALID_EMAIL));
         assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example"));
         assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example..com"));
+    }
+
+    @Test
+    public void parseEmail_tooLong_throwsSpecificParseException() {
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a".repeat(65) + "@example.com"));
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a@" + "b".repeat(250) + ".com"));
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a.".repeat(17_770) + "a@example.com")); // issue #196
     }
 
     @Test

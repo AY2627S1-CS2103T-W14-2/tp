@@ -28,8 +28,8 @@ public class Project {
      */
     public Project(String projectName) {
         requireNonNull(projectName);
+        checkArgument(isValidProjectName(projectName), MESSAGE_CONSTRAINTS);
         String normalizedProjectName = normalize(projectName);
-        checkArgument(isValidProjectName(normalizedProjectName), MESSAGE_CONSTRAINTS);
         this.projectName = normalizedProjectName;
         canonicalProjectName = normalizedProjectName.toLowerCase(Locale.ROOT);
     }
@@ -47,6 +47,9 @@ public class Project {
      */
     public static boolean isValidProjectName(String test) {
         requireNonNull(test);
+        if (test.codePoints().anyMatch(Character::isISOControl)) {
+            return false;
+        }
         String normalizedProjectName = normalize(test);
         int nameLength = normalizedProjectName.codePointCount(0, normalizedProjectName.length());
         return nameLength >= 1

@@ -103,10 +103,10 @@ class JsonAdaptedPerson {
         if (telegramUsername == null || telegramUsername.isEmpty()) {
             modelTelegramUsername = TelegramUsername.EMPTY;
         } else {
-            if (!TelegramUsername.isValidTelegramUsername(telegramUsername)) {
+            if (!TelegramUsername.isValidStoredTelegramUsername(telegramUsername)) {
                 throw new IllegalValueException(TelegramUsername.MESSAGE_CONSTRAINTS);
             }
-            modelTelegramUsername = new TelegramUsername(telegramUsername);
+            modelTelegramUsername = TelegramUsername.fromStoredValue(telegramUsername);
         }
 
         return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, personProjects);

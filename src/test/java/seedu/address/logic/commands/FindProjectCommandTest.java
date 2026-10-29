@@ -19,6 +19,17 @@ import seedu.address.testutil.PersonBuilder;
 public class FindProjectCommandTest {
 
     @Test
+    public void execute_greekSigmaSubstring_findsContact() throws Exception {
+        Person person = PersonBuilder.named("Sigma Test").withProjects("ΟΣ").build();
+        Model model = new ModelManager();
+        model.addPerson(person);
+        CommandResult result = new seedu.address.logic.parser.AddressBookParser()
+                .parseCommand("findproject Σ").execute(model);
+        assertEquals("Found 1 contact(s) matching the project keyword.", result.getFeedbackToUser());
+        assertEquals(List.of(person), model.getFilteredPersonList());
+    }
+
+    @Test
     public void constructor_nullPredicate_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FindProjectCommand(null));
     }
