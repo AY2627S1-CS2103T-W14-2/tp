@@ -167,9 +167,11 @@ public class LogicManagerTest {
         String projectInput = "project " + IntStream.rangeClosed(1, 100_000)
                 .mapToObj(Integer::toString).collect(Collectors.joining(" ")) + " pr/X";
         for (String input : List.of("findproject a" + " ".repeat(40_000) + "b", projectInput)) {
-            assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
-                    assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG,
-                            () -> logic.execute(input)));
+            assertTimeoutPreemptively(Duration.ofSeconds(2), () -> {
+                assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () -> {
+                    logic.execute(input);
+                });
+            });
         }
 
         assertEquals(original, model.getAddressBook());

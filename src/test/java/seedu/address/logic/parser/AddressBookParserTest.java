@@ -52,25 +52,29 @@ public class AddressBookParserTest {
                 " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - 3) + "help",
                 "x".repeat(AddressBookParser.MAX_COMMAND_LENGTH + 1),
                 " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH + 1))) {
-            assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG,
-                    () -> parser.parseCommand(input));
+            assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () -> {
+                parser.parseCommand(input);
+            });
         }
     }
 
     @Test
     public void parseCommand_supplementaryUnicode_countsUtf16CodeUnits() throws Exception {
         String input = "help " + "\uD83D\uDE00".repeat((AddressBookParser.MAX_COMMAND_LENGTH - 6) / 2) + "x";
-        assertEquals(new HelpCommand(), parser.parseCommand(input));
-        assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG,
-                () -> parser.parseCommand(input + "x"));
+        assertTrue(parser.parseCommand(input) instanceof HelpCommand);
+        assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () -> {
+            parser.parseCommand(input + "x");
+        });
     }
 
     @Test
     public void parseCommand_largeWhitespaceSearch_rejectsWithinTwoSeconds() {
         String input = "findproject a" + " ".repeat(40_000) + "b";
-        assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
-                assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG,
-                        () -> parser.parseCommand(input)));
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () -> {
+            assertThrows(ParseException.class, AddressBookParser.MESSAGE_COMMAND_TOO_LONG, () -> {
+                parser.parseCommand(input);
+            });
+        });
     }
 
     @Test
