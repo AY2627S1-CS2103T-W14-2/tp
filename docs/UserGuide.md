@@ -34,7 +34,10 @@ merged across contacts with `renameproject`.
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar LinkUp.jar`.<br>
    Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
    if no data file exists, LinkUp supplies sample contacts.<br>
-   ![Ui](images/Ui.png)
+   ![Ui](images/Ui.png)<br>
+   Below the command box are three sections: the result box, the **Most searched** and **Recent search**
+   sections, and the **Current contact list**. Drag the bar between two sections to give either one more space,
+   for example to read a long `projects` list in the result box.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.
    If you click a contact or the result box, just keep typing: your input goes to the command box.<br>
@@ -155,7 +158,8 @@ digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate 
 Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
 is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
-in lowercase.
+in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the standard
+size limits for email addresses (RFC 5321), and mail servers may reject longer addresses.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
@@ -567,7 +571,9 @@ use `undo` after fixing storage. An undo that cannot save leaves the contacts an
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
-case when accepted by the legacy loading rules, even if they do not meet today's input rules.
+case when accepted by the legacy loading rules, even if they do not meet today's input rules. However, saved
+emails must still be within the [email length limits](#adding-a-person-add); a file containing a longer email is
+treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged.
 Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
@@ -592,7 +598,8 @@ LinkUp does not infer a country code, so `91234567` and `+6591234567` are differ
 
 **Caution:**
 If your changes make the data file invalid, LinkUp starts with an empty contact list at the next run. Before
-starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`.
+starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`,
+and the result box says that the file could not be read and names the backup.
 The next successfully executed command attempts to save the current contact list over the original file.
 To recover, close LinkUp, fix the problem in the backup, and copy it over the original data file. If the
 backup cannot be created (for example, because the disk is full or the folder is read-only), LinkUp shows an

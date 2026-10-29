@@ -8,6 +8,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -17,7 +18,7 @@
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
          title="LinkUp" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
   <icons>
-    <Image url="@/images/address_book_32.png" />
+    <Image url="@/images/linkup_icon.png" />
   </icons>
   <scene>
     <Scene>
@@ -42,45 +43,48 @@
           </padding>
         </StackPane>
 
-        <StackPane VBox.vgrow="NEVER" fx:id="resultDisplayPlaceholder" styleClass="pane-with-border"
-                   minHeight="100" prefHeight="100" maxHeight="100">
-          <padding>
-            <Insets top="5" right="10" bottom="5" left="10" />
-          </padding>
-        </StackPane>
+        <!-- Draggable dividers let users give more space to whichever section they are reading -->
+        <SplitPane fx:id="mainSections" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+          <StackPane fx:id="resultDisplayPlaceholder" styleClass="pane-with-border,result-display-pane"
+                     minHeight="60">
+            <padding>
+              <Insets top="5" right="10" bottom="5" left="10" />
+            </padding>
+          </StackPane>
 
-        <GridPane fx:id="recentFind" styleClass="pane-with-border" hgap="12" VBox.vgrow="NEVER"
-                  minHeight="200" prefHeight="200" maxHeight="200">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <columnConstraints>
-            <ColumnConstraints percentWidth="50" minWidth="0" />
-            <ColumnConstraints percentWidth="50" minWidth="0" />
-          </columnConstraints>
-          <VBox fx:id="mostSearchedRow" spacing="4" minWidth="0" minHeight="0"
-                GridPane.columnIndex="0" GridPane.vgrow="ALWAYS">
-            <Label text="Most searched" styleClass="label-bright" />
-            <Label text="Top contact this session" styleClass="recent-find-search" minWidth="0" />
-            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0" minWidth="0"
-                        styleClass="search-summary-content" VBox.vgrow="ALWAYS">
-              <StackPane fx:id="mostSearchedDetails" alignment="TOP_LEFT" minWidth="0" />
-            </ScrollPane>
-          </VBox>
-          <VBox spacing="4" minWidth="0" minHeight="0" GridPane.columnIndex="1" GridPane.vgrow="ALWAYS">
-            <Label text="Recent search" styleClass="label-bright" />
-            <StackPane fx:id="recentFindPanelPlaceholder" minWidth="0" minHeight="0" VBox.vgrow="ALWAYS" />
-          </VBox>
-        </GridPane>
+          <GridPane fx:id="recentFind" styleClass="pane-with-border" hgap="12"
+                    minHeight="120">
+            <padding>
+              <Insets top="10" right="10" bottom="10" left="10" />
+            </padding>
+            <columnConstraints>
+              <ColumnConstraints percentWidth="50" minWidth="0" />
+              <ColumnConstraints percentWidth="50" minWidth="0" />
+            </columnConstraints>
+            <VBox fx:id="mostSearchedRow" spacing="4" minWidth="0" minHeight="0"
+                  GridPane.columnIndex="0" GridPane.vgrow="ALWAYS">
+              <Label text="Most searched" styleClass="label-bright" />
+              <Label text="Top contact this session" styleClass="recent-find-search" minWidth="0" />
+              <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0" minWidth="0"
+                          styleClass="search-summary-content" VBox.vgrow="ALWAYS">
+                <StackPane fx:id="mostSearchedDetails" alignment="TOP_LEFT" minWidth="0" />
+              </ScrollPane>
+            </VBox>
+            <VBox spacing="4" minWidth="0" minHeight="0" GridPane.columnIndex="1" GridPane.vgrow="ALWAYS">
+              <Label text="Recent search" styleClass="label-bright" />
+              <StackPane fx:id="recentFindPanelPlaceholder" minWidth="0" minHeight="0" VBox.vgrow="ALWAYS" />
+            </VBox>
+          </GridPane>
 
-        <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340"
-              minHeight="180" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <Label text="Current contact list" styleClass="label-bright" />
-          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
-        </VBox>
+          <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340"
+                minHeight="120">
+            <padding>
+              <Insets top="10" right="10" bottom="10" left="10" />
+            </padding>
+            <Label text="Current contact list" styleClass="label-bright" />
+            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
+          </VBox>
+        </SplitPane>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>
