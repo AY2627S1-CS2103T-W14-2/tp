@@ -211,7 +211,9 @@ field's value, so callers must use the documented grammar.
 
 `JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
 paths, preserving legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
-projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
+projects become an empty list. A project that equals an earlier one on the same contact is dropped, keeping the first
+spelling, rather than rejecting the file: a file saved before invisible characters were removed (issue #177) can
+list two names that are now equal. These compatibility rules do not make those fields optional in new `add` input.
 
 ### Name search and displayed indices
 

@@ -595,6 +595,8 @@ emails must still be within the [email length limits](#adding-a-person-add); a f
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
+If a saved contact lists the same project more than once, for example two spellings that differ only in case or
+by an invisible character pasted into an older version, LinkUp keeps the first and the next save stores it once.
 Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more

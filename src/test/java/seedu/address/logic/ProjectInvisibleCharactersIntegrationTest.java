@@ -166,6 +166,28 @@ public class ProjectInvisibleCharactersIntegrationTest {
         assertEquals("AlphaBeta", loaded.getProjects().get(0).projectName);
     }
 
+    @Test
+    public void readAddressBook_savedSpellingsNowEqual_upgradesWithoutLosingContacts() throws Exception {
+        // A file saved before this fix: Ann has both the typed and the pasted spelling (issue #177)
+        Path file = temporaryFolder.resolve("upgrade.json");
+        Files.writeString(file, "{\"persons\":["
+                + "{\"name\":\"Ann Lee\",\"phone\":\"+6591234567\",\"email\":\"ann@example.com\","
+                + "\"telegramUsername\":\"ann_lee\",\"projects\":[\"AlphaBeta\",\"Alpha" + ZERO_WIDTH_SPACE
+                + "Beta\",\"Orbital\"]},"
+                + "{\"name\":\"Ben Tan\",\"phone\":\"+6591234568\",\"email\":\"ben@example.com\","
+                + "\"telegramUsername\":\"ben_tan\",\"projects\":[\"Orbital\"]}]}");
+        JsonAddressBookStorage upgradeStorage = new JsonAddressBookStorage(file);
+
+        List<Person> loaded = upgradeStorage.readAddressBook().orElseThrow().getPersonList();
+        assertEquals(2, loaded.size());
+        assertEquals(List.of(new Project("AlphaBeta"), new Project("Orbital")), loaded.get(0).getProjects());
+
+        // The next save keeps a single entry, which reloads unchanged
+        upgradeStorage.saveAddressBook(upgradeStorage.readAddressBook().orElseThrow());
+        assertFalse(Files.readString(file).contains(ZERO_WIDTH_SPACE));
+        assertEquals(loaded, upgradeStorage.readAddressBook().orElseThrow().getPersonList());
+    }
+
     private List<String> projectNamesOfFirstContact() {
         return model.getAddressBook().getPersonList().get(0).getProjects().stream()
                 .map(project -> project.projectName)
