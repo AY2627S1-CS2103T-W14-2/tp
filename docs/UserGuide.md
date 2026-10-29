@@ -183,8 +183,10 @@ Examples:
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
-After a successful add, LinkUp confirms the contact and its initial project, for example:
-`Added contact: John Doe [CS2103T]`
+After a successful add, LinkUp shows all contacts and confirms the new contact's index, name and initial project.
+For example, adding John Doe to the six sample contacts shows:
+`Added contact 7: John Doe [CS2103T]`
+Use that index in later commands, such as `project 7 pr/Orbital`.
 
 <box type="info" seamless>
 
