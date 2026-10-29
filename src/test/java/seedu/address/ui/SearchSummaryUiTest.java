@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -90,8 +91,10 @@ public class SearchSummaryUiTest {
                 assertEquals(0, horizontalBar.getOpacity());
                 Region personList = (Region) root.lookup("#personListPanelPlaceholder");
                 assertTrue(personList.getHeight() > 0);
-                assertTrue(activity.getBoundsInParent().getMaxY()
-                        <= root.lookup("#personList").getBoundsInParent().getMinY());
+                // Scene coordinates, because each resizable section has its own parent inside the split pane
+                Node personListSection = root.lookup("#personList");
+                assertTrue(activity.localToScene(activity.getLayoutBounds()).getMaxY()
+                        <= personListSection.localToScene(personListSection.getLayoutBounds()).getMinY());
 
                 logic.execute("edit 1 n/Alicia");
                 String editedDetails = "Alicia  |  @alice_pauline";
