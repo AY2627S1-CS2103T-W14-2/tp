@@ -200,6 +200,65 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void typing_focusOutsideCommandBox_goesToCommandBox() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder().build());
+            Stage stage = showMainWindow(model, DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+            try {
+                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+                ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
+                TextArea result = (TextArea) stage.getScene().lookup("#resultDisplay");
+
+                // Clicking a contact moves focus to the list; typing there must still reach the command box.
+                persons.requestFocus();
+                type(persons, "l");
+                assertEquals("l", input.getText());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                assertEquals(1, input.getCaretPosition());
+
+                // Input already in the command box is kept, and the read-only result box redirects too.
+                result.requestFocus();
+                type(result, "i");
+                assertEquals("li", input.getText());
+                assertEquals(input, stage.getScene().getFocusOwner());
+
+                // A command being edited in the middle gets the character at the end, because focus
+                // changes can reset the caret.
+                input.requestFocus();
+                input.setText("lis");
+                input.positionCaret(1);
+                persons.requestFocus();
+                type(persons, "t");
+                assertEquals("list", input.getText());
+                assertEquals(input.getLength(), input.getCaretPosition());
+
+                // Shortcuts (Ctrl, Alt or Cmd held down), control keys such as Enter, and events without a
+                // character are left alone.
+                persons.requestFocus();
+                type(persons, "c", KeyCode.CONTROL);
+                type(persons, "c", KeyCode.ALT);
+                type(persons, "c", KeyCode.META);
+                type(persons, "\r");
+                type(persons, "");
+                assertEquals("list", input.getText());
+                assertEquals(persons, stage.getScene().getFocusOwner());
+
+                // Full flow: click a contact, type a whole command and press Enter.
+                input.clear();
+                persons.requestFocus();
+                type(persons, "l");
+                "ist".chars().forEach(character -> type(input, Character.toString(character)));
+                input.fireEvent(new ActionEvent());
+                assertEquals("Listed all contacts.", result.getText());
+                assertEquals("", input.getText());
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
     /** Shows a filled main window of the given size for {@code model} and lays it out. */
     private Stage showMainWindow(Model model, double width, double height) {
         model.setGuiSettings(new GuiSettings(width, height, 100, 100));
@@ -220,6 +279,13 @@ public class MainWindowTest {
         return new LogicManager(model, new StorageManager(
                 new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
+    }
+
+    /** Types {@code character} into {@code target} while holding down the given modifier keys. */
+    private void type(Node target, String character, KeyCode... modifiers) {
+        List<KeyCode> heldKeys = List.of(modifiers);
+        target.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, character, "", KeyCode.UNDEFINED, false,
+                heldKeys.contains(KeyCode.CONTROL), heldKeys.contains(KeyCode.ALT), heldKeys.contains(KeyCode.META)));
     }
 
     private void enter(TextField input, String command) {
