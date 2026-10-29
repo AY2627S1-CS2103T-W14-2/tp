@@ -84,6 +84,12 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_overlongEmail_rejectedWithSpecificMessage() {
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/" + "a.".repeat(17_770) + "a@example.com"
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Email.MESSAGE_TOO_LONG);
+    }
+
+    @Test
     public void parse_localPhone_rejectedForNewContact() {
         assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
@@ -247,6 +253,12 @@ public class AddCommandParserTest {
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + INVALID_TELEGRAM_DESC
                 + PROJECT_DESC_BOB,
                 TelegramUsername.MESSAGE_CONSTRAINTS);
+
+        // Telegram username that Telegram itself rejects (issue #189)
+        for (String username : new String[] {"1alex", "_alex", "alex_", "@12345"}) {
+            assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " tele/" + username
+                    + PROJECT_DESC_BOB, TelegramUsername.MESSAGE_CONSTRAINTS);
+        }
 
         // invalid project
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB

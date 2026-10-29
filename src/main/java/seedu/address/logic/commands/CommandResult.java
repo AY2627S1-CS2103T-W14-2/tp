@@ -20,12 +20,23 @@ public class CommandResult {
     private final boolean exit;
 
     /**
-     * Constructs a {@code CommandResult} with the specified fields.
+     * False only for an undoable command that succeeded without changing contact data, so that no undo entry is
+     * recorded for it. {@code LogicManager} checks it only for undoable commands; other results keep the default.
+     */
+    private final boolean isDataChanged;
+
+    /**
+     * Constructs a {@code CommandResult} with the specified fields, for a command that may have changed contact data.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, true);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, boolean isDataChanged) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.isDataChanged = isDataChanged;
     }
 
     /**
@@ -34,6 +45,14 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Returns a result for a command that succeeded but left the contact data unchanged,
+     * so that no undo entry is recorded for it.
+     */
+    public static CommandResult withoutDataChange(String feedbackToUser) {
+        return new CommandResult(feedbackToUser, false, false, false);
     }
 
     public String getFeedbackToUser() {
@@ -46,6 +65,13 @@ public class CommandResult {
 
     public boolean isExit() {
         return exit;
+    }
+
+    /**
+     * Returns false if an undoable command left contact data unchanged and should not be recorded for undo.
+     */
+    public boolean isDataChanged() {
+        return isDataChanged;
     }
 
     @Override
@@ -61,12 +87,13 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && isDataChanged == otherCommandResult.isDataChanged;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, isDataChanged);
     }
 
     @Override
@@ -75,6 +102,7 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("isDataChanged", isDataChanged)
                 .toString();
     }
 
