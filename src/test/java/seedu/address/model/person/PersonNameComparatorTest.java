@@ -20,10 +20,34 @@ public class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_namesWithDigitsSpacesAndPunctuation_characterByCharacter() {
-        assertOrdered("Alex 10", "Alex 2"); // as documented in the user guide
+    public void compare_namesWithSpacesAndPunctuation_characterByCharacter() {
         assertOrdered("Alex  Tan", "Alex Tan"); // a second space comes before a letter
         assertOrdered("O'Connor", "Oliver"); // an apostrophe comes before a letter
+    }
+
+    @Test
+    public void compare_namesWithNumbers_numbersOrderedByValue() {
+        assertOrdered("Alex 2", "Alex 10"); // as documented in the user guide
+        assertOrdered("Alex 10", "Alex Yeoh");
+        assertOrdered("Group 9", "Group 10");
+        assertOrdered("Group 10", "Group 100");
+        assertOrdered("Team 2 Alpha", "Team 2 Beta");
+        assertOrdered("Team 2 Beta", "Team 10 Alpha");
+        assertOrdered("2 Alex", "10 Alex");
+        assertOrdered("10 Alex", "Alex"); // a number compared with letters is compared as text
+    }
+
+    @Test
+    public void compare_numbersLongerThanLong_noOverflow() {
+        assertOrdered("Alex " + "9".repeat(19), "Alex 1" + "0".repeat(19));
+        assertOrdered("A" + "9".repeat(58), "A1" + "0".repeat(58)); // longest valid name
+    }
+
+    @Test
+    public void compare_sameNumberWithLeadingZeros_orderedByExactName() {
+        assertEquals(0, PersonNameComparator.compareNaturally("bond 007", "bond 7"));
+        assertOrdered("Bond 007", "Bond 7");
+        assertOrdered("Bond 7", "Bond 08");
     }
 
     @Test
@@ -56,9 +80,11 @@ public class PersonNameComparatorTest {
 
     /**
      * Asserts that a person named {@code firstName} comes before one named {@code secondName}.
+     * Both persons keep the same default contact details, so only their names decide the order.
      */
     private void assertOrdered(String firstName, String secondName) {
-        assertOrdered(PersonBuilder.named(firstName).build(), PersonBuilder.named(secondName).build());
+        assertOrdered(new PersonBuilder().withName(firstName).build(),
+                new PersonBuilder().withName(secondName).build());
     }
 
     /**
