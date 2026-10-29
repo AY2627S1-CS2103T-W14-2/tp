@@ -121,6 +121,16 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseEmail_tooLong_throwsSpecificParseException() {
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a".repeat(65) + "@example.com"));
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a@" + "b".repeat(250) + ".com"));
+        assertThrows(ParseException.class, Email.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseEmail("a.".repeat(17_770) + "a@example.com")); // issue #196
+    }
+
+    @Test
     public void parseEmail_validValueWithoutWhitespace_returnsEmail() throws Exception {
         Email expectedEmail = new Email(VALID_EMAIL);
         assertEquals(expectedEmail, ParserUtil.parseEmail(VALID_EMAIL));
