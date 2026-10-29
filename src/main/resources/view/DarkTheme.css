@@ -102,6 +102,26 @@
     -fx-background-color: derive(#1d1d1d, 20%);
 }
 
+/* Main window sections: a lighter divider marks each boundary and can be dragged to resize */
+.split-pane:vertical {
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.split-pane:vertical > .split-pane-divider {
+    -fx-background-color: derive(#1d1d1d, 60%);
+    -fx-padding: 3 0 3 0;
+}
+
+.split-pane:vertical > .split-pane-divider:hover {
+    -fx-background-color: derive(#1d1d1d, 90%);
+}
+
+.split-pane:vertical > .split-pane-divider > .vertical-grabber {
+    -fx-background-color: derive(#1d1d1d, 120%);
+    -fx-padding: 1 16 1 16;
+}
+
 .list-view {
     -fx-background-insets: 0;
     -fx-padding: 0;
@@ -179,8 +199,13 @@
 
 .pane-with-border {
      -fx-background-color: derive(#1d1d1d, 20%);
-     -fx-border-color: derive(#1d1d1d, 10%);
+     -fx-border-color: derive(#1d1d1d, 45%);
      -fx-border-top-width: 1px;
+}
+
+/* Declared after .pane-with-border so the result box keeps its own, darker shade */
+.result-display-pane {
+     -fx-background-color: derive(#1d1d1d, 8%);
 }
 
 .status-bar {
