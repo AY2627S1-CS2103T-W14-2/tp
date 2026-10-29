@@ -187,7 +187,10 @@ goes beyond it, covering name, phone, email and Telegram username; see
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
 `projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
-Command words are case-sensitive.
+Command words are matched case-insensitively: `AddressBookParser` lowercases the command word with `Locale.ROOT`
+before dispatching, so `FIND alex` works like `find alex` even on a computer set to Turkish, where a plain
+`toLowerCase()` would turn `I` into a dotless `ı`. Prefixes and arguments are not changed, so prefixes stay
+case-sensitive (`N/` is not `n/`).
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
@@ -311,7 +314,11 @@ These delimiter sequences following a space remain reserved in add/edit input.
 `JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
 configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
 `JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
-bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up malformed JSON before replacement.
+bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON is not legacy data: it is backed
+up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
+at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
+backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
+before the next save replaces it.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
@@ -960,6 +967,8 @@ Run the following in order after preparing the contacts:
 | `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
+| `FIND lee` then `List` | Only David Lee, then all three contacts: command words ignore case. |
+| `findp Orbital` then `edit 1 N/Bob` | `Unknown command.`, then `Invalid command format!` with the `edit` usage: command words cannot be shortened, and prefixes stay case-sensitive. |
 
 ### Recent search results panel
 
@@ -1076,7 +1085,8 @@ valid copy before each scenario so the legacy tests start with contacts rather t
 | Scenario | Procedure and expected result |
 | --- | --- |
 | Missing data | Move `data/addressbook.json` out of the test folder. Relaunch: sample contacts appear. Run `list` to save them. |
-| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book. |
+| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book and creates no second backup. |
+| File broken while open | With LinkUp open, replace the data file with `{x` and save it. Run `list`: a new `.unreadable-<unique suffix>.bak` containing exactly `{x` appears before the file is replaced. |
 | Legacy fields | In a valid saved contact, add `"address": "Old Address"` and `"tags": ["old"]`. Relaunch and run `list`: the saved contact omits these fields, and a sibling `.pre-v1.3-<unique suffix>.bak` preserves the original file. A second `list` creates no further migration backup. |
 | Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch and search for that contact: the recent-result header shows `Name \| No Telegram Username` and no project tags. The main person card hides the missing Telegram row. New `add` commands still require both fields. |
 
