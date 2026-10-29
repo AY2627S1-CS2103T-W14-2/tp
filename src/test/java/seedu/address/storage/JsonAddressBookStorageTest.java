@@ -119,12 +119,18 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
-    public void save_malformedData_doesNotCreateLegacyBackup() throws Exception {
+    public void save_malformedDataWithoutStartupBackup_preservesOriginalAsUnreadable() throws Exception {
+        // e.g. the file was broken by hand while LinkUp was open
         Path file = testFolder.resolve("broken.json");
         Files.writeString(file, "{broken JSON");
+        byte[] original = Files.readAllBytes(file);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
         storage.saveAddressBook(getTypicalAddressBook());
-        assertTrue(backupFiles().isEmpty());
+
+        Path backup = backupFiles().getFirst();
+        assertEquals(1, backupFiles().size());
+        assertTrue(backup.getFileName().toString().startsWith("broken.json.unreadable-"));
+        assertArrayEquals(original, Files.readAllBytes(backup));
         assertEquals(getTypicalAddressBook(), storage.readAddressBook().orElseThrow());
     }
 
@@ -146,6 +152,27 @@ public class JsonAddressBookStorageTest {
         assertTrue(backup.getFileName().toString().startsWith("broken.json.unreadable-"));
         assertArrayEquals(original, Files.readAllBytes(backup));
         assertEquals(new AddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void backupThenSave_fileChangedAfterBackup_preservesBothVersions() throws Exception {
+        Path file = testFolder.resolve("broken.json");
+        Files.writeString(file, "{broken at startup");
+        byte[] atStartup = Files.readAllBytes(file);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        Path startupBackup = storage.backupAddressBook().orElseThrow();
+
+        // The file is edited again while LinkUp is open, and is still broken when the next command saves.
+        Files.writeString(file, "{broken differently later");
+        byte[] later = Files.readAllBytes(file);
+        storage.saveAddressBook(new AddressBook());
+
+        List<Path> backups = backupFiles();
+        assertEquals(2, backups.size());
+        assertArrayEquals(atStartup, Files.readAllBytes(startupBackup));
+        Path laterBackup = backups.stream().filter(path -> !path.equals(startupBackup)).findFirst().orElseThrow();
+        assertTrue(laterBackup.getFileName().toString().startsWith("broken.json.unreadable-"));
+        assertArrayEquals(later, Files.readAllBytes(laterBackup));
     }
 
     private List<Path> backupFiles() throws IOException {
