@@ -188,7 +188,10 @@ goes beyond it, covering name, phone, email and Telegram username; see
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
 `projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
-Command words are case-sensitive.
+Command words are matched case-insensitively: `AddressBookParser` lowercases the command word with `Locale.ROOT`
+before dispatching, so `FIND alex` works like `find alex` even on a computer set to Turkish, where a plain
+`toLowerCase()` would turn `I` into a dotless `ı`. Prefixes and arguments are not changed, so prefixes stay
+case-sensitive (`N/` is not `n/`).
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
@@ -965,6 +968,8 @@ Run the following in order after preparing the contacts:
 | `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
+| `FIND lee` then `List` | Only David Lee, then all three contacts: command words ignore case. |
+| `findp Orbital` then `edit 1 N/Bob` | `Unknown command.`, then `Invalid command format!` with the `edit` usage: command words cannot be shortened, and prefixes stay case-sensitive. |
 
 ### Recent search results panel
 

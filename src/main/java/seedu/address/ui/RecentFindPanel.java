@@ -46,6 +46,12 @@ public class RecentFindPanel extends UiPart<Region> {
         placeholder.setWrapText(true);
         recentFindListView.setPlaceholder(placeholder);
         recentFindListView.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected boolean isItemChanged(Person oldItem, Person newItem) {
+                // Case-only project replacements compare equal but have different display text.
+                return oldItem != newItem;
+            }
+
             /**
              * Displays the current person's details, clearing previous content when the cell becomes empty.
              */
