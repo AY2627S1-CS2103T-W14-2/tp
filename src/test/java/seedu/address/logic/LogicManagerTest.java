@@ -238,7 +238,7 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
 
-        assertCommandSuccess(addCommand, "Added contact: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
+        assertCommandSuccess(addCommand, "Added contact 1: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
     }
 
     @Test
