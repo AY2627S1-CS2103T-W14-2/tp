@@ -167,9 +167,14 @@ size limits for email addresses (RFC 5321), and mail servers may reject longer a
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
 letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
-control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
-names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
+The project is required. A project name must contain 1–40 characters and cannot contain control characters; the
+command box removes pasted line breaks and tabs. Surrounding whitespace is removed, repeated internal whitespace is
+collapsed, and project names are compared case-insensitively. Invisible formatting characters, such as a zero-width
+space copied from a chat app, are removed, so a pasted name matches the same name typed by hand. Joiners that
+combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi are kept; a joiner next to an
+English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the Hangul filler
+(U+3164), are not removed. Supply exactly one non-empty
+`pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
@@ -465,6 +470,8 @@ Format: `findproject KEYWORD`
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
+* Invisible formatting characters, such as a zero-width space copied from a chat app, are ignored when matching,
+  as in project names. A keyword made only of such characters is rejected like a blank keyword.
 * The keyword must contain 1–40 characters after trimming surrounding whitespace. Internal spaces count towards
   this limit before they are collapsed.
 * Any associated project can match. Each contact appears once, with its contact details and projects, in the
@@ -602,6 +609,8 @@ emails must still be within the [email length limits](#adding-a-person-add); a f
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
+If a saved contact lists the same project more than once, for example two spellings that differ only in case or
+by an invisible character pasted into an older version, LinkUp keeps the first and the next save stores it once.
 The first command that changes contacts after loading the older file triggers a save. Before that save removes
 address or tags, LinkUp creates a backup beside the original file, named
 `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
