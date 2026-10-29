@@ -28,6 +28,7 @@ import seedu.address.logic.LogicManager;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
+import seedu.address.model.project.Project;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -40,6 +41,9 @@ public class MainWindowTest {
     private static final double MIN_WINDOW_HEIGHT = 600;
     private static final double DEFAULT_WINDOW_WIDTH = 740;
     private static final double DIVIDER_SHIFT = 0.2;
+    private static final String LONGEST_NAME = "W".repeat(60);
+    private static final String LONGEST_PROJECT_NAME = "W".repeat(Project.MAX_NAME_LENGTH);
+    private static final String LONG_EMAIL = "a".repeat(60) + "@example.com";
 
     @TempDir
     public Path temporaryFolder;
@@ -184,6 +188,27 @@ public class MainWindowTest {
     }
 
     @Test
+    public void longContactDetails_minimumWindowSize_stayInsideContactList() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder().withName(LONGEST_NAME).withEmail(LONG_EMAIL)
+                    .withProjects(LONGEST_PROJECT_NAME).build());
+            Stage stage = showMainWindow(model, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+            try {
+                ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
+                // A label can hold its full text while part of it is drawn outside the list, so check its position.
+                for (Node label : persons.lookupAll(".label")) {
+                    assertTrue(rightEdge(label) <= rightEdge(persons), ((Label) label).getText() + " is cut off");
+                }
+                Label projectTag = (Label) persons.lookup("#projects").lookup(".label");
+                assertEquals("Project: " + LONGEST_PROJECT_NAME, projectTag.getTooltip().getText());
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
+    @Test
     public void sectionDivider_moved_resizesResultBox() throws Exception {
         FxTestUtil.run(() -> {
             Stage stage = showMainWindow(new ModelManager(), DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
@@ -268,6 +293,10 @@ public class MainWindowTest {
         window.show();
         layOut(stage);
         return stage;
+    }
+
+    private static double rightEdge(Node node) {
+        return node.localToScene(node.getLayoutBounds()).getMaxX();
     }
 
     private void layOut(Stage stage) {

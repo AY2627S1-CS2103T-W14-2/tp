@@ -340,6 +340,9 @@ Format: `renameproject old/OLD_NAME new/NEW_NAME`
   associations. If every association already has the requested spelling, the command reports
   `No changes made.` without saving or adding an undo entry.
 * An unknown source produces an error and changes nothing.
+* Missing, empty or invalid names are identified as the `old/` or `new/` field in the error message.
+  If you enter an index or other text before the prefixes, the error asks you to remove that leading text:
+  `renameproject` always acts across all contacts.
 * The current search filter is preserved. Contacts may enter or leave `findproject` results when their
   renamed projects start or stop matching the search. Contacts hidden by the filter are still updated.
 * Successful changes are saved automatically. The message reports the number of contacts actually changed.
@@ -458,6 +461,7 @@ Finds contacts associated with projects whose names contain the given phrase.
 Format: `findproject KEYWORD`
 
 * Matching is case-insensitive and partial: `cs2103` matches `CS2103T`.
+  Unicode case variants are supported too: `Σ`, `σ` and `ς` all match a project named `ΟΣ`.
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.

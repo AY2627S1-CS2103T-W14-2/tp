@@ -2,10 +2,12 @@ package seedu.address.ui;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
+import seedu.address.model.project.Project;
 
 /**
  * A UI component that displays information of a {@code Person}.
@@ -53,7 +55,18 @@ public class PersonCard extends UiPart<Region> {
         telegramUsername.setText(telegramUsernameText);
         telegramUsername.setManaged(!telegramUsernameText.isEmpty());
         telegramUsername.setVisible(!telegramUsernameText.isEmpty());
-        person.getProjects().forEach(project ->
-                projects.getChildren().add(new Label("Project: " + project.projectName)));
+        person.getProjects().forEach(project -> projects.getChildren().add(createProjectTag(project)));
+    }
+
+    /**
+     * Creates a tag for {@code project} that fits within the card. A project name too long for the card ends
+     * in an ellipsis, and the tag's tooltip shows the full name.
+     */
+    private Label createProjectTag(Project project) {
+        Label tag = new Label("Project: " + project.projectName);
+        tag.setMinWidth(0);
+        tag.maxWidthProperty().bind(projects.widthProperty());
+        tag.setTooltip(new Tooltip(tag.getText()));
+        return tag;
     }
 }
