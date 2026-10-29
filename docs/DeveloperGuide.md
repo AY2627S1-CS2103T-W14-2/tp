@@ -1127,3 +1127,4 @@ when startup cannot back up unreadable data, expect an error dialog and no main 
 fails, expect an error and the contacts, filter, search summary, and undo history to return to their previous
 state. Fix storage and retry the original modifying command. A failed undo save must preserve contacts, the
 filter, and undo history so undo can be retried.
+
