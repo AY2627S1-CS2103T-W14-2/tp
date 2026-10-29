@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -33,6 +34,48 @@ import seedu.address.testutil.PersonBuilder;
 public class SearchSummaryUiTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void caseOnlyProjectChangesAndUndo_refreshBothSearchPanels() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder(ALICE).withProjects("Orbital").build());
+            Logic logic = new LogicManager(model, new StorageManager(
+                    new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+            Stage stage = new Stage();
+            try {
+                MainWindow window = new MainWindow(stage, logic, temporaryFolder.resolve("contacts.json"));
+                window.fillInnerParts();
+                window.show();
+                Parent root = stage.getScene().getRoot();
+                logic.execute("findproject Orbital");
+                assertSearchProject(root, "Orbital");
+                logic.execute("renameproject old/Orbital new/orbital");
+                assertSearchProject(root, "orbital");
+                logic.execute("undo");
+                assertSearchProject(root, "Orbital");
+                logic.execute("replaceproject 1 old/Orbital new/ORBITAL");
+                assertSearchProject(root, "ORBITAL");
+                logic.execute("undo");
+                assertSearchProject(root, "Orbital");
+            } catch (Exception e) {
+                throw new AssertionError(e);
+            } finally {
+                stage.close();
+            }
+        });
+    }
+
+    private void assertSearchProject(Parent root, String project) {
+        root.applyCss();
+        root.layout();
+        for (String panel : java.util.List.of("#mostSearchedDetails", "#recentFindListView")) {
+            assertTrue(root.lookup(panel).lookupAll("#projects").stream()
+                    .flatMap(node -> ((javafx.scene.layout.FlowPane) node).getChildren().stream())
+                    .map(Label.class::cast).anyMatch(label -> ("Project: " + project).equals(label.getText())), panel);
+        }
+    }
 
     @Test
     public void searchActivity_sharesLatestSearchAndDistinguishesSessionFavouriteAtMinimumWidth() throws Exception {
@@ -90,8 +133,10 @@ public class SearchSummaryUiTest {
                 assertEquals(0, horizontalBar.getOpacity());
                 Region personList = (Region) root.lookup("#personListPanelPlaceholder");
                 assertTrue(personList.getHeight() > 0);
-                assertTrue(activity.getBoundsInParent().getMaxY()
-                        <= root.lookup("#personList").getBoundsInParent().getMinY());
+                // Scene coordinates, because each resizable section has its own parent inside the split pane
+                Node personListSection = root.lookup("#personList");
+                assertTrue(activity.localToScene(activity.getLayoutBounds()).getMaxY()
+                        <= personListSection.localToScene(personListSection.getLayoutBounds()).getMinY());
 
                 logic.execute("edit 1 n/Alicia");
                 String editedDetails = "Alicia  |  @alice_pauline";

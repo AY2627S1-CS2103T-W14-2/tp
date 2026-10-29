@@ -34,6 +34,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ListProjectsCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ParserUtil;
@@ -108,6 +109,25 @@ public class LogicManagerTest {
         assertEquals(ALICE_WITH_PROJECT, logic.mostSearchedPersonProperty().get());
         logic.execute("findproject CS2103T");
         assertEquals(ALICE_WITH_PROJECT, logic.mostSearchedPersonProperty().get());
+    }
+
+    @Test
+    public void execute_commandWordInAnyCase_behavesLikeLowercase() throws Exception {
+        // issue #171
+        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute("FIND Alice");
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        logic.execute("FindProject CS2103T");
+        assertEquals("Project: CS2103T", logic.recentSearchProperty().get());
+
+        logic.execute("DELETE 1");
+        assertFalse(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        logic.execute("UNDO");
+        assertTrue(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        // the restored contacts are saved, as for "undo"
+        ReadOnlyAddressBook saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        assertEquals(List.of(ALICE_WITH_PROJECT), saved.getPersonList());
     }
 
     @Test
@@ -313,6 +333,20 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_sortWithNothingToSortThenUndo_undoesPreviousModifyingCommand() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        logic.execute(PersonUtil.getAddCommand(person));
+
+        // one contact is already in order, so sort succeeds without recording an undo entry
+        CommandResult result = logic.execute(SortCommand.COMMAND_WORD);
+
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, result.getFeedbackToUser());
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
     public void execute_projectsThenUndo_undoesPreviousModifyingCommand() throws Exception {
         Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         logic.execute(PersonUtil.getAddCommand(person));
@@ -365,6 +399,7 @@ public class LogicManagerTest {
 
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertCommandException("clear", seedu.address.logic.commands.ClearCommand.MESSAGE_NO_CONTACTS);
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());

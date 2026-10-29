@@ -35,8 +35,8 @@ public class ReplaceProjectCommandTest {
                 model.getFilteredPersonList().get(0));
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(alice, model.getAddressBook().getPersonList().get(0));
-        assertEquals(String.format(ReplaceProjectCommand.MESSAGE_SUCCESS, "Team Alpha", "Orbital", bob.getName()),
-                result.getFeedbackToUser());
+        assertEquals(String.format(ReplaceProjectCommand.MESSAGE_SUCCESS, "Team Alpha", "Orbital",
+                Messages.format(model.getFilteredPersonList().get(0))), result.getFeedbackToUser());
     }
 
     @Test
