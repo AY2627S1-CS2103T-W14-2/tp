@@ -34,6 +34,7 @@ public class PersonNameComparatorTest {
         assertOrdered("Team 2 Alpha", "Team 2 Beta");
         assertOrdered("Team 2 Beta", "Team 10 Alpha");
         assertOrdered("2 Alex", "10 Alex");
+        assertOrdered("10 Alex", "Alex"); // a number compared with letters is compared as text
     }
 
     @Test
