@@ -569,7 +569,7 @@ restoring exact strings. `RenameProjectUiTest` verifies visible project labels a
 ### Sort command implementation
 
 `sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
-directly, since the command takes no arguments; extra text is ignored, as for `list` and `clear`.
+directly, since the command takes no arguments; extra text is ignored, as for `list` and `help`.
 
 <puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `sort` command" />
 
