@@ -79,6 +79,9 @@ public interface Model {
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 
+    /** Returns the current predicate of the filtered person list so it can be restored after a failed save. */
+    Predicate<Person> getFilteredPersonPredicate();
+
     /**
      * Returns an unmodifiable, observable view of persons matching the latest search predicate.
      * The view is initially empty and reflects changes to the underlying address book.

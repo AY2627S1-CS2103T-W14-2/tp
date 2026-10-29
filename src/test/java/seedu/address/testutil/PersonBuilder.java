@@ -71,6 +71,15 @@ public class PersonBuilder {
     }
 
     /**
+     * Restores a saved name verbatim, including legacy spacing.
+     * Use {@link #withName(String)} for newly entered names.
+     */
+    public PersonBuilder withStoredName(String name) {
+        this.name = Name.fromStoredValue(name);
+        return this;
+    }
+
+    /**
      * Sets the {@code Phone} of the {@code Person} that we are building.
      */
     public PersonBuilder withPhone(String phone) {
@@ -100,6 +109,15 @@ public class PersonBuilder {
      */
     public PersonBuilder withTelegramUsername(String telegramUsername) {
         this.telegramUsername = new TelegramUsername(telegramUsername);
+        return this;
+    }
+
+    /**
+     * Restores a saved Telegram username, including one that only the pre-v1.5 rule accepts.
+     * Use {@link #withTelegramUsername(String)} for newly entered usernames.
+     */
+    public PersonBuilder withStoredTelegramUsername(String telegramUsername) {
+        this.telegramUsername = TelegramUsername.fromStoredValue(telegramUsername);
         return this;
     }
 

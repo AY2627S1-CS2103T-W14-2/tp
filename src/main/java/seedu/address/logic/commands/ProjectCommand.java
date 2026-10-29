@@ -26,7 +26,7 @@ public class ProjectCommand extends Command {
             + ": Adds a project to contacts at the displayed indices.\n"
             + "Parameters: INDEX [MORE_INDICES] (positive integers) pr/PROJECT\n"
             + "Example: " + COMMAND_WORD + " 1 pr/Orbital";
-    public static final String MESSAGE_SUCCESS = "Added project %1$s to contact %2$s.";
+    public static final String MESSAGE_SUCCESS = "Added project %1$s to contact: %2$s";
 
     public static final String MESSAGE_DUPLICATE_INDEX = "Contact index %1$d is repeated.";
     public static final String MESSAGE_MULTIPLE_SUCCESS = "Added project %1$s to contacts %2$s.";
@@ -70,7 +70,7 @@ public class ProjectCommand extends Command {
             model.setPerson(originals.get(i), replacements.get(i));
         }
         logger.fine("Added project association to " + originals.size() + " contact(s)");
-        return createSuccessResult(originals);
+        return createSuccessResult(replacements);
     }
 
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
@@ -105,10 +105,10 @@ public class ProjectCommand extends Command {
                 original.getTelegramUsername(), projects);
     }
 
-    /** Formats the existing single-contact or batch success message using the original indices. */
+    /** Formats the single-contact or batch success message for the updated contacts, using the original indices. */
     private CommandResult createSuccessResult(List<Person> contacts) {
         if (contacts.size() == 1) {
-            return new CommandResult(String.format(MESSAGE_SUCCESS, project, contacts.get(0).getName()));
+            return new CommandResult(String.format(MESSAGE_SUCCESS, project, Messages.format(contacts.get(0))));
         }
         List<String> selectedContacts = new ArrayList<>();
         for (int i = 0; i < contacts.size(); i++) {
