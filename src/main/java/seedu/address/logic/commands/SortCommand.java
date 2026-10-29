@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonNameComparator;
@@ -26,14 +25,16 @@ public class SortCommand extends Command {
     private static final Logger logger = LogsCenter.getLogger(SortCommand.class);
 
     @Override
-    public CommandResult execute(Model model) throws CommandException {
+    public CommandResult execute(Model model) {
         requireNonNull(model);
         List<Person> contacts = model.getAddressBook().getPersonList();
         if (contacts.isEmpty()) {
-            throw new CommandException(ListCommand.MESSAGE_NO_CONTACTS);
+            logger.fine("Nothing to sort: no contacts");
+            return CommandResult.withoutDataChange(ListCommand.MESSAGE_NO_CONTACTS);
         }
         if (isSorted(contacts)) {
-            throw new CommandException(MESSAGE_ALREADY_SORTED);
+            logger.fine("Nothing to sort: " + contacts.size() + " contact(s) already in name order");
+            return CommandResult.withoutDataChange(MESSAGE_ALREADY_SORTED);
         }
 
         model.sortPersons(NAME_ORDER);

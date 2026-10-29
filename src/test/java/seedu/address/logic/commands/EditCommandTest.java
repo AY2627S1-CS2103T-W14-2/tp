@@ -221,6 +221,20 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_legacyTelegramOtherFieldEdited_telegramKept() throws Exception {
+        // "legacy_" was accepted before v1.5 but can no longer be typed in, as it ends with an underscore
+        model.addPerson(new PersonBuilder(LEGACY).withStoredTelegramUsername("legacy_").build());
+        Index legacyIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setName(new Name("Legacy Tan"));
+
+        new EditCommand(legacyIndex, descriptor).execute(model);
+
+        Person saved = model.getFilteredPersonList().get(legacyIndex.getZeroBased());
+        assertStoredValues(saved, "Legacy Tan", "91234567", "Legacy.Lee@Example.COM", "legacy_");
+    }
+
+    @Test
     public void execute_fillLegacyEmptyTelegram_success() throws Exception {
         Index legacyIndex = addLegacyPerson();
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
