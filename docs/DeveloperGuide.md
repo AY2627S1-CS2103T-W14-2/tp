@@ -583,8 +583,11 @@ directly, since the command takes no arguments; extra text is ignored, as for `l
 
 <puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `sort` command" />
 
-The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`), names
-that differ only in case are ordered by their exact text, and contacts with the same name are ordered by their
+The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`) with
+natural ordering, so each run of digits is compared by numeric value (`Alex 2` before `Alex 10`). Digit runs are
+compared as text after removing leading zeros, longer runs being larger, so names with more digits than a `long`
+holds cannot overflow. Names that are otherwise equal (for example, differing only in case or in leading zeros)
+are ordered by their exact text, and contacts with the same name are ordered by their
 saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
 so the order of any contact list is fully determined.
 

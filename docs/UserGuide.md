@@ -188,8 +188,10 @@ Examples:
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
-After a successful add, LinkUp confirms the contact and its initial project, for example:
-`Added contact: John Doe [CS2103T]`
+After a successful add, LinkUp shows all contacts and confirms the new contact's index, name and initial project.
+For example, adding John Doe to the six sample contacts shows:
+`Added contact 7: John Doe [CS2103T]`
+Use that index in later commands, such as `project 7 pr/Orbital`.
 
 <box type="info" seamless>
 
@@ -222,6 +224,8 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
+* For one contact, the success message shows that contact's updated details, so contacts with the same
+  name can be told apart. For several contacts, it lists each contact by displayed index and name.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
   These input errors leave contacts unchanged.
 * Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
@@ -261,7 +265,7 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
   cannot be included literally in a project name in this command.
 
 Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
-first displayed contact. The success message identifies the old project, new project and contact.
+first displayed contact. The success message identifies the old project, new project and contact, showing the contact's updated details.
 
 ### Removing a contact's project association: `deleteproject`
 
@@ -286,7 +290,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
 Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
-The success message identifies the project and selected contacts.
+The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
 ### Listing all persons: `list`
 
@@ -306,9 +310,10 @@ Format: `sort`
 * Names are compared ignoring case, so `alex Tan` comes before `Bernice Yu`. Names that differ only in case are
   ordered by their exact spelling, and contacts with the same name are ordered by phone number, so the result is
   always the same.
-* Names are compared character by character, so `Alex 10` comes before `Alex 2`.
+* Numbers in names are ordered by value, so `Alex 2` comes before `Alex 10`, which comes before `Alex Yeoh`.
 * The new order is saved and kept after you restart LinkUp. Contacts you add later are placed at the end until
-  you sort again.
+  you sort again. Editing a contact, including their name, keeps them in the same position; run `sort` again to
+  re-sort.
 * All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
   now in sorted order.
 * Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
@@ -523,6 +528,8 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, ...
 * Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
 * Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
+* The success message shows the deleted contact's name, phone and email, and any Telegram username or projects,
+  so contacts with the same name can be told apart.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
@@ -532,8 +539,11 @@ Examples:
 
 Clears all entries from the address book.
 
+On success, LinkUp shows `Cleared all contacts and project associations from LinkUp.`
+
 This removes **all contacts**, including those hidden by a search filter, without a confirmation prompt.
 Use `undo` before closing the application if you need to restore them.
+If no contacts are saved, it reports `No contacts to clear.` without saving or adding an undo entry.
 
 Format: `clear`
 

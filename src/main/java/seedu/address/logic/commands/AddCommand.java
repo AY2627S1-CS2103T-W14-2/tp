@@ -33,7 +33,7 @@ public class AddCommand extends Command {
             + PREFIX_TELEGRAM + "@john_doe "
             + PREFIX_PROJECT + "CS2103T";
 
-    public static final String MESSAGE_SUCCESS = "Added contact: %1$s%2$s";
+    public static final String MESSAGE_SUCCESS = "Added contact %1$d: %2$s%3$s";
     public static final String MESSAGE_PROJECT_REQUIRED = "Project is required. Use pr/PROJECT.";
 
     private final Person toAdd;
@@ -52,8 +52,11 @@ public class AddCommand extends Command {
 
         rejectIfConflicting(model.findConflict(toAdd));
         model.addPerson(toAdd);
+        // The index the user types in later commands: the contact's position in the list now displayed
+        int displayedIndex = model.getFilteredPersonList().indexOf(toAdd) + 1;
+        assert displayedIndex > 0 : "a newly added contact must be displayed, since add shows all contacts";
         String projectSuffix = toAdd.getProjects().isEmpty() ? "" : " [" + toAdd.getProjects().getFirst() + "]";
-        return new CommandResult(String.format(MESSAGE_SUCCESS, toAdd.getName(), projectSuffix));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, displayedIndex, toAdd.getName(), projectSuffix));
     }
 
     @Override

@@ -270,7 +270,7 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
 
-        assertCommandSuccess(addCommand, "Added contact: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
+        assertCommandSuccess(addCommand, "Added contact 1: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
     }
 
     @Test
@@ -431,6 +431,7 @@ public class LogicManagerTest {
 
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertCommandException("clear", seedu.address.logic.commands.ClearCommand.MESSAGE_NO_CONTACTS);
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());
