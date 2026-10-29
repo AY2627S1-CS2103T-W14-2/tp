@@ -180,7 +180,9 @@ public class MainWindowTest {
             try {
                 Node statusBar = stage.getScene().lookup("#statusbarPlaceholder");
                 double statusBarBottom = statusBar.localToScene(statusBar.getLayoutBounds()).getMaxY();
-                assertTrue(statusBarBottom <= stage.getScene().getHeight());
+                // JavaFX pixel snapping can round the bottom edge outward at fractional display scaling.
+                assertTrue(statusBarBottom <= stage.getScene().getHeight() + 1.0,
+                        "Status bar bottom=" + statusBarBottom + ", scene height=" + stage.getScene().getHeight());
             } finally {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);
             }

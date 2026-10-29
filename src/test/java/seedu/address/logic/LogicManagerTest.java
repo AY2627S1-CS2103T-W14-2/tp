@@ -185,6 +185,7 @@ public class LogicManagerTest {
         logic.execute("find Alice");
         AddressBook original = new AddressBook(model.getAddressBook());
         Path savedFile = temporaryFolder.resolve("addressBook.json");
+        new JsonAddressBookStorage(savedFile).saveAddressBook(model.getAddressBook());
         String savedData = Files.readString(savedFile);
         String projectInput = "project " + IntStream.rangeClosed(1, 100_000)
                 .mapToObj(Integer::toString).collect(Collectors.joining(" ")) + " pr/X";
