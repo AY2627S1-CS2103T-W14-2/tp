@@ -215,6 +215,8 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
+* For one contact, the success message shows that contact's updated details, so contacts with the same
+  name can be told apart. For several contacts, it lists each contact by displayed index and name.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
   These input errors leave contacts unchanged.
 * Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
@@ -254,7 +256,7 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
   cannot be included literally in a project name in this command.
 
 Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
-first displayed contact. The success message identifies the old project, new project and contact.
+first displayed contact. The success message identifies the old project, new project and contact, showing the contact's updated details.
 
 ### Removing a contact's project association: `deleteproject`
 
@@ -279,7 +281,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
 Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
-The success message identifies the project and selected contacts.
+The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
 ### Listing all persons: `list`
 
@@ -516,6 +518,8 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, ...
 * Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
 * Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
+* The success message shows the deleted contact's name, phone and email, and any Telegram username or projects,
+  so contacts with the same name can be told apart.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
