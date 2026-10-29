@@ -633,6 +633,26 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_noChangeSort_doesNotSaveAddressBook() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        int[] saveAttempts = {0};
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("no-change.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                saveAttempts[0]++;
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("noChangePrefs.json"))));
+
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
+        assertEquals(0, saveAttempts[0]);
+        assertFalse(model.canUndo());
+    }
+
+    @Test
     public void recentFindSearch_reload_startsEmptyWithSavedContactsIntact() throws Exception {
         logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         logic.execute("find Alice");
