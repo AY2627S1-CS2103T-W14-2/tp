@@ -30,14 +30,6 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
-<box type="warning" seamless>
-
-**UML update deferred:** The diagrams in this guide are retained from the AB-3 baseline and have not been
-updated for the current LinkUp release. They illustrate the original architecture, but may show retired fields
-or omit LinkUp commands, projects, duplicate detection, and undo. Use the implementation descriptions and
-linked source code for current behaviour. Updating the UML is planned for a later iteration.
-</box>
-
 <puml src="diagrams/ArchitectureDiagram.puml" width="280" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
@@ -87,8 +79,13 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 class, which captures common behavior among classes that represent visible GUI parts.
 
 `RecentFindPanel` displays names, Telegram usernames, and project tags in a compact,
-independently scrolling list above `PersonListPanel`. Its container has a fixed height of 160 pixels;
-the main person-list container has a minimum height of 180 pixels and grows with the window.
+independently scrolling list above `PersonListPanel`.
+
+Below the command box, `MainWindow.fxml` places the result box, the two search sections and the contact list in
+a vertical `SplitPane` (`mainSections`), so users can drag the dividers to give any section more space.
+Each section has a minimum height small enough for all three to fit, together with the command box and status bar,
+in the 600-pixel minimum window height. `MainWindow` sets the starting divider positions after the window is shown,
+so they apply to the final window size. Divider positions are not saved between sessions.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -110,6 +107,8 @@ Here's a (partial) class diagram of the `Logic` component:
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+
+`DeleteCommand` takes the contact `p` at index 1 of the displayed list and asks the model to delete that contact.
 
 <box type="info" seamless>
 
@@ -188,7 +187,10 @@ goes beyond it, covering name, phone, email and Telegram username; see
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
 `projects`, `replaceproject`, `deleteproject`, `renameproject`, `sort`, `undo`, `help`, and `exit`.
-Command words are case-sensitive.
+Command words are matched case-insensitively: `AddressBookParser` lowercases the command word with `Locale.ROOT`
+before dispatching, so `FIND alex` works like `find alex` even on a computer set to Turkish, where a plain
+`toLowerCase()` would turn `I` into a dotless `ı`. Prefixes and arguments are not changed, so prefixes stay
+case-sensitive (`N/` is not `n/`).
 
 `AddCommandParser` requires exactly one each of `n/`, `p/`, `e/`, `tele/`, and `pr/`.
 It constructs a `Person` with one initial project. Subsequent `project` commands append associations.
@@ -203,12 +205,12 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
-| `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
+| `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
 
-`JsonAdaptedPerson` restores names, phones and emails through their stored-value validation paths, preserving
-legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
+`JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
+paths, preserving legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
 projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
 
 ### Name search and displayed indices
@@ -312,7 +314,11 @@ These delimiter sequences following a space remain reserved in add/edit input.
 `JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
 configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
 `JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
-bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up malformed JSON before replacement.
+bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON is not legacy data: it is backed
+up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
+at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
+backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
+before the next save replaces it.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
@@ -323,7 +329,9 @@ the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the f
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
 so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
 somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
-backup. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
+backup. In that case `initModelManager` also records a startup message naming the backup, which `MainApp` passes
+to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box, so the
+user knows the empty list is recoverable before running a command that saves over the original file. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
@@ -570,10 +578,10 @@ that differ only in case are ordered by their exact text, and contacts with the 
 saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
 so the order of any contact list is fully determined.
 
-`SortCommand#execute` throws a `CommandException` when there are no contacts (`No contacts saved yet.`) or when
-they are already in order (`Contacts are already sorted by name.`). Because `LogicManager` records an undo state
-and saves only after a command succeeds, these cases change nothing and add no undo entry, matching
-`edit`'s `No changes made.` handling. Otherwise it calls `Model#sortPersons`, which reaches
+When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
+by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
+message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
@@ -706,15 +714,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
 | `* *`    | student | keep the latest search results visible after listing all contacts      | refer back to the people I just found                            |
 | `* *`    | student | see which contact I have searched for most in this session             | return quickly to a frequently needed contact                    |
+| `* *`    | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
+| `* *`    | student | rename a project                                                       | keep project information accurate when project names change      |
+| `* *`    | student | view all projects I am tracking                                        | see how my contacts are organised                                |
 | `*`      | student | search contacts using multiple criteria                                | narrow down ambiguous results                                    |
-| `*`      | student | sort contacts alphabetically                                           | browse the contact list more easily                              |
 | `*`      | student | sort contacts by project                                               | see related contacts together                                    |
 | `*`      | student | view recently added contacts                                           | quickly find people I just met                                   |
 | `*`      | student | archive contacts from completed projects                               | prevent old contacts from cluttering my active contact list      |
 | `*`      | student | restore archived contacts                                              | reuse their information if I work with them again                |
-| `*`      | student | rename a project                                                       | keep project information accurate when project names change      |
 | `*`      | student | remove a project                                                       | prevent completed or incorrectly created projects from cluttering my records |
-| `*`      | student | view all projects I am tracking                                        | see how my contacts are organised                                |
 
 ### Use cases
 
@@ -884,8 +892,6 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
 * **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
-* **Same-name disambiguation**: Using project information to distinguish contacts with identical or similar names.
-* **Mainstream OS**: Windows, Linux, Unix, or macOS.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -904,6 +910,8 @@ exploratory testing, not a claim that every platform has been manually tested.
    window settings to return. Check `data/addressbook.json` and `preferences.json` in this folder.
 4. Run `undo` immediately after restart. Expect `No command to undo.` because history is session-only.
 5. Run `help`. Expect the help window; close it and continue entering commands in the main window.
+6. Shrink the window to its minimum size. Expect the status bar to stay fully visible. Run `projects`, then drag
+   the bar below the result box downwards. Expect the result box to grow and show more of the project list.
 
 ### Prepare deterministic contacts
 
@@ -959,6 +967,8 @@ Run the following in order after preparing the contacts:
 | `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
+| `FIND lee` then `List` | Only David Lee, then all three contacts: command words ignore case. |
+| `findp Orbital` then `edit 1 N/Bob` | `Unknown command.`, then `Invalid command format!` with the `edit` usage: command words cannot be shortened, and prefixes stay case-sensitive. |
 
 ### Recent search results panel
 
@@ -1061,7 +1071,8 @@ Start from the prepared contacts.
    `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`. Expect it at the end of the list.
 2. Run `sort`. Expect `Sorted 4 contact(s) by name.` and the order Aaron Lim, Alex Tan (`+6587654321`),
    Alex Tan (`+6591234567`), David Lim: the two namesakes are ordered by phone.
-3. Run `sort` again. Expect `Contacts are already sorted by name.` and no change.
+3. Run `sort` again. Expect `Contacts are already sorted by name.` as a normal message (the command box clears)
+   and no change.
 4. Run `undo`. Expect Aaron back at the end; the repeated `sort` did not add an undo entry.
 5. Run `find alex`, then `sort`. Expect the Alex results to stay displayed, now in name order.
 6. Run `exit` and relaunch from the same folder. Expect the sorted order from step 5 to be kept.
@@ -1074,7 +1085,8 @@ valid copy before each scenario so the legacy tests start with contacts rather t
 | Scenario | Procedure and expected result |
 | --- | --- |
 | Missing data | Move `data/addressbook.json` out of the test folder. Relaunch: sample contacts appear. Run `list` to save them. |
-| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book. |
+| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book and creates no second backup. |
+| File broken while open | With LinkUp open, replace the data file with `{x` and save it. Run `list`: a new `.unreadable-<unique suffix>.bak` containing exactly `{x` appears before the file is replaced. |
 | Legacy fields | In a valid saved contact, add `"address": "Old Address"` and `"tags": ["old"]`. Relaunch and run `list`: the saved contact omits these fields, and a sibling `.pre-v1.3-<unique suffix>.bak` preserves the original file. A second `list` creates no further migration backup. |
 | Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch and search for that contact: the recent-result header shows `Name \| No Telegram Username` and no project tags. The main person card hides the missing Telegram row. New `add` commands still require both fields. |
 
