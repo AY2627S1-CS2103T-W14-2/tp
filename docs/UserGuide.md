@@ -525,6 +525,8 @@ Examples:
 
 Clears all entries from the address book.
 
+On success, LinkUp shows `Cleared all contacts and project associations from LinkUp.`
+
 This removes **all contacts**, including those hidden by a search filter, without a confirmation prompt.
 Use `undo` before closing the application if you need to restore them.
 If no contacts are saved, it reports `No contacts to clear.` without saving or adding an undo entry.
