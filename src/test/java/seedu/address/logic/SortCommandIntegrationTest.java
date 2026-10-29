@@ -2,7 +2,6 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.ConflictTestUtil.ALICE_NAMESAKE;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
-import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
@@ -66,7 +64,7 @@ public class SortCommandIntegrationTest {
         logic.execute("list"); // saves the current contacts
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
-        assertThrows(CommandException.class, SortCommand.MESSAGE_ALREADY_SORTED, () -> logic.execute("sort"));
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
 
         assertEquals(savedData, Files.readString(addressBookStorage.getAddressBookFilePath()));
         assertFalse(model.canUndo());
@@ -78,11 +76,24 @@ public class SortCommandIntegrationTest {
         logic.execute("delete 3"); // creates one undo entry
         List<Person> afterDelete = List.copyOf(model.getAddressBook().getPersonList());
 
-        assertThrows(CommandException.class, SortCommand.MESSAGE_ALREADY_SORTED, () -> logic.execute("sort"));
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
 
         assertEquals(afterDelete, model.getAddressBook().getPersonList());
-        logic.execute("undo"); // undoes the delete, not the rejected sort
+        logic.execute("undo"); // undoes the delete, because sorting changed nothing
         assertEquals(SORTED, model.getAddressBook().getPersonList());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_sortTwiceThenUndo_undoesFirstSort() throws Exception {
+        UNSORTED.forEach(model::addPerson);
+
+        logic.execute("sort");
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
+        logic.execute("undo");
+
+        assertEquals(UNSORTED, model.getAddressBook().getPersonList());
+        assertEquals(UNSORTED, savedContacts());
         assertFalse(model.canUndo());
     }
 
@@ -91,7 +102,7 @@ public class SortCommandIntegrationTest {
         logic.execute("list"); // saves the empty address book
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
-        assertThrows(CommandException.class, ListCommand.MESSAGE_NO_CONTACTS, () -> logic.execute("sort"));
+        assertEquals(ListCommand.MESSAGE_NO_CONTACTS, logic.execute("sort").getFeedbackToUser());
 
         assertEquals(savedData, Files.readString(addressBookStorage.getAddressBookFilePath()));
         assertFalse(model.canUndo());

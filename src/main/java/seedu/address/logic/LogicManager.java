@@ -76,7 +76,7 @@ public class LogicManager implements Logic {
                     commandText.trim().substring(commandWord.length())));
         }
 
-        if (command.isUndoable()) {
+        if (command.isUndoable() && commandResult.isDataChanged()) {
             model.saveUndoState(before);
         }
 
