@@ -459,6 +459,7 @@ Finds contacts associated with projects whose names contain the given phrase.
 Format: `findproject KEYWORD`
 
 * Matching is case-insensitive and partial: `cs2103` matches `CS2103T`.
+  Unicode case variants are supported too: `Σ`, `σ` and `ς` all match a project named `ΟΣ`.
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
