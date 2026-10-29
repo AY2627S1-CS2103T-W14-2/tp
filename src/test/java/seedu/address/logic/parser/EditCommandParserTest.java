@@ -123,6 +123,13 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_telegramUsernameBreaksTelegramRules_failure() {
+        // issue #189
+        assertEachFails(TelegramUsername.MESSAGE_CONSTRAINTS, "1 tele/1alex", "1 tele/_alex", "1 tele/alex_",
+                "1 tele/@Alex_");
+    }
+
+    @Test
     public void parse_invalidValues_reportsFirstInFixedFieldOrder() {
         // fields are checked as name, phone, email, Telegram username, whatever order they are typed in
         assertParseFailure(parser, "1" + INVALID_TELEGRAM_DESC + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS);
