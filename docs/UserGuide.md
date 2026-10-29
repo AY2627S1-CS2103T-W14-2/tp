@@ -411,9 +411,9 @@ Examples:
 *  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
 *  `find Bernice` followed by `edit 1 tele/@bernice_yu2` changes the Telegram username of the first search result.
 
-### Locating persons by name: `find`
+### Locating contacts by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds contacts whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -421,23 +421,23 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Contacts matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
   trimming surrounding whitespace. Internal spaces count towards this limit, including repeated spaces.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
-* No matches produces an empty list and the message `0 person(s) listed!`.
-* Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
+* No matches produces an empty list and the message `0 contact(s) listed!`.
+* Successful searches report `N contact(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank or overlong input produces an error without changing the current results or saved contacts.
 * The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
   shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
   The **Current contact list** below provides the numbered contacts for commands.
-  Each successful `find` or `findproject` adds one search to every matching person, even if several keywords
-  or projects match that person. The displayed contact details include their name, projects and Telegram username.
-  The person with the highest count is displayed. In a draw, the person matched by the more recent search wins;
-  if both matched the same search, the person first in the contact list wins. For example, `find Alice` followed
+  Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
+  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
+  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
+  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
   by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
 * **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
