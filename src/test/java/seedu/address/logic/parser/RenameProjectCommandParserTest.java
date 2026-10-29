@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -13,6 +14,29 @@ import seedu.address.model.project.Project;
 
 public class RenameProjectCommandParserTest {
     private final RenameProjectCommandParser parser = new RenameProjectCommandParser();
+
+    @Test
+    public void parse_invalidField_feedbackIdentifiesFieldAndCorrection() {
+        assertEquals("The old project name (old/) is empty. Enter a project name after old/.",
+                assertThrows(ParseException.class, () -> parser.parse(" old/ new/Space")).getMessage());
+        assertEquals("The new project name (new/) is empty. Enter a project name after new/.",
+                assertThrows(ParseException.class, () -> parser.parse(" old/Orbital new/")).getMessage());
+        for (String field : List.of("old", "new")) {
+            String input = field.equals("old") ? " old/" + "A".repeat(41) + " new/Space"
+                    : " old/Orbital new/" + "A".repeat(41);
+            assertTrue(assertThrows(ParseException.class, () -> parser.parse(input)).getMessage()
+                    .startsWith("Invalid " + field + " project name (" + field + "/):"));
+        }
+        ParseException preambleError = assertThrows(ParseException.class, () ->
+                parser.parse(" 1 old/Orbital new/Space"));
+        String preambleMessage = preambleError.getMessage();
+        assertTrue(preambleMessage.contains("does not take an index"));
+        assertTrue(preambleMessage.endsWith("Remove the text before old/ and new/: 1"));
+        assertTrue(assertThrows(ParseException.class, () -> parser.parse(" new/Space")).getMessage()
+                .contains("old/"));
+        assertTrue(assertThrows(ParseException.class, () -> parser.parse(" old/Orbital")).getMessage()
+                .contains("new/"));
+    }
 
     @Test
     public void parse_validNames_normalisesWhitespaceAndAcceptsEitherOrder() throws Exception {
