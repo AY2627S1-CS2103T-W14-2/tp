@@ -34,7 +34,10 @@ merged across contacts with `renameproject`.
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar LinkUp.jar`.<br>
    Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
    if no data file exists, LinkUp supplies sample contacts.<br>
-   ![Ui](images/Ui.png)
+   ![Ui](images/Ui.png)<br>
+   Below the command box are three sections: the result box, the **Most searched** and **Recent search**
+   sections, and the **Current contact list**. Drag the bar between two sections to give either one more space,
+   for example to read a long `projects` list in the result box.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:

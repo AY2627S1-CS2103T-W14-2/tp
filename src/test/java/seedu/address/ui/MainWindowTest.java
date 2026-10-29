@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.address.commons.core.GuiSettings;
@@ -32,6 +35,12 @@ import seedu.address.testutil.FxTestUtil;
 import seedu.address.testutil.PersonBuilder;
 
 public class MainWindowTest {
+    // Minimum stage size declared in MainWindow.fxml, and the default width from GuiSettings
+    private static final double MIN_WINDOW_WIDTH = 450;
+    private static final double MIN_WINDOW_HEIGHT = 600;
+    private static final double DEFAULT_WINDOW_WIDTH = 740;
+    private static final double DIVIDER_SHIFT = 0.2;
+
     @TempDir
     public Path temporaryFolder;
 
@@ -158,6 +167,53 @@ public class MainWindowTest {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);
             }
         });
+    }
+
+    @Test
+    public void minimumWindowSize_statusBarStaysInsideWindow() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindow(new ModelManager(), MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+            try {
+                Node statusBar = stage.getScene().lookup("#statusbarPlaceholder");
+                double statusBarBottom = statusBar.localToScene(statusBar.getLayoutBounds()).getMaxY();
+                assertTrue(statusBarBottom <= stage.getScene().getHeight());
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
+    @Test
+    public void sectionDivider_moved_resizesResultBox() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindow(new ModelManager(), DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+            try {
+                Region resultBox = (Region) stage.getScene().lookup("#resultDisplayPlaceholder");
+                double initialHeight = resultBox.getHeight();
+                SplitPane sections = (SplitPane) stage.getScene().lookup("#mainSections");
+                sections.setDividerPosition(0, sections.getDividerPositions()[0] + DIVIDER_SHIFT);
+                layOut(stage);
+                assertTrue(resultBox.getHeight() > initialHeight);
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
+    /** Shows a filled main window of the given size for {@code model} and lays it out. */
+    private Stage showMainWindow(Model model, double width, double height) {
+        model.setGuiSettings(new GuiSettings(width, height, 100, 100));
+        Stage stage = new Stage();
+        MainWindow window = new MainWindow(stage, createLogic(model), temporaryFolder.resolve("contacts.json"));
+        window.fillInnerParts();
+        window.show();
+        layOut(stage);
+        return stage;
+    }
+
+    private void layOut(Stage stage) {
+        stage.getScene().getRoot().applyCss();
+        stage.getScene().getRoot().layout();
     }
 
     private LogicManager createLogic(Model model) {

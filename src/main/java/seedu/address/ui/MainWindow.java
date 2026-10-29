@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -26,6 +27,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+
+    /** Starting divider positions: result box above search sections above the contact list. */
+    private static final double[] DEFAULT_SECTION_DIVIDER_POSITIONS = {0.2, 0.52};
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -58,6 +62,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane mostSearchedDetails;
+
+    @FXML
+    private SplitPane mainSections;
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
@@ -185,6 +192,8 @@ public class MainWindow extends UiPart<Stage> {
 
     void show() {
         primaryStage.show();
+        // Set after showing, so the positions apply to the final window size rather than the initial layout
+        mainSections.setDividerPositions(DEFAULT_SECTION_DIVIDER_POSITIONS);
     }
 
     /**
