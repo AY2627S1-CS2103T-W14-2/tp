@@ -203,7 +203,7 @@ field's value, so callers must use the documented grammar.
 
 | Value class | Current new-input rule and normalisation |
 | --- | --- |
-| `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
+| `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
@@ -1038,6 +1038,7 @@ Start with `list` after the preceding sequence. Each rejected command below must
 | `edit 3 e/other@example.com` | Email conflict with the second Alex. |
 | `edit 1 a/Old Address` | Address/tags are no longer supported. |
 | `edit 1 n/Alex Tan n/Another Name` | Duplicate-prefix error. |
+| `edit 1 n/Alex   Tan` | `No changes made.`: repeated spaces collapse to the saved name `Alex Tan`. |
 
 For boundaries, try `find` with 60 and then 61 consecutive `x` characters, and `findproject` with 40 and
 then 41. The shorter query is accepted (with no matches); the longer one reports a length error without

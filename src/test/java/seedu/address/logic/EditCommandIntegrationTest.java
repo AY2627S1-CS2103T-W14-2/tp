@@ -162,7 +162,7 @@ public class EditCommandIntegrationTest {
         int savesBefore = saveCount;
 
         for (String command : List.of("edit 1 n/Alicia Tan", "edit 1 n/Alicia Tan p/+6591234567",
-                "edit 1 e/ALEX@example.com")) {
+                "edit 1 e/ALEX@example.com", "edit 1 n/Alicia   Tan")) {
             CommandException failure = assertThrows(CommandException.class, () -> logic.execute(command), command);
             assertEquals(EditCommand.MESSAGE_NO_CHANGES, failure.getMessage());
             assertRejectedState(before, savedData, List.of(alicia), savesBefore);
