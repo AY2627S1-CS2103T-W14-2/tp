@@ -273,8 +273,10 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 * `INDEX` is a positive index in the currently displayed list, including search results.
 * The name must contain 1–40 characters. Line breaks and other control characters are not allowed.
   Matching ignores case, removes surrounding whitespace, and collapses repeated whitespace.
-* The specified project must belong to every selected contact. Missing or invalid indices, missing or
-  invalid project names, and repeated `pr/` prefixes are rejected without changing data or undo history.
+* Everything after the first `pr/` is the project name, including any further literal `pr/` text.
+  For example, `deleteproject 1 pr/Team pr/X` removes the project named `Team pr/X`.
+* The specified project must belong to every selected contact. Missing or invalid indices and missing or
+  invalid project names are rejected without changing data or undo history.
 * Supply distinct positive indices. All selections are resolved against the displayed list before any updates.
   Repeated-index errors identify the repeated index. If any index is invalid or any selected contact lacks
   the project, the entire batch is rejected without changing contacts or undo history. Missing-association
