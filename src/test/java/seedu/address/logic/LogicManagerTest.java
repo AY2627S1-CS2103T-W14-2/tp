@@ -399,6 +399,7 @@ public class LogicManagerTest {
 
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertCommandException("clear", seedu.address.logic.commands.ClearCommand.MESSAGE_NO_CONTACTS);
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());
