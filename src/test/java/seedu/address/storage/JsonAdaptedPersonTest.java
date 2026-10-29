@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
 import seedu.address.model.project.Project;
@@ -155,13 +154,26 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_duplicateProjectsIgnoringCase_throwsIllegalValueException() {
-        List<JsonAdaptedProject> duplicateProjects = List.of(
-                new JsonAdaptedProject("CS2103T"), new JsonAdaptedProject("cs2103t"));
+    public void toModelType_duplicateProjectsIgnoringCase_keepsFirstSpelling() throws Exception {
+        List<JsonAdaptedProject> duplicateProjects = List.of(new JsonAdaptedProject("CS2103T"),
+                new JsonAdaptedProject("Orbital"), new JsonAdaptedProject("cs2103t"));
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_TELEGRAM_USERNAME, duplicateProjects);
 
-        assertThrows(IllegalValueException.class, Person.MESSAGE_DUPLICATE_PROJECTS, person::toModelType);
+        List<Project> projects = person.toModelType().getProjects();
+        assertEquals(List.of(new Project("CS2103T"), new Project("Orbital")), projects);
+        assertEquals("CS2103T", projects.get(0).projectName);
+    }
+
+    @Test
+    public void toModelType_projectsEqualOnceInvisibleCharactersRemoved_keepsOne() throws Exception {
+        // Issue #177: a file saved before invisible characters were removed can list both spellings
+        List<JsonAdaptedProject> savedProjects = List.of(new JsonAdaptedProject("AlphaBeta"),
+                new JsonAdaptedProject("Alpha" + (char) 0x200B + "Beta"));
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_TELEGRAM_USERNAME, savedProjects);
+
+        assertEquals(List.of(new Project("AlphaBeta")), person.toModelType().getProjects());
     }
 
     @Test

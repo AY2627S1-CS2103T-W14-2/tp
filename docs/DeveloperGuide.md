@@ -207,11 +207,13 @@ field's value, so callers must use the documented grammar.
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
-| `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
+| `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case. `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), except the zero-width non-joiner and joiner (U+200C/U+200D). It then removes those joiners too when they join nothing visible: next to a Latin letter, a digit, punctuation or whitespace, or at either end of the name; a run of joiners is removed as a whole. Joiners between emoji (e.g. 👨‍💻) or between letters of scripts such as Persian or Hindi are kept. Together these stop pasted names from creating look-alike duplicates (issue #177). It then collapses whitespace and removes only spaces at either end (not `String#strip`, which would also drop U+001C–U+001F); tabs and line breaks become spaces, so `normalize` alone does not validate a name. Before any cleaning, `isValidProjectName` rejects malformed text (an unpaired surrogate, since removing a character between two unpaired surrogates could join them into a new character) and any control character, including tabs and line breaks (issue #202). Known limits: a joiner between letters of other non-Latin scripts (e.g. Cyrillic) is kept, tag characters in subdivision flag emoji are removed, and invisible characters outside category Cf (e.g. U+3164 Hangul filler) are not handled. Saved names are normalised the same way when loaded. |
 
 `JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
 paths, preserving legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
-projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
+projects become an empty list. A project that equals an earlier one on the same contact is dropped, keeping the first
+spelling, rather than rejecting the file: a file saved before invisible characters were removed (issue #177) can
+list two names that are now equal. These compatibility rules do not make those fields optional in new `add` input.
 
 ### Name search and displayed indices
 
@@ -384,9 +386,11 @@ not a clash when another field changes.
 The `findproject KEYWORD` command implements UC02 using the existing filtered contact list.
 
 1. `AddressBookParser` routes `findproject` to `FindProjectCommandParser`.
-2. The parser removes surrounding whitespace, rejects a blank phrase, and checks the 40-character limit before
+2. The parser removes surrounding whitespace, rejects a phrase that is blank once `Project.normalize()` has removed
+   invisible characters (e.g. one made only of zero-width spaces), and checks the 40-character limit before
    collapsing internal whitespace. Length is measured in Unicode code points, consistent with the project model.
-   The surrounding-whitespace rule covers the same whitespace and Unicode separator characters as `Project.normalize()`.
+   The surrounding-whitespace rule also trims U+001C–U+001F, which `Project.normalize()` keeps so that `Project`
+   rejects them as control characters; a search phrase is never stored, so this only widens what a search ignores.
 3. `ProjectContainsKeywordPredicate` uses `Project.normalize()` and `Locale.ROOT` to normalise the search phrase
    once. It checks whether any project returned by `Person.getProjects()` contains that whole phrase, ignoring case.
 4. `FindProjectCommand` passes the predicate to `Model.updateFilteredPersonList(...)` and returns the result count

@@ -26,6 +26,14 @@ public class FindProjectCommandParserTest {
     }
 
     @Test
+    public void parse_invisibleCharactersOnly_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindProjectCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, String.valueOf((char) 0x200B), expectedMessage); // zero-width space
+        assertParseFailure(parser, String.valueOf((char) 0x200D).repeat(3), expectedMessage); // joiners
+        assertParseFailure(parser, " " + (char) 0x200B + " " + (char) 0xFEFF + " ", expectedMessage);
+    }
+
+    @Test
     public void parse_javaWhitespaceOnly_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindProjectCommand.MESSAGE_USAGE);
         for (int codePoint = 0x1c; codePoint <= 0x1f; codePoint++) {
