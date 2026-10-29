@@ -2,6 +2,7 @@ package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -62,23 +63,49 @@ public class MainAppTest {
     @Test
     public void initModelManager_unreadableFileAndBackupSucceeds_startsEmptyWithBackup() throws Exception {
         Files.write(dataFile, UNREADABLE_DATA);
+        MainApp app = new MainApp();
 
-        Model model = new MainApp().initModelManager(storageWith(new JsonAddressBookStorage(dataFile)),
-                new UserPrefs());
+        Model model = app.initModelManager(storageWith(new JsonAddressBookStorage(dataFile)), new UserPrefs());
 
         assertEquals(new AddressBook(), model.getAddressBook());
         List<Path> backups = backupFiles();
         assertEquals(1, backups.size());
         assertArrayEquals(UNREADABLE_DATA, Files.readAllBytes(backups.get(0)));
+        // The user is told why the list is empty and where the backup is
+        String message = app.getStartupMessage().orElseThrow();
+        assertEquals(MainApp.createUnreadableDataFileMessage(dataFile, Optional.of(backups.get(0))), message);
+        assertTrue(message.contains(backups.get(0).getFileName().toString()));
+    }
+
+    @Test
+    public void createUnreadableDataFileMessage_noBackup_omitsBackupSentence() {
+        String message = MainApp.createUnreadableDataFileMessage(dataFile, Optional.empty());
+
+        assertTrue(message.startsWith("Could not read " + dataFile));
+        assertFalse(message.contains("Backup:"));
+        assertFalse(message.endsWith("\n"));
     }
 
     @Test
     public void initModelManager_missingFile_startsWithSampleData() throws Exception {
-        Model model = new MainApp().initModelManager(storageWith(new JsonAddressBookStorage(dataFile)),
-                new UserPrefs());
+        MainApp app = new MainApp();
+
+        Model model = app.initModelManager(storageWith(new JsonAddressBookStorage(dataFile)), new UserPrefs());
 
         assertEquals(SampleDataUtil.getSampleAddressBook(), model.getAddressBook());
         assertEquals(List.of(), backupFiles());
+        assertEquals(Optional.empty(), app.getStartupMessage());
+    }
+
+    @Test
+    public void initModelManager_readableFile_noStartupMessage() throws Exception {
+        MainApp app = new MainApp();
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
+        addressBookStorage.saveAddressBook(SampleDataUtil.getSampleAddressBook());
+
+        app.initModelManager(storageWith(addressBookStorage), new UserPrefs());
+
+        assertEquals(Optional.empty(), app.getStartupMessage());
     }
 
     private Storage storageWith(JsonAddressBookStorage addressBookStorage) {
