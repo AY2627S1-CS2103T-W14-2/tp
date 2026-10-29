@@ -82,8 +82,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* Extra parameters are ignored by `help`, `list`, `sort`, `exit`, and `clear`. The `projects` command rejects
-  extra parameters. For example, `help 123` is interpreted as `help`, while `projects extra` is rejected.<br>
+* `help`, `list`, `sort`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
+  `clear` and `projects` reject extra parameters.<br>
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -532,6 +532,8 @@ Use `undo` before closing the application if you need to restore them.
 If no contacts are saved, it reports `No contacts to clear.` without saving or adding an undo entry.
 
 Format: `clear`
+
+The command takes no parameters. Extra text is rejected without changing any contacts.
 
 ### Undo a command: `undo`
 

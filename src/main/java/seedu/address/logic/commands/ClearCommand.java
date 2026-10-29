@@ -13,6 +13,9 @@ public class ClearCommand extends Command {
 
     public static final String MESSAGE_NO_CONTACTS = "No contacts to clear.";
     public static final String COMMAND_WORD = "clear";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Clears all contacts.\n"
+            + "This command takes no parameters.\n"
+            + "Example: " + COMMAND_WORD;
     public static final String MESSAGE_SUCCESS = "Cleared all contacts and project associations from LinkUp.";
 
 
