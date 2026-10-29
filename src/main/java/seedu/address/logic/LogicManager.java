@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -66,6 +67,12 @@ public class LogicManager implements Logic {
         AddressBook before = command.isUndoable()
                 ? new AddressBook(model.getAddressBook())
                 : null;
+        Predicate<Person> filteredPersonPredicate = command.isUndoable()
+                ? model.getFilteredPersonPredicate()
+                : null;
+        SearchHistory.Snapshot searchHistoryBefore = command.isUndoable()
+                ? searchHistory.snapshot()
+                : null;
         commandResult = command.execute(model);
         boolean isSearch = command instanceof FindCommand || command instanceof FindProjectCommand;
         if (isSearch) {
@@ -77,10 +84,17 @@ public class LogicManager implements Logic {
         }
 
         if (command.isUndoable() && commandResult.isDataChanged()) {
+            try {
+                saveAddressBook(model.getAddressBook());
+            } catch (CommandException e) {
+                // Restore all observable state changed by the command before reporting the failed save.
+                model.setAddressBook(before);
+                model.updateFilteredPersonList(filteredPersonPredicate);
+                searchHistory.restore(searchHistoryBefore);
+                throw e;
+            }
             model.saveUndoState(before);
         }
-
-        saveAddressBook(model.getAddressBook());
         if (isSearch) {
             searchHistory.record(model.getFilteredPersonList());
         }

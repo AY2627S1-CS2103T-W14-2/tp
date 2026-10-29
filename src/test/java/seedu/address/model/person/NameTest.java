@@ -33,7 +33,7 @@ public class NameTest {
         assertFalse(Name.isValidName("12345")); // must contain a letter
         assertFalse(Name.isValidName("Émile")); // only English letters are accepted for new input
         assertFalse(Name.isValidName("A".repeat(61))); // exceeds the 60-character limit
-        assertFalse(Name.isValidName("A\tTan")); // tabs are not name spaces
+        assertFalse(Name.isValidName("A".repeat(30) + "  " + "B".repeat(30))); // 61 after collapsing spaces
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -43,6 +43,8 @@ public class NameTest {
         assertTrue(Name.isValidName("O'Connor-Smith Jr. 2")); // permitted punctuation
         assertTrue(Name.isValidName("A".repeat(60))); // upper length boundary
         assertTrue(Name.isValidName("  Alex Tan  ")); // surrounding spaces are trimmed
+        assertTrue(Name.isValidName("A\tTan")); // a tab becomes one space
+        assertTrue(Name.isValidName("A".repeat(30) + "    " + "B".repeat(29))); // 60 after collapsing spaces
     }
 
     @Test
@@ -51,10 +53,21 @@ public class NameTest {
     }
 
     @Test
+    public void constructor_repeatedWhitespace_collapsesToOneSpace() {
+        assertEquals("Emma First", new Name("Emma   First").fullName);
+        assertEquals("Emma First", new Name("Emma\tFirst").fullName);
+        assertEquals("Emma First", new Name("Emma\u00A0First").fullName); // non-breaking space from copy-paste
+        assertEquals("Mary Jane O'Neil", new Name(" Mary \t Jane\u2003 O'Neil ").fullName);
+        assertEquals(new Name("Emma First"), new Name("Emma  First"));
+    }
+
+    @Test
     public void fromStoredValue_oldValidName_preservesOriginalValue() {
         assertEquals("12345 ", Name.fromStoredValue("12345 ").fullName);
         assertEquals("A".repeat(61), Name.fromStoredValue("A".repeat(61)).fullName);
+        assertEquals("Emma  First", Name.fromStoredValue("Emma  First").fullName); // saved spacing is kept
         assertThrows(IllegalArgumentException.class, () -> Name.fromStoredValue("R@chel"));
+        assertThrows(IllegalArgumentException.class, () -> Name.fromStoredValue("A\tTan")); // loading is unchanged
     }
 
     @Test

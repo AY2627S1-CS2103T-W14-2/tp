@@ -150,9 +150,11 @@ The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is store
 numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
 number is assigned or callable.
 
-Names must contain 1–60 characters after surrounding spaces are removed. English letters, digits, spaces,
-apostrophes, hyphens, and periods are accepted; at least one English letter is required. The name keeps its
-capitalization for display.
+Names must contain 1–60 characters after surrounding spaces are removed and repeated spaces are reduced to one.
+For example, `n/Emma   First` is saved as `Emma First`, and pasted spacing such as a non-breaking space also
+counts as a space. A pasted tab is different: the command box removes it, so `Emma<tab>First` is saved as
+`EmmaFirst`. English letters, digits, spaces, apostrophes, hyphens, and periods are accepted; at least one
+English letter is required. The name keeps its capitalization for display.
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
@@ -359,8 +361,8 @@ Examples:
 * If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
 
 Like other commands that change contacts, rename updates the current session before saving. If saving fails,
-the change remains in memory with an undo entry. Correct the storage problem, then use `undo` to restore the
-previous state or another successful command to save the current state.
+LinkUp restores the contacts, current search, and undo history to their previous state. Correct the storage
+problem and retry the rename.
 
 ### Editing a person: `edit`
 
@@ -574,16 +576,18 @@ Format: `exit`
 
 ### Saving the data
 
-LinkUp automatically attempts to save after each successfully executed command, including searches and `list`.
-Commands rejected during parsing or validation do not save. There is no separate save command.
+LinkUp saves the contact list after a command changes contacts or their order, including `undo`. Read-only
+commands such as `list`, `find`, `findproject`, `projects`, and `help` do not save. Commands that make no change,
+or are rejected during parsing or validation, do not save either. There is no separate save command.
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
 
-If a save error appears, the displayed contact list may already contain your change even though it was not saved.
-Keep the application open, correct the storage or permission problem, then run `list` to retry saving the current
-contacts. Do not repeat an `add` blindly, as the contact may already be in the list. If you want to reverse the change,
-use `undo` after fixing storage. An undo that cannot save leaves the contacts and undo history unchanged and can be retried.
+If a save error appears after a command that changes contacts, LinkUp restores the contacts, current search,
+and undo history to their state before that command. Fix the storage or permission problem, then retry the
+original command. Do not run `undo` to recover from that failed command: `undo` would reverse an earlier
+successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
+retry `undo`.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
@@ -592,8 +596,9 @@ emails must still be within the [email length limits](#adding-a-person-add); a f
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
-Before the first save that removes address or tags, LinkUp creates a
-backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
+The first command that changes contacts after loading the older file triggers a save. Before that save removes
+address or tags, LinkUp creates a backup beside the original file, named
+`<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
 migration backups. Importing another old file creates a separate backup. If the backup cannot be written,
 LinkUp reports a save error and leaves the original file untouched.
@@ -617,7 +622,8 @@ LinkUp does not infer a country code, so `91234567` and `+6591234567` are differ
 If your changes make the data file invalid, LinkUp starts with an empty contact list at the next run. Before
 starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`,
 and the result box says that the file could not be read and names the backup.
-The next successfully executed command attempts to save the current contact list over the original file.
+The next command that changes contacts attempts to save the current contact list over the original file.
+Commands such as `list` and `find` leave the file untouched.
 To recover, close LinkUp, fix the problem in the backup, and copy it over the original data file. If the
 backup cannot be created (for example, because the disk is full or the folder is read-only), LinkUp shows an
 error and does not start, so that your data file is never overwritten. Copy the data file somewhere safe, fix the

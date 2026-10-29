@@ -61,7 +61,7 @@ public class SortCommandIntegrationTest {
     @Test
     public void execute_alreadySorted_keepsSavedFileAndUndoHistory() throws Exception {
         SORTED.forEach(model::addPerson);
-        logic.execute("list"); // saves the current contacts
+        addressBookStorage.saveAddressBook(model.getAddressBook());
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
         assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
@@ -99,7 +99,7 @@ public class SortCommandIntegrationTest {
 
     @Test
     public void execute_noContacts_keepsSavedFileAndUndoHistory() throws Exception {
-        logic.execute("list"); // saves the empty address book
+        addressBookStorage.saveAddressBook(model.getAddressBook());
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
         assertEquals(ListCommand.MESSAGE_NO_CONTACTS, logic.execute("sort").getFeedbackToUser());
