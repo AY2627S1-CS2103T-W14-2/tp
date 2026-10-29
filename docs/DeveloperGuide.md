@@ -1050,7 +1050,8 @@ consecutive `x` characters succeeds, while 41 fails.
 Run `undo` after the accepted project change to restore the fixture.
 
 To check the overall command limit, paste `help` followed by 996 spaces: it should open help.
-With 997 spaces, it should instead report `Command must not exceed 1000 characters...`.
+With 997 spaces, it should instead report
+`Command is too long (maximum 1000 characters, including spaces). Shorten it and try again.`
 On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
 the command box and execute. Verify that the same command-length error appears within two seconds
 and that the displayed contacts, recent search and saved data remain unchanged.
