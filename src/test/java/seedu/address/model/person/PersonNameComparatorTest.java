@@ -80,9 +80,11 @@ public class PersonNameComparatorTest {
 
     /**
      * Asserts that a person named {@code firstName} comes before one named {@code secondName}.
+     * Both persons keep the same default contact details, so only their names decide the order.
      */
     private void assertOrdered(String firstName, String secondName) {
-        assertOrdered(PersonBuilder.named(firstName).build(), PersonBuilder.named(secondName).build());
+        assertOrdered(new PersonBuilder().withName(firstName).build(),
+                new PersonBuilder().withName(secondName).build());
     }
 
     /**
