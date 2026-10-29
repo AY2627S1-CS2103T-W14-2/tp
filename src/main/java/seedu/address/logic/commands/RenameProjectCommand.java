@@ -48,6 +48,8 @@ public class RenameProjectCommand extends Command {
         if (contacts.stream().noneMatch(person -> person.getProjects().contains(oldProject))) {
             throw new CommandException(String.format(MESSAGE_NOT_FOUND, oldProject));
         }
+        Project savedOldProject = contacts.stream().flatMap(person -> person.getProjects().stream())
+                .filter(oldProject::equals).findFirst().orElseThrow();
         boolean isMerge = !oldProject.equals(newProject)
                 && contacts.stream().anyMatch(person -> person.getProjects().contains(newProject));
         List<Person> updatedContacts = new ArrayList<>();
@@ -70,7 +72,13 @@ public class RenameProjectCommand extends Command {
         replacement.setPersons(updatedContacts);
         model.setAddressBook(replacement);
         return new CommandResult(String.format(Locale.ROOT, MESSAGE_SUCCESS,
-                isMerge ? "Merged" : "Renamed", oldProject, isMerge ? "into" : "to", newProject, changedCount));
+                isMerge ? "Merged" : "Renamed", escapedName(savedOldProject), isMerge ? "into" : "to",
+                escapedName(newProject), changedCount));
+    }
+
+    /** Escapes literal quotes and backslashes inside the message's quoted project names. */
+    private static String escapedName(Project project) {
+        return project.projectName.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private List<Project> renameProjects(List<Project> projects, boolean isMerge) {

@@ -225,6 +225,7 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
+* Duplicate-project feedback uses the first saved spelling among the selected contacts that already have the project.
 * For one contact, the success message shows that contact's updated details, so contacts with the same
   name can be told apart. For several contacts, it lists each contact by displayed index and name.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
@@ -287,6 +288,8 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
   the project, the entire batch is rejected without changing contacts or undo history. Missing-association
   errors list all affected selections by displayed index and name; out-of-range indices take precedence.
 * One `undo` restores all associations removed by a successful batch.
+* Single-contact feedback shows that contact's saved project spelling. Batch feedback uses the first saved
+  spelling among the selected contacts, regardless of the order in which you entered the indices.
 * Removing the last project is allowed and leaves the contact with no projects.
 * The current search filter is preserved. A contact may disappear from `findproject` results after removal.
 * Successful removal is saved and can be reversed with `undo`.
@@ -351,6 +354,8 @@ Format: `renameproject old/OLD_NAME new/NEW_NAME`
 * The current search filter is preserved. Contacts may enter or leave `findproject` results when their
   renamed projects start or stop matching the search. Contacts hidden by the filter are still updated.
 * Successful changes are saved automatically. The message reports the number of contacts actually changed.
+  The old project name in the message uses the first saved spelling, including contacts hidden by a search.
+  Literal quotation marks and backslashes are escaped in quoted message values.
   One `undo` reverses the entire rename or merge, including original capitalisation and project order.
 * Quotation marks and backslashes are literal characters. For example, `old/"CS2103T"` matches only a
   project whose name includes the quotation marks; it does not match `CS2103T`.

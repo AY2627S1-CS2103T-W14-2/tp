@@ -65,12 +65,14 @@ public class DeleteProjectCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> originals = getValidatedContacts(model);
+        Project savedProject = model.getAddressBook().getPersonList().stream().filter(originals::contains)
+                .flatMap(person -> person.getProjects().stream()).filter(project::equals).findFirst().orElseThrow();
         List<Person> replacements = originals.stream().map(this::createUpdatedContact).toList();
         for (int i = 0; i < originals.size(); i++) {
             model.setPerson(originals.get(i), replacements.get(i));
         }
         logger.fine("Removed project association from " + originals.size() + " contact(s)");
-        return createSuccessResult(originals, replacements);
+        return createSuccessResult(originals, replacements, savedProject);
     }
 
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
@@ -109,7 +111,8 @@ public class DeleteProjectCommand extends Command {
      * Formats the single-contact or batch success message using the original indices.
      * The removed project keeps the original contact's casing; the details shown are the updated contact's.
      */
-    private CommandResult createSuccessResult(List<Person> originals, List<Person> updatedContacts) {
+    private CommandResult createSuccessResult(List<Person> originals, List<Person> updatedContacts,
+            Project savedProject) {
         if (originals.size() == 1) {
             Person contact = originals.get(0);
             Project removedProject = contact.getProjects().get(contact.getProjects().indexOf(project));
@@ -120,7 +123,7 @@ public class DeleteProjectCommand extends Command {
         for (int i = 0; i < originals.size(); i++) {
             selectedContacts.add(indices.get(i).getOneBased() + ": " + originals.get(i).getName());
         }
-        return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
+        return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, savedProject,
                 String.join(", ", selectedContacts)));
     }
 
