@@ -65,7 +65,7 @@ public class DeleteProjectCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> originals = getValidatedContacts(model);
-        Project savedProject = model.getAddressBook().getPersonList().stream()
+        Project savedProject = model.getAddressBook().getPersonList().stream().filter(originals::contains)
                 .flatMap(person -> person.getProjects().stream()).filter(project::equals).findFirst().orElseThrow();
         List<Person> replacements = originals.stream().map(this::createUpdatedContact).toList();
         for (int i = 0; i < originals.size(); i++) {

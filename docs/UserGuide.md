@@ -220,7 +220,7 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
-* Duplicate-project feedback uses the first saved spelling of the project across all contacts.
+* Duplicate-project feedback uses the first saved spelling among the selected contacts that already have the project.
 * For one contact, the success message shows that contact's updated details, so contacts with the same
   name can be told apart. For several contacts, it lists each contact by displayed index and name.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
@@ -284,7 +284,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
   errors list all affected selections by displayed index and name; out-of-range indices take precedence.
 * One `undo` restores all associations removed by a successful batch.
 * Single-contact feedback shows that contact's saved project spelling. Batch feedback uses the first saved
-  spelling across all contacts, regardless of the order in which you entered the indices.
+  spelling among the selected contacts, regardless of the order in which you entered the indices.
 * Removing the last project is allowed and leaves the contact with no projects.
 * The current search filter is preserved. A contact may disappear from `findproject` results after removal.
 * Successful removal is saved and can be reversed with `undo`.

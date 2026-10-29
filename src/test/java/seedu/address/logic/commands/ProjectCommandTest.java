@@ -134,7 +134,7 @@ public class ProjectCommandTest {
         model.updateFilteredPersonList(person -> !person.getName().fullName.equals("Hidden"));
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(2),
                 Index.fromOneBased(1)), project), model,
-                "No changes made. These contacts already have project Orbital:\n3: Charlie\n1: Alice");
+                "No changes made. These contacts already have project ORBITAL:\n3: Charlie\n1: Alice");
         assertCommandFailure(new ProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(4)), project),
                 model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
