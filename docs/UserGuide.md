@@ -82,8 +82,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `sort`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extra parameters are ignored by `help`, `list`, `sort`, `exit`, and `clear`. The `projects` command rejects
+  extra parameters. For example, `help 123` is interpreted as `help`, while `projects extra` is rejected.<br>
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
