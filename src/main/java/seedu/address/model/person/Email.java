@@ -18,6 +18,12 @@ public class Email {
             + "The local part may contain letters, digits, and common email symbols, with dots only between "
             + "non-empty parts. The domain needs at least two dot-separated labels of letters, digits, or "
             + "inner hyphens. Whitespace is not allowed.";
+    /** Standard maximum length of an address (RFC 5321 path limit of 256, minus the enclosing angle brackets). */
+    public static final int MAX_LENGTH = 254;
+    /** Standard maximum length of the part before the {@code @} (RFC 5321). */
+    public static final int MAX_LOCAL_PART_LENGTH = 64;
+    public static final String MESSAGE_TOO_LONG = "Email is too long. Use at most " + MAX_LENGTH
+            + " characters, with at most " + MAX_LOCAL_PART_LENGTH + " before the @.";
     private static final String NEW_LOCAL_ATOM_REGEX = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
     private static final String NEW_LOCAL_PART_REGEX = NEW_LOCAL_ATOM_REGEX
             + "(\\." + NEW_LOCAL_ATOM_REGEX + ")*";
@@ -63,7 +69,23 @@ public class Email {
      */
     public static boolean isValidStoredEmail(String test) {
         requireNonNull(test);
+        // Checked first: the patterns below recurse once per dot and overflow the stack on very long input.
+        if (isTooLong(test)) {
+            return false;
+        }
         return isValidEmail(test) || test.matches(LEGACY_VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns true if {@code test} exceeds the standard size limits for an email address: more than
+     * {@link #MAX_LENGTH} characters, or more than {@link #MAX_LOCAL_PART_LENGTH} before the first {@code @}
+     * (or in total, if there is no {@code @}).
+     */
+    public static boolean isTooLong(String test) {
+        requireNonNull(test);
+        int atIndex = test.indexOf('@');
+        int localPartLength = atIndex < 0 ? test.length() : atIndex;
+        return test.length() > MAX_LENGTH || localPartLength > MAX_LOCAL_PART_LENGTH;
     }
 
     /**
@@ -71,6 +93,10 @@ public class Email {
      */
     public static boolean isValidEmail(String test) {
         requireNonNull(test);
+        // Checked first: the local-part pattern recurses once per dot and overflows the stack on very long input.
+        if (isTooLong(test)) {
+            return false;
+        }
         int atIndex = test.indexOf('@');
         if (atIndex < 1 || atIndex != test.lastIndexOf('@')
                 || test.codePoints().anyMatch(Email::isWhitespaceOrControl)) {
