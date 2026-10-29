@@ -301,9 +301,10 @@ Format: `sort`
 * Names are compared ignoring case, so `alex Tan` comes before `Bernice Yu`. Names that differ only in case are
   ordered by their exact spelling, and contacts with the same name are ordered by phone number, so the result is
   always the same.
-* Names are compared character by character, so `Alex 10` comes before `Alex 2`.
+* Numbers in names are ordered by value, so `Alex 2` comes before `Alex 10`, which comes before `Alex Yeoh`.
 * The new order is saved and kept after you restart LinkUp. Contacts you add later are placed at the end until
-  you sort again.
+  you sort again. Editing a contact, including their name, keeps them in the same position; run `sort` again to
+  re-sort.
 * All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
   now in sorted order.
 * Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
