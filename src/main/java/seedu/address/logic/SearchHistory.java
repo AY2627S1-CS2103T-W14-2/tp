@@ -3,6 +3,7 @@ package seedu.address.logic;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -58,6 +59,20 @@ public class SearchHistory {
         updateMostSearchedPerson();
     }
 
+    /** Saves the session counts before a command that may fail to persist. */
+    Snapshot snapshot() {
+        return new Snapshot(new HashMap<>(counts), searchSequence);
+    }
+
+    /** Restores counts and the displayed most-searched contact after a failed save. */
+    void restore(Snapshot snapshot) {
+        Objects.requireNonNull(snapshot);
+        counts.clear();
+        counts.putAll(snapshot.counts);
+        searchSequence = snapshot.searchSequence;
+        updateMostSearchedPerson();
+    }
+
     private void updateMostSearchedPerson() {
         Person winner = null;
         long highestCount = 0;
@@ -78,6 +93,17 @@ public class SearchHistory {
     /** Returns the single winning contact, or null when no current contact has been searched. */
     public ReadOnlyObjectProperty<Person> mostSearchedPersonProperty() {
         return mostSearchedPerson.getReadOnlyProperty();
+    }
+
+    /** Search state that must survive a failed command without losing previous frequencies. */
+    static final class Snapshot {
+        private final Map<Person, SearchCount> counts;
+        private final long searchSequence;
+
+        private Snapshot(Map<Person, SearchCount> counts, long searchSequence) {
+            this.counts = counts;
+            this.searchSequence = searchSequence;
+        }
     }
 
     /** A contact's frequency and actual search recency, independent of contact edits. */

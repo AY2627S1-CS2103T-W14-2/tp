@@ -6,6 +6,7 @@ participant ":LogicManager" as Logic LOGIC_COLOR
 participant ":AddressBookParser" as Parser LOGIC_COLOR
 participant "command:RenameProjectCommand" as Command LOGIC_COLOR
 participant ":Model" as Model MODEL_COLOR
+participant ":SearchHistory" as SearchHistory LOGIC_COLOR
 participant ":Storage" as Storage STORAGE_COLOR
 
 [-> Logic : execute(input)
@@ -29,13 +30,16 @@ else rename or merge
         Re-evaluate matching contacts.
     end note
     Command --> Logic : result (includes undo reminder)
-    Logic -> Model : saveUndoState(before)
     Logic -> Storage : saveAddressBook(current data)
     alt save fails
         Storage --> Logic : IOException
-        [<-- Logic : save error (in-memory change remains undoable)
+        Logic -> Model : setAddressBook(before)
+        Logic -> Model : restore previous filter
+        Logic -> SearchHistory : restore(previous counts)
+        [<-- Logic : save error (no undo entry)
     else save succeeds
         Storage --> Logic
+        Logic -> Model : saveUndoState(before)
         [<-- Logic : success
     end
 end
