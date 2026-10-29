@@ -51,8 +51,7 @@ If you plan to use IntelliJ IDEA (highly recommended):
 
 1. **Learn the design**
 
-   Read [LinkUp's architecture](DeveloperGuide.md#architecture) and implementation notes. The retained UML diagrams
-   are marked as awaiting an update; use the source and implementation text for current behaviour.
+   Read [LinkUp's architecture](DeveloperGuide.md#architecture) and implementation notes.
 
 1. **Do the tutorials**
    These tutorials will help you get acquainted with the codebase.

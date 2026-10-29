@@ -76,6 +76,13 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithRepeatedWhitespace_storesSingleSpaces() {
+        Person expectedPerson = new PersonBuilder(BOB).withProjects(VALID_PROJECT_BOB).build();
+        assertParseSuccess(parser, " n/Bob \t\u00A0 Choo" + PHONE_DESC_BOB + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_formattedInternationalPhone_storesCanonicalValue() {
         Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567")
                 .withProjects(VALID_PROJECT_BOB).build();
