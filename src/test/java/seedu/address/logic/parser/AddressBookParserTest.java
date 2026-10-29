@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,13 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+        assertTrue(parser.parseCommand("  " + ClearCommand.COMMAND_WORD + "  ") instanceof ClearCommand);
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE), () ->
+                        parser.parseCommand(ClearCommand.COMMAND_WORD + " 5"));
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE), () ->
+                        parser.parseCommand("CLEAR 5"));
     }
 
     @Test
@@ -123,7 +130,50 @@ public class AddressBookParserTest {
         assertThrows(ParseException.class,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListProjectsCommand.MESSAGE_USAGE), ()
                     -> parser.parseCommand(ListProjectsCommand.COMMAND_WORD + " 2 pr/Hackathon"));
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("PROJECTS"));
+        assertEquals(new ListProjectsCommand(), parser.parseCommand("PROJECTS"));
+    }
+
+    @Test
+    public void parseCommand_commandWordInAnyCase_sameAsLowercase() throws Exception {
+        // issue #171
+        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(List.of("alex"))),
+                parser.parseCommand("FIND alex"));
+        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(List.of("alex"))),
+                parser.parseCommand("Find alex"));
+        assertEquals(new FindProjectCommand(new ProjectContainsKeywordPredicate("team alpha")),
+                parser.parseCommand("FindProject team alpha"));
+        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), parser.parseCommand("DELETE 1"));
+        assertEquals(new SortCommand(), parser.parseCommand("SORT"));
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("Undo") instanceof UndoCommand);
+        assertTrue(parser.parseCommand("hElP") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("EXIT") instanceof ExitCommand);
+    }
+
+    @Test
+    public void parseCommand_commandWordInAnyCase_onlyCommandWordIgnoresCase() throws Exception {
+        // the keyword keeps its case
+        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(List.of("ALEX"))),
+                parser.parseCommand("FIND ALEX"));
+        // prefixes stay case-sensitive
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), ()
+            -> parser.parseCommand("EDIT 1 N/Alex"));
+        // command words still cannot be shortened
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("FINDP alex"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("UNKNOWNCOMMAND"));
+    }
+
+    @Test
+    public void parseCommand_commandWordInTurkishLocale_sameAsLowercase() throws Exception {
+        // In Turkish, "I".toLowerCase() is a dotless "ı", so "LIST" would not match without Locale.ROOT
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr"));
+            assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+            assertTrue(parser.parseCommand("FIND alex") instanceof FindCommand);
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 
     @Test

@@ -25,7 +25,7 @@ public class ReplaceProjectCommand extends Command {
             + ": Replaces a project on the contact at the displayed index.\n"
             + "Parameters: INDEX (must be a positive integer) old/OLD_PROJECT new/NEW_PROJECT\n"
             + "Example: " + COMMAND_WORD + " 1 old/CS2103T new/Orbital";
-    public static final String MESSAGE_SUCCESS = "Replaced project %1$s with %2$s for contact %3$s.";
+    public static final String MESSAGE_SUCCESS = "Replaced project %1$s with %2$s for contact: %3$s";
     public static final String MESSAGE_DUPLICATE_PROJECT = "This contact is already associated with that project.";
 
     public static final String MESSAGE_PROJECT_NOT_FOUND = "This contact is not associated with the old project.";
@@ -57,7 +57,7 @@ public class ReplaceProjectCommand extends Command {
         logger.fine("Replaced project association at position " + (projectIndex + 1)
                 + " for contact at displayed index " + index.getOneBased());
         return new CommandResult(String.format(MESSAGE_SUCCESS, original.getProjects().get(projectIndex),
-                newProject, original.getName()));
+                newProject, Messages.format(updated)));
     }
 
     /** Returns the selected contact, rejecting an index outside the displayed list. */

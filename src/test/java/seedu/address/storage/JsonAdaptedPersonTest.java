@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TelegramUsername;
 import seedu.address.model.project.Project;
@@ -103,6 +102,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_overlongDottedEmail_throwsIllegalValueExceptionNotStackOverflow() {
+        // Issue #196: a saved email like this used to crash loading instead of being reported as invalid data.
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE,
+                "a.".repeat(17_770) + "a@example.com", VALID_TELEGRAM_USERNAME, VALID_PROJECTS);
+        assertThrows(IllegalValueException.class, Email.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
     public void toModelType_nullEmail_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, VALID_TELEGRAM_USERNAME,
                 VALID_PROJECTS);
@@ -115,6 +122,17 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 INVALID_TELEGRAM_USERNAME, VALID_PROJECTS);
         assertThrows(IllegalValueException.class, TelegramUsername.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_legacyTelegramUsername_preservesSavedValue() throws Exception {
+        // Accepted before v1.5; new input now needs a leading letter and no trailing underscore
+        for (String oldUsername : new String[] {"alex_", "1alex", "_alex"}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, oldUsername,
+                    VALID_PROJECTS);
+
+            assertEquals(oldUsername, person.toModelType().getTelegramUsername().value);
+        }
     }
 
     @Test
@@ -136,13 +154,26 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_duplicateProjectsIgnoringCase_throwsIllegalValueException() {
-        List<JsonAdaptedProject> duplicateProjects = List.of(
-                new JsonAdaptedProject("CS2103T"), new JsonAdaptedProject("cs2103t"));
+    public void toModelType_duplicateProjectsIgnoringCase_keepsFirstSpelling() throws Exception {
+        List<JsonAdaptedProject> duplicateProjects = List.of(new JsonAdaptedProject("CS2103T"),
+                new JsonAdaptedProject("Orbital"), new JsonAdaptedProject("cs2103t"));
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_TELEGRAM_USERNAME, duplicateProjects);
 
-        assertThrows(IllegalValueException.class, Person.MESSAGE_DUPLICATE_PROJECTS, person::toModelType);
+        List<Project> projects = person.toModelType().getProjects();
+        assertEquals(List.of(new Project("CS2103T"), new Project("Orbital")), projects);
+        assertEquals("CS2103T", projects.get(0).projectName);
+    }
+
+    @Test
+    public void toModelType_projectsEqualOnceInvisibleCharactersRemoved_keepsOne() throws Exception {
+        // Issue #177: a file saved before invisible characters were removed can list both spellings
+        List<JsonAdaptedProject> savedProjects = List.of(new JsonAdaptedProject("AlphaBeta"),
+                new JsonAdaptedProject("Alpha" + (char) 0x200B + "Beta"));
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_TELEGRAM_USERNAME, savedProjects);
+
+        assertEquals(List.of(new Project("AlphaBeta")), person.toModelType().getProjects());
     }
 
     @Test

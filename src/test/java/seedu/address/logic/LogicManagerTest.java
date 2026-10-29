@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -31,9 +32,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ListProjectsCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ParserUtil;
@@ -111,6 +114,25 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_commandWordInAnyCase_behavesLikeLowercase() throws Exception {
+        // issue #171
+        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute("FIND Alice");
+        assertEquals("Name: Alice", logic.recentSearchProperty().get());
+        logic.execute("FindProject CS2103T");
+        assertEquals("Project: CS2103T", logic.recentSearchProperty().get());
+
+        logic.execute("DELETE 1");
+        assertFalse(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        logic.execute("UNDO");
+        assertTrue(model.getAddressBook().getPersonList().contains(ALICE_WITH_PROJECT));
+        // the restored contacts are saved, as for "undo"
+        ReadOnlyAddressBook saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        assertEquals(List.of(ALICE_WITH_PROJECT), saved.getPersonList());
+    }
+
+    @Test
     public void execute_nameSearch_normalizesWhitespaceAndPreservesInternalSpacing() throws Exception {
         model.addPerson(ALICE);
         logic.execute("\u0000\tfind \u00a0Alice  Pauline\u2003\u00a0\t");
@@ -164,32 +186,28 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_searchSaveFailure_doesNotCountFailedSearchAndCanRetry() throws Exception {
+    public void execute_searches_doNotSaveAddressBook() throws Exception {
         model.addPerson(ALICE);
         model.addPerson(BENSON);
-        boolean[] failSave = {false};
+        int[] saveAttempts = {0};
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("searchFailure.json")) {
                     @Override
                     public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                        if (failSave[0]) {
-                            throw DUMMY_IO_EXCEPTION;
-                        }
-                        super.saveAddressBook(addressBook);
+                        saveAttempts[0]++;
+                        throw DUMMY_IO_EXCEPTION;
                     }
                 };
         logic = new LogicManager(model, new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("searchPrefs.json"))));
+
         logic.execute("find Alice");
-        failSave[0] = true;
-        assertThrows(CommandException.class, () -> logic.execute("find Benson"));
-        assertThrows(CommandException.class, () -> logic.execute("findproject Orbital"));
-        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        logic.execute("find Benson");
+        logic.execute("findproject Orbital");
+
+        assertEquals(0, saveAttempts[0]);
         assertEquals("Project: Orbital", logic.recentSearchProperty().get());
         assertEquals(List.of(BENSON), logic.getRecentFindPersonList());
-        failSave[0] = false;
-        logic.execute("find Alice Benson");
-        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
     }
 
     @Test
@@ -218,7 +236,7 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
 
-        assertCommandSuccess(addCommand, "Added contact: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
+        assertCommandSuccess(addCommand, "Added contact 1: Amy Bee [" + VALID_PROJECT_AMY + "]", expectedModel);
     }
 
     @Test
@@ -313,6 +331,20 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_sortWithNothingToSortThenUndo_undoesPreviousModifyingCommand() throws Exception {
+        Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
+        logic.execute(PersonUtil.getAddCommand(person));
+
+        // one contact is already in order, so sort succeeds without recording an undo entry
+        CommandResult result = logic.execute(SortCommand.COMMAND_WORD);
+
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, result.getFeedbackToUser());
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
     public void execute_projectsThenUndo_undoesPreviousModifyingCommand() throws Exception {
         Person person = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
         logic.execute(PersonUtil.getAddCommand(person));
@@ -365,9 +397,23 @@ public class LogicManagerTest {
 
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertCommandException("clear", seedu.address.logic.commands.ClearCommand.MESSAGE_NO_CONTACTS);
         logic.execute("undo");
 
         assertEquals(before, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_clearWithExtraArgument_doesNotRemoveContactsOrAddUndoEntry() {
+        model.addPerson(ALICE);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE), () ->
+                        logic.execute("clear 5"));
+
+        assertEquals(before, model.getAddressBook());
+        assertFalse(model.canUndo());
     }
 
     @Test
@@ -525,6 +571,114 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addSaveFailure_rollsBackContactAndUndoHistory() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addFailure.json");
+        boolean[] failSave = {false};
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataPath) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                if (failSave[0]) {
+                    throw DUMMY_IO_EXCEPTION;
+                }
+                super.saveAddressBook(addressBook);
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("addFailurePrefs.json"))));
+
+        String addAmy = PersonUtil.getAddCommand(new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build());
+        String addBenson = PersonUtil.getAddCommand(new PersonBuilder(BENSON).withProjects("CS2103T").build());
+        logic.execute(addAmy);
+        AddressBook afterSuccessfulAdd = new AddressBook(model.getAddressBook());
+        failSave[0] = true;
+
+        assertThrows(CommandException.class, () -> logic.execute(addBenson));
+        assertEquals(afterSuccessfulAdd, model.getAddressBook());
+        assertEquals(afterSuccessfulAdd.getPersonList(), model.getFilteredPersonList());
+        assertTrue(model.canUndo());
+        assertEquals(afterSuccessfulAdd, addressBookStorage.readAddressBook().orElseThrow());
+
+        logic.execute("list");
+        assertEquals(afterSuccessfulAdd, addressBookStorage.readAddressBook().orElseThrow());
+        failSave[0] = false;
+        logic.execute("undo");
+        assertEquals(new AddressBook(), model.getAddressBook());
+    }
+
+    @Test
+    public void execute_addSaveFailure_restoresFilteredListAndSearchHistory() throws Exception {
+        model.addPerson(BENSON);
+        model.addPerson(ALICE);
+        useStorageThatFailsToSave();
+        logic.execute("find Alice");
+
+        String addAmy = PersonUtil.getAddCommand(new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build());
+        assertThrows(CommandException.class, () -> logic.execute(addAmy));
+
+        assertEquals(List.of(BENSON, ALICE), model.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getRecentFindPersonList());
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_editSaveFailure_restoresFilteredListAndSearchHistory() throws Exception {
+        model.addPerson(BENSON);
+        model.addPerson(ALICE);
+        useStorageThatFailsToSave();
+        logic.execute("find Alice");
+
+        assertThrows(CommandException.class, () -> logic.execute("edit 1 n/Alicia"));
+
+        assertEquals(List.of(BENSON, ALICE), model.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getRecentFindPersonList());
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_deleteSaveFailure_restoresSearchFrequency() throws Exception {
+        assertSearchFrequencySurvivesFailedCommand("delete 1");
+    }
+
+    @Test
+    public void execute_clearSaveFailure_restoresSearchFrequency() throws Exception {
+        assertSearchFrequencySurvivesFailedCommand("clear");
+    }
+
+    private void assertSearchFrequencySurvivesFailedCommand(String command) throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        useStorageThatFailsToSave();
+        logic.execute("find Alice");
+        logic.execute("find Alice");
+
+        assertThrows(CommandException.class, () -> logic.execute(command));
+
+        assertEquals(List.of(ALICE, BENSON), model.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getRecentFindPersonList());
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+        assertFalse(model.canUndo());
+
+        logic.execute("find Benson");
+        assertEquals(ALICE, logic.mostSearchedPersonProperty().get());
+    }
+
+    private void useStorageThatFailsToSave() {
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failedSave.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("failedSavePrefs.json"))));
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
@@ -580,28 +734,50 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void recentFindSearch_saveFailure_staysConsistentWithInMemoryResults() {
+    public void execute_readOnlyCommands_succeedWhenAddressBookCannotBeSaved() throws Exception {
         model.addPerson(ALICE_WITH_PROJECT);
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failed.json")) {
+        int[] saveAttempts = {0};
+        JsonAddressBookStorage readOnlyStorage = new JsonAddressBookStorage(temporaryFolder.resolve("read-only.json")) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                saveAttempts[0]++;
+                throw new AccessDeniedException("read-only.json");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(readOnlyStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("readOnlyPrefs.json"))));
+
+        logic.execute("list");
+        assertTrue(logic.execute("help").isShowHelp());
+        assertTrue(logic.execute("exit").isExit());
+
+        assertEquals(0, saveAttempts[0]);
+        assertEquals(List.of(ALICE_WITH_PROJECT), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_noChangeSort_doesNotSaveAddressBook() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        int[] saveAttempts = {0};
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("no-change.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                saveAttempts[0]++;
                 throw DUMMY_IO_EXCEPTION;
             }
         };
         logic = new LogicManager(model, new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("failedPrefs.json"))));
+                new JsonUserPrefsStorage(temporaryFolder.resolve("noChangePrefs.json"))));
 
-        assertThrows(CommandException.class, () -> logic.execute("find Alice"));
-        assertEquals("Name: Alice", logic.recentSearchProperty().get());
-        assertEquals(List.of(ALICE_WITH_PROJECT), logic.getRecentFindPersonList());
-        assertThrows(CommandException.class, () -> logic.execute("findproject Missing"));
-        assertEquals("Project: Missing", logic.recentSearchProperty().get());
-        assertTrue(logic.getRecentFindPersonList().isEmpty());
+        assertEquals(SortCommand.MESSAGE_ALREADY_SORTED, logic.execute("sort").getFeedbackToUser());
+        assertEquals(0, saveAttempts[0]);
+        assertFalse(model.canUndo());
     }
 
     @Test
     public void recentFindSearch_reload_startsEmptyWithSavedContactsIntact() throws Exception {
-        model.addPerson(ALICE_WITH_PROJECT);
+        logic.execute(PersonUtil.getAddCommand(ALICE_WITH_PROJECT));
         logic.execute("find Alice");
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         Model reloadedModel = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
@@ -692,12 +868,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withProjects(VALID_PROJECT_AMY).build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
-        assertTrue(model.canUndo());
-        model.undo();
-        assertEquals(new AddressBook(), model.getAddressBook());
+        assertCommandFailure(addCommand, CommandException.class, expectedMessage, new ModelManager());
+        assertFalse(model.canUndo());
     }
 }

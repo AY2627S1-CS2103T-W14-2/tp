@@ -35,7 +35,7 @@ public class ModelManager implements Model {
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
         requireAllNonNull(addressBook, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing model with " + addressBook.getPersonList().size() + " contact(s).");
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
@@ -122,6 +122,13 @@ public class ModelManager implements Model {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return filteredPersons;
+    }
+
+    @Override
+    public Predicate<Person> getFilteredPersonPredicate() {
+        Predicate<? super Person> predicate = filteredPersons.getPredicate();
+        return predicate == null || predicate == PREDICATE_SHOW_ALL_PERSONS
+                ? PREDICATE_SHOW_ALL_PERSONS : predicate::test;
     }
 
     @Override
