@@ -59,7 +59,7 @@ public class FindCommandIntegrationTest {
 
         CommandResult result = logic.execute("find LEX");
 
-        assertEquals("2 person(s) listed!", result.getFeedbackToUser());
+        assertEquals("2 contact(s) listed!", result.getFeedbackToUser());
         assertEquals(List.of(alex, alexander), logic.getFilteredPersonList());
         assertEquals(original, model.getAddressBook());
         assertEquals(original, addressBookStorage.readAddressBook().orElseThrow());
@@ -81,7 +81,7 @@ public class FindCommandIntegrationTest {
         assertEquals(List.of(alex, alexander), logic.getFilteredPersonList());
 
         CommandResult result = logic.execute("find nobody");
-        assertEquals("0 person(s) listed!", result.getFeedbackToUser());
+        assertEquals("0 contact(s) listed!", result.getFeedbackToUser());
         assertTrue(logic.getFilteredPersonList().isEmpty());
 
         logic.execute("find bo");
@@ -98,7 +98,7 @@ public class FindCommandIntegrationTest {
         String savedData = Files.readString(addressBookStorage.getAddressBookFilePath());
 
         for (String input : List.of("find", "find \t\u00a0\u2003", "find " + "a".repeat(61),
-                "find " + "a".repeat(29) + "  " + "b".repeat(30))) {
+                "find " + "a".repeat(29) + "  " + "b".repeat(30), "find n/alex", "find alex n/bob")) {
             assertThrows(ParseException.class, () -> logic.execute(input));
             assertEquals(List.of(alex, alexander), logic.getFilteredPersonList());
             assertEquals(original, model.getAddressBook());

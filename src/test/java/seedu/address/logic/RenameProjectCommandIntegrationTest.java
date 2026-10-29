@@ -149,7 +149,7 @@ public class RenameProjectCommandIntegrationTest {
     }
 
     @Test
-    public void execute_saveFailure_usesNormalCommandUndoAndKeepsFilter() throws Exception {
+    public void execute_saveFailure_restoresCommandAndKeepsUndoHistoryAndFilter() throws Exception {
         logic.execute("project 4 pr/Extra");
         logic.execute("find Alice");
         String before = snapshot(model.getAddressBook());
@@ -158,17 +158,15 @@ public class RenameProjectCommandIntegrationTest {
         storage.fail = true;
         CommandException failure = assertThrows(CommandException.class, () -> logic.execute(MERGE));
         assertTrue(failure.getMessage().contains("Simulated write failure"));
-        assertEquals("Orbital", projectNames(model.getAddressBook()).getFirst().getFirst());
+        assertEquals(before, snapshot(model.getAddressBook()));
         assertEquals(diskBefore, Files.readString(storage.getAddressBookFilePath()));
         assertEquals(savesBefore, storage.saves);
         assertEquals(List.of("Alice"), filteredNames());
         assertTrue(model.canUndo());
         storage.fail = false;
         logic.execute("undo");
-        assertEquals(before, snapshot(model.getAddressBook()));
-        assertPersisted();
-        logic.execute("undo");
         assertEquals(original, snapshot(model.getAddressBook()));
+        assertPersisted();
         assertFalse(model.canUndo());
     }
 
@@ -220,6 +218,8 @@ public class RenameProjectCommandIntegrationTest {
     public void execute_invalidOrMissingSource_doesNotSaveOrChangeHistory() throws Exception {
         assertThrows(CommandException.class, () -> logic.execute("renameproject old/Unknown new/Orbital"));
         assertThrows(ParseException.class, () -> logic.execute("renameproject old/CS2103T new/"));
+        assertThrows(ParseException.class, () -> logic.execute("renameproject old/ new/Space"));
+        assertThrows(ParseException.class, () -> logic.execute("renameproject 1 old/Orbital new/Space"));
         assertEquals(original, snapshot(model.getAddressBook()));
         assertEquals(0, storage.saves);
         assertFalse(model.canUndo());

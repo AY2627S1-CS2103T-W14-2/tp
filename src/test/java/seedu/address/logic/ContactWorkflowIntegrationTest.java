@@ -61,7 +61,7 @@ public class ContactWorkflowIntegrationTest {
         assertEquals("alex@example.com", storage.readAddressBook().orElseThrow()
                 .getPersonList().get(0).getEmail().value);
 
-        assertEquals("2 person(s) listed!", logic.execute("find LEX").getFeedbackToUser());
+        assertEquals("2 contact(s) listed!", logic.execute("find LEX").getFeedbackToUser());
         assertEquals(List.of(ALEX, NAMESAKE), logic.getFilteredPersonList());
         logic.execute("project 2 pr/ Team   Alpha");
         Person associated = new PersonBuilder(NAMESAKE).withProjects("Orbital", "Team Alpha").build();

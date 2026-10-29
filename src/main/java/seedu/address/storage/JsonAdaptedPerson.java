@@ -69,10 +69,11 @@ class JsonAdaptedPerson {
                 throw new IllegalValueException(Project.MESSAGE_CONSTRAINTS);
             }
             Project modelProject = project.toModelType();
-            if (personProjects.contains(modelProject)) {
-                throw new IllegalValueException(Person.MESSAGE_DUPLICATE_PROJECTS);
+            // A repeat is dropped, keeping the first spelling: older files may list two names that only became
+            // equal once invisible characters were removed (issue #177), and rejecting them would lose every contact.
+            if (!personProjects.contains(modelProject)) {
+                personProjects.add(modelProject);
             }
-            personProjects.add(modelProject);
         }
 
         if (name == null) {
