@@ -8,7 +8,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
+ * Finds and lists all contacts in the address book whose name contains any of the argument keywords.
  * Keyword matching is case insensitive and supports partial words.
  */
 public class FindCommand extends Command {
@@ -16,12 +16,15 @@ public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
     public static final int MAX_KEYWORD_LENGTH = 60;
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all contacts whose names contain any of "
             + "the specified keywords (case-insensitive, including partial words) "
             + "and displays them as a list with index numbers.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]... (1 to " + MAX_KEYWORD_LENGTH
             + " characters in total after trimming surrounding whitespace)\n"
+            + "Use plain keywords without prefixes such as n/. Keywords cannot contain '/'.\n"
             + "Example: " + COMMAND_WORD + " ali bob char";
+    public static final String MESSAGE_SLASH_IN_KEYWORD = "Find takes plain keywords, without prefixes such as n/. "
+            + "Keywords cannot contain '/'. Example: find alex";
     public static final String MESSAGE_KEYWORD_TOO_LONG = "Name search input must not exceed " + MAX_KEYWORD_LENGTH
             + " characters after trimming surrounding whitespace.";
 

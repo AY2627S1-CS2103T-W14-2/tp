@@ -32,6 +32,9 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (trimmedArgs.codePointCount(0, trimmedArgs.length()) > FindCommand.MAX_KEYWORD_LENGTH) {
             throw new ParseException(FindCommand.MESSAGE_KEYWORD_TOO_LONG);
         }
+        if (trimmedArgs.contains("/")) {
+            throw new ParseException(FindCommand.MESSAGE_SLASH_IN_KEYWORD);
+        }
 
         String[] nameKeywords = trimmedArgs.split(WHITESPACE);
 

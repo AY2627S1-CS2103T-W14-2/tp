@@ -83,8 +83,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `sort`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* `help`, `list`, `sort`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
+  `clear` and `projects` reject extra parameters.<br>
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -167,9 +167,14 @@ size limits for email addresses (RFC 5321), and mail servers may reject longer a
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
 letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
-The project is required. A project name must contain 1–40 characters and cannot contain line breaks or other
-control characters. Surrounding whitespace is removed, repeated internal whitespace is collapsed, and project
-names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
+The project is required. A project name must contain 1–40 characters and cannot contain control characters; the
+command box removes pasted line breaks and tabs. Surrounding whitespace is removed, repeated internal whitespace is
+collapsed, and project names are compared case-insensitively. Invisible formatting characters, such as a zero-width
+space copied from a chat app, are removed, so a pasted name matches the same name typed by hand. Joiners that
+combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi are kept; a joiner next to an
+English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the Hangul filler
+(U+3164), are not removed. Supply exactly one non-empty
+`pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
 In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
@@ -411,9 +416,9 @@ Examples:
 *  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
 *  `find Bernice` followed by `edit 1 tele/@bernice_yu2` changes the Telegram username of the first search result.
 
-### Locating persons by name: `find`
+### Locating contacts by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds contacts whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -421,23 +426,25 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Contacts matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
   trimming surrounding whitespace. Internal spaces count towards this limit, including repeated spaces.
+* Use plain keywords, such as `find alex`, without prefixes such as `n/`. Keywords containing `/`
+  (for example, `find n/alex`) produce an error explaining the correct format.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
-* No matches produces an empty list and the message `0 person(s) listed!`.
-* Successful searches report `N person(s) listed!`, where N is the number of matching contacts.
+* No matches produces an empty list and the message `0 contact(s) listed!`.
+* Successful searches report `N contact(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
-* Blank or overlong input produces an error without changing the current results or saved contacts.
+* Blank, overlong, or slash-containing input produces an error without changing the current results or saved contacts.
 * The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
   shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
   The **Current contact list** below provides the numbered contacts for commands.
-  Each successful `find` or `findproject` adds one search to every matching person, even if several keywords
-  or projects match that person. The displayed contact details include their name, projects and Telegram username.
-  The person with the highest count is displayed. In a draw, the person matched by the more recent search wins;
-  if both matched the same search, the person first in the contact list wins. For example, `find Alice` followed
+  Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
+  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
+  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
+  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
   by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
 * **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
@@ -470,6 +477,8 @@ Format: `findproject KEYWORD`
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
+* Invisible formatting characters, such as a zero-width space copied from a chat app, are ignored when matching,
+  as in project names. A keyword made only of such characters is rejected like a blank keyword.
 * The keyword must contain 1–40 characters after trimming surrounding whitespace. Internal spaces count towards
   this limit before they are collapsed.
 * Any associated project can match. Each contact appears once, with its contact details and projects, in the
@@ -554,6 +563,8 @@ If no contacts are saved, it reports `No contacts to clear.` without saving or a
 
 Format: `clear`
 
+The command takes no parameters. Extra text is rejected without changing any contacts.
+
 ### Undo a command: `undo`
 
 Undo the last supported command. The supported commands are:
@@ -607,6 +618,8 @@ emails must still be within the [email length limits](#adding-a-person-add); a f
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
+If a saved contact lists the same project more than once, for example two spellings that differ only in case or
+by an invisible character pasted into an older version, LinkUp keeps the first and the next save stores it once.
 The first command that changes contacts after loading the older file triggers a save. Before that save removes
 address or tags, LinkUp creates a backup beside the original file, named
 `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
