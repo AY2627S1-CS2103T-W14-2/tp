@@ -76,11 +76,24 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithRepeatedWhitespace_storesSingleSpaces() {
+        Person expectedPerson = new PersonBuilder(BOB).withProjects(VALID_PROJECT_BOB).build();
+        assertParseSuccess(parser, " n/Bob \t\u00A0 Choo" + PHONE_DESC_BOB + EMAIL_DESC_BOB
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_formattedInternationalPhone_storesCanonicalValue() {
         Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567")
                 .withProjects(VALID_PROJECT_BOB).build();
         assertParseSuccess(parser, NAME_DESC_BOB + " p/+65 9123-4567" + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_overlongEmail_rejectedWithSpecificMessage() {
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/" + "a.".repeat(17_770) + "a@example.com"
+                + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Email.MESSAGE_TOO_LONG);
     }
 
     @Test
@@ -247,6 +260,12 @@ public class AddCommandParserTest {
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + INVALID_TELEGRAM_DESC
                 + PROJECT_DESC_BOB,
                 TelegramUsername.MESSAGE_CONSTRAINTS);
+
+        // Telegram username that Telegram itself rejects (issue #189)
+        for (String username : new String[] {"1alex", "_alex", "alex_", "@12345"}) {
+            assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " tele/" + username
+                    + PROJECT_DESC_BOB, TelegramUsername.MESSAGE_CONSTRAINTS);
+        }
 
         // invalid project
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB

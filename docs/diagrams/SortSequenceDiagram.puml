@@ -58,7 +58,11 @@ SortCommand --> SortCommand : sorted
 deactivate SortCommand
 
 alt no contacts or already sorted
-    SortCommand --> LogicManager : CommandException
+    create CommandResult
+    SortCommand -> CommandResult : withoutDataChange(message)
+    activate CommandResult
+    CommandResult --> SortCommand : r
+    deactivate CommandResult
 else otherwise
     SortCommand -> Model : sortPersons(nameComparator)
     activate Model
@@ -70,17 +74,16 @@ else otherwise
     activate CommandResult
     CommandResult --> SortCommand : r
     deactivate CommandResult
-
-    SortCommand --> LogicManager : r
 end
+SortCommand --> LogicManager : r
 deactivate SortCommand
 
-alt execute(m) returned r
-    LogicManager -> Model : saveUndoState(before)
-    activate Model
-    Model --> LogicManager
-    deactivate Model
+LogicManager -> CommandResult : isDataChanged()
+activate CommandResult
+CommandResult --> LogicManager : changed
+deactivate CommandResult
 
+opt changed
     LogicManager -> Model : getAddressBook()
     activate Model
     Model --> LogicManager : addressBook
@@ -91,13 +94,12 @@ alt execute(m) returned r
     Storage --> LogicManager
     deactivate Storage
 
-    [<-- LogicManager : r
-else execute(m) threw CommandException
-    note right of LogicManager
-        Nothing is sorted, saved or
-        added to the undo history.
-    end note
-    [<-- LogicManager : CommandException
+    LogicManager -> Model : saveUndoState(before)
+    activate Model
+    Model --> LogicManager
+    deactivate Model
 end
+
+[<-- LogicManager : r
 deactivate LogicManager
 @enduml

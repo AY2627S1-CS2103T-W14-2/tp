@@ -17,7 +17,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.FxTestUtil;
 import seedu.address.testutil.PersonBuilder;
@@ -89,6 +92,26 @@ public class ContactUiTest {
             assertEquals(List.of("bad", "bad", "list"), executed);
         });
     }
+
+    @Test
+    public void commandBox_sortAlreadySorted_clearsInputWithoutErrorStyle() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder().build());
+            CommandBox box = new CommandBox(command -> {
+                assertEquals(SortCommand.COMMAND_WORD, command);
+                return new SortCommand().execute(model);
+            });
+            TextField input = (TextField) box.getRoot().lookup("#commandTextField");
+
+            input.setText(SortCommand.COMMAND_WORD);
+            input.fireEvent(new ActionEvent());
+
+            assertEquals("", input.getText());
+            assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
     @Test
     public void projectCaseCorrection_refreshesVisibleCard() throws Exception {
         FxTestUtil.run(() -> {

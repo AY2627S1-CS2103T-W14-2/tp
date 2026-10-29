@@ -98,11 +98,6 @@ deactivate ProjectCommand
 ProjectCommand --> LogicManager : r
 deactivate ProjectCommand
 
-LogicManager -> Model : saveUndoState(before)
-activate Model
-Model --> LogicManager
-deactivate Model
-
 LogicManager -> Model : getAddressBook()
 activate Model
 Model --> LogicManager : addressBook
@@ -112,6 +107,11 @@ LogicManager -> Storage : saveAddressBook(addressBook)
 activate Storage
 Storage --> LogicManager
 deactivate Storage
+
+LogicManager -> Model : saveUndoState(before)
+activate Model
+Model --> LogicManager
+deactivate Model
 
 [<-- LogicManager : r
 deactivate LogicManager
