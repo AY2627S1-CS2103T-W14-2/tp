@@ -315,7 +315,11 @@ These delimiter sequences following a space remain reserved in add/edit input.
 `JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
 configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
 `JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
-bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. It also backs up malformed JSON before replacement.
+bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON is not legacy data: it is backed
+up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
+at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
+backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
+before the next save replaces it.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
@@ -1082,7 +1086,8 @@ valid copy before each scenario so the legacy tests start with contacts rather t
 | Scenario | Procedure and expected result |
 | --- | --- |
 | Missing data | Move `data/addressbook.json` out of the test folder. Relaunch: sample contacts appear. Run `list` to save them. |
-| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book. |
+| Malformed JSON | Replace the test data file with `{`. Relaunch: an empty list appears after a sibling `.unreadable-<unique suffix>.bak` backup is created. Verify that backup contains exactly `{` before running `list`, which saves an empty address book and creates no second backup. |
+| File broken while open | With LinkUp open, replace the data file with `{x` and save it. Run `list`: a new `.unreadable-<unique suffix>.bak` containing exactly `{x` appears before the file is replaced. |
 | Legacy fields | In a valid saved contact, add `"address": "Old Address"` and `"tags": ["old"]`. Relaunch and run `list`: the saved contact omits these fields, and a sibling `.pre-v1.3-<unique suffix>.bak` preserves the original file. A second `list` creates no further migration backup. |
 | Legacy missing fields | Remove `telegramUsername` and `projects` from one valid contact. Relaunch and search for that contact: the recent-result header shows `Name \| No Telegram Username` and no project tags. The main person card hides the missing Telegram row. New `add` commands still require both fields. |
 
