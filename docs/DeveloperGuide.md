@@ -240,8 +240,8 @@ the existing tag colors, padding, corners, font, and spacing in `DarkTheme.css`.
 width so tags wrap within the list. Empty project lists are hidden and unmanaged.
 
 The panel binds its single latest-search label to `Logic.recentSearchProperty()`. `LogicManager` owns the
-read-only string wrapper and updates it after either search command executes, before saving, so the label
-stays consistent with in-memory results on save failure. The stored value uses `Name: ` or `Project: `,
+read-only string wrapper and updates it after either search command executes; searches do not save. The stored
+value uses `Name: ` or `Project: `,
 with query trimming delegated to `FindCommandParser.trimSearchInput`. Other commands and parse failures
 leave it unchanged. The label adds `Latest search: ` and exposes the full text in a tooltip.
 
@@ -429,8 +429,8 @@ Each replacement appends the project while preserving existing project order and
 Selected contacts are captured before mutation, so changes to filtered results cannot redirect later
 updates. The active predicate is retained. Contacts outside the selection remain unchanged.
 
-The existing `LogicManager` records one snapshot for the entire command and persists the resulting
-address book. One `undo` restores all affected contacts; rejected commands leave undo history intact.
+The existing `LogicManager` persists the resulting address book and then records one undo snapshot for the
+entire command. One `undo` restores all affected contacts; rejected commands leave undo history intact.
 No new storage format is needed. FINE logs record parsing failures, rejected selections and success counts.
 
 Tests cover single-contact compatibility, multiple indices, malformed or repeated indices, normalization,
@@ -551,13 +551,13 @@ are counted once, and `Locale.ROOT` keeps the displayed count independent of the
 
 Ordinary renames, case-only corrections and merges execute immediately through the same command path.
 `Model.setAddressBook` installs the replacement without changing the current filter. The live filtered list
-re-evaluates the renamed contacts, so a project search may gain or lose results. `LogicManager` records one
-undo snapshot and saves through the normal command flow. The success message mentions `undo`. There is no
+re-evaluates the renamed contacts, so a project search may gain or lose results. `LogicManager` saves and then
+records one undo snapshot through the normal command flow. The success message mentions `undo`. There is no
 pending confirmation state or rename-specific branch in `LogicManager`.
 
 Case-only changes must never be detected with `AddressBook.equals` or `Person.equals`, because their project
 comparisons ignore case. The shared persistence and save-failure behaviour described below applies to rename:
-a failed save leaves the in-memory change and its undo entry available.
+a failed save restores the previous contacts, filter, search summary, and undo history.
 
 <puml src="diagrams/RenameProjectSequenceDiagram.puml" width="850" />
 
@@ -586,7 +586,8 @@ message is shown as normal feedback rather than an error. `LogicManager` records
 commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
-undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
+undoable: after a successful save, `LogicManager` stores the previous address book, and `undo` restores the
+previous order.
 
 **Design choices:**
 
@@ -604,8 +605,8 @@ supports undo and has not already been undone. It supports `add`, `edit`, `delet
 Previous states are kept in a stack, so repeated `undo` commands reverse changes in reverse execution order.
 
 When `LogicManager.execute(...)` receives a command, it checks `Command.isUndoable()`. For an undoable
-command, it copies the current address book before execution. If execution succeeds, `LogicManager`
-saves that copy through `Model.saveUndoState(...)`, pushing it onto `ModelManager`'s `Deque<AddressBook>`
+command, it copies the current address book before execution. If execution changes contact data and the save
+succeeds, `LogicManager` saves that copy through `Model.saveUndoState(...)`, pushing it onto `ModelManager`'s `Deque<AddressBook>`
 undo history. Commands that are not undoable and commands rejected during parsing or execution will not be added
 to the undo history.
 
@@ -630,9 +631,9 @@ The data path is `data/addressbook.json`, relative to the launch folder; `prefer
 settings. Both paths are constants in `MainApp`. Shutdown saves preferences, not a separate copy of contact data.
 
 A failed save is reported as a `CommandException`, with a separate message for access-denied errors.
-Ordinary mutations are not rolled back on disk-write failure: the UI can contain an unsaved change and its
-undo snapshot. To recover, keep the application open, fix storage, run `undo` to restore and save the previous
-contact list, then retry the original modifying command. `list` cannot retry a save because it is read-only.
+`LogicManager` restores the previous address book and filter, and restores `SearchHistory` counts and its
+most-searched contact after the model has been restored. It records an undo snapshot only after a successful
+save. Fix storage and retry the original modifying command; `list` cannot retry a save because it is read-only.
 An undo save failure leaves contacts, the filter, and undo history unchanged, so `undo` can be retried after
 storage is fixed. Validation failure leaves contacts unchanged.
 
@@ -888,7 +889,7 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
 8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
     file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
-    failures report an error but may leave unsaved changes in memory, as described above.
+    failures report an error and restore the previous in-memory state, as described above.
 
 ### Glossary
 
@@ -1061,8 +1062,8 @@ each successful rename below, use `undo` to restore that fixture before trying t
 | `renameproject old/Missing new/Orbital` | Error; nothing changes. |
 
 After a successful rename, restart from the same test folder and verify the saved names. If a save fails,
-the in-memory rename and its undo entry may remain. Once storage is fixed, `undo` restores and saves the previous
-state; retry the rename afterward. Automated tests inject failures without OS-specific permissions.
+the previous contacts, filter, search summary, and undo history remain. Fix storage and retry the rename;
+`undo` would reverse an earlier successful command. Automated tests inject failures without OS-specific permissions.
 
 ### Undo and restart
 
@@ -1101,6 +1102,6 @@ valid copy before each scenario so the legacy tests start with contacts rather t
 Backup and permission failures depend on the OS and account. Their automated coverage is in `MainAppTest`,
 `JsonAddressBookStorageTest`, and `LogicManagerTest`. If reproducing them manually, use only the test folder:
 when startup cannot back up unreadable data, expect an error dialog and no main window; when an ordinary save
-fails, expect an error even though the in-memory change may already be visible. Fix storage, run `undo` to restore
-and save the previous contact list, then retry the original modifying command. A failed undo save must preserve
-contacts, the filter, and undo history so undo can be retried.
+fails, expect an error and the contacts, filter, search summary, and undo history to return to their previous
+state. Fix storage and retry the original modifying command. A failed undo save must preserve contacts, the
+filter, and undo history so undo can be retried.

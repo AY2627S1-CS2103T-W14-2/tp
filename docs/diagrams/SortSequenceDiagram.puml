@@ -84,21 +84,21 @@ CommandResult --> LogicManager : changed
 deactivate CommandResult
 
 opt changed
+    LogicManager -> Model : getAddressBook()
+    activate Model
+    Model --> LogicManager : addressBook
+    deactivate Model
+
+    LogicManager -> Storage : saveAddressBook(addressBook)
+    activate Storage
+    Storage --> LogicManager
+    deactivate Storage
+
     LogicManager -> Model : saveUndoState(before)
     activate Model
     Model --> LogicManager
     deactivate Model
 end
-
-LogicManager -> Model : getAddressBook()
-activate Model
-Model --> LogicManager : addressBook
-deactivate Model
-
-LogicManager -> Storage : saveAddressBook(addressBook)
-activate Storage
-Storage --> LogicManager
-deactivate Storage
 
 [<-- LogicManager : r
 deactivate LogicManager

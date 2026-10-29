@@ -358,8 +358,8 @@ Examples:
 * If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
 
 Like other commands that change contacts, rename updates the current session before saving. If saving fails,
-the change remains in memory with an undo entry. Correct the storage problem, then use `undo` to restore the
-previous state or another successful command to save the current state.
+LinkUp restores the contacts, current search, and undo history to their previous state. Correct the storage
+problem and retry the rename.
 
 ### Editing a person: `edit`
 
@@ -580,11 +580,11 @@ or are rejected during parsing or validation, do not save either. There is no se
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
 
-If a save error appears after a command that changes contacts, the change may be visible in LinkUp even though
-it was not saved. Keep LinkUp open and fix the storage or permission problem. Then run `undo` to discard the
-unsaved change and save the previous contact list, and retry the original command. Do not close LinkUp or
-repeat an `add` before resolving the error. A failed `undo` leaves the contacts and undo history unchanged;
-after fixing storage, retry `undo`.
+If a save error appears after a command that changes contacts, LinkUp restores the contacts, current search,
+and undo history to their state before that command. Fix the storage or permission problem, then retry the
+original command. Do not run `undo` to recover from that failed command: `undo` would reverse an earlier
+successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
+retry `undo`.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
