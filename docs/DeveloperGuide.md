@@ -213,12 +213,12 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
-| `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
+| `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
 
-`JsonAdaptedPerson` restores names, phones and emails through their stored-value validation paths, preserving
-legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
+`JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
+paths, preserving legacy spelling and phone formats. Missing Telegram usernames become `TelegramUsername.EMPTY`; missing
 projects become an empty list. These compatibility rules do not make those fields optional in new `add` input.
 
 ### Name search and displayed indices
@@ -333,7 +333,9 @@ the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the f
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
 so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
 somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
-backup. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
+backup. In that case `initModelManager` also records a startup message naming the backup, which `MainApp` passes
+to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box, so the
+user knows the empty list is recoverable before running a command that saves over the original file. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
@@ -580,10 +582,10 @@ that differ only in case are ordered by their exact text, and contacts with the 
 saved phone value. Phone values are unique (see [Duplicate contact detection](#duplicate-contact-detection)),
 so the order of any contact list is fully determined.
 
-`SortCommand#execute` throws a `CommandException` when there are no contacts (`No contacts saved yet.`) or when
-they are already in order (`Contacts are already sorted by name.`). Because `LogicManager` records an undo state
-and saves only after a command succeeds, these cases change nothing and add no undo entry, matching
-`edit`'s `No changes made.` handling. Otherwise it calls `Model#sortPersons`, which reaches
+When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
+by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
+message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: `LogicManager` stores the previous address book, and `undo` restores the previous order.
@@ -1077,7 +1079,8 @@ Start from the prepared contacts.
    `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`. Expect it at the end of the list.
 2. Run `sort`. Expect `Sorted 4 contact(s) by name.` and the order Aaron Lim, Alex Tan (`+6587654321`),
    Alex Tan (`+6591234567`), David Lim: the two namesakes are ordered by phone.
-3. Run `sort` again. Expect `Contacts are already sorted by name.` and no change.
+3. Run `sort` again. Expect `Contacts are already sorted by name.` as a normal message (the command box clears)
+   and no change.
 4. Run `undo`. Expect Aaron back at the end; the repeated `sort` did not add an undo entry.
 5. Run `find alex`, then `sort`. Expect the Alex results to stay displayed, now in name order.
 6. Run `exit` and relaunch from the same folder. Expect the sorted order from step 5 to be kept.

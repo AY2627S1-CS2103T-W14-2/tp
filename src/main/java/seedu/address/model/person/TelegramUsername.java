@@ -8,14 +8,18 @@ import java.util.Locale;
 /**
  * Represents a Person's Telegram username in the address book.
  * Guarantees: immutable; is either empty for a legacy contact or valid as declared in
- * {@link #isValidTelegramUsername(String)}.
+ * {@link #isValidTelegramUsername(String)} or, for a saved value, {@link #isValidStoredTelegramUsername(String)}.
  */
 public class TelegramUsername {
 
-    public static final String MESSAGE_CONSTRAINTS = "Telegram usernames should be 5 to 32 characters long and "
-            + "contain only Latin letters, digits, or underscores";
-    public static final String VALIDATION_REGEX = "[a-z0-9_]{5,32}";
+    public static final String MESSAGE_CONSTRAINTS = "Telegram usernames should be 5 to 32 characters long, "
+            + "contain only Latin letters, digits, or underscores, start with a letter, "
+            + "and not end with an underscore";
+    // Telegram's own rules: starts with a letter and does not end with an underscore.
+    public static final String VALIDATION_REGEX = "[a-z][a-z0-9_]{3,30}[a-z0-9]";
     public static final TelegramUsername EMPTY = new TelegramUsername();
+    // The rule before v1.5, still accepted for saved values so older data files keep loading.
+    private static final String LEGACY_VALIDATION_REGEX = "[a-z0-9_]{5,32}";
 
     public final String value;
 
@@ -31,10 +35,30 @@ public class TelegramUsername {
      * @param username A valid Telegram username.
      */
     public TelegramUsername(String username) {
+        this(username, false);
+    }
+
+    private TelegramUsername(String username, boolean fromStorage) {
         requireNonNull(username);
-        String normalizedUsername = normalize(username);
-        checkArgument(isValidTelegramUsername(normalizedUsername), MESSAGE_CONSTRAINTS);
-        value = normalizedUsername;
+        checkArgument(fromStorage ? isValidStoredTelegramUsername(username) : isValidTelegramUsername(username),
+                MESSAGE_CONSTRAINTS);
+        value = normalize(username);
+    }
+
+    /**
+     * Restores a saved Telegram username. Older contacts may have usernames that are no longer accepted as new
+     * input, such as one that starts with a digit or ends with an underscore.
+     */
+    public static TelegramUsername fromStoredValue(String username) {
+        return new TelegramUsername(username, true);
+    }
+
+    /**
+     * Returns true if the value can be restored from a current or older data file.
+     */
+    public static boolean isValidStoredTelegramUsername(String test) {
+        requireNonNull(test);
+        return normalize(test).matches(LEGACY_VALIDATION_REGEX);
     }
 
     /**
