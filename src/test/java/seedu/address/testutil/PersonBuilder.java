@@ -71,6 +71,15 @@ public class PersonBuilder {
     }
 
     /**
+     * Restores a saved name verbatim, including legacy spacing.
+     * Use {@link #withName(String)} for newly entered names.
+     */
+    public PersonBuilder withStoredName(String name) {
+        this.name = Name.fromStoredValue(name);
+        return this;
+    }
+
+    /**
      * Sets the {@code Phone} of the {@code Person} that we are building.
      */
     public PersonBuilder withPhone(String phone) {
