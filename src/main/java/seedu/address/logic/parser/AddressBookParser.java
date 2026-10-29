@@ -34,9 +34,8 @@ public class AddressBookParser {
 
     /** Maximum raw command length in UTF-16 code units, including all whitespace. */
     public static final int MAX_COMMAND_LENGTH = 1000;
-    public static final String MESSAGE_COMMAND_TOO_LONG = "Command must not exceed " + MAX_COMMAND_LENGTH
-            + " characters, including the command word and all whitespace. "
-            + "Each supplementary Unicode character counts as two characters.";
+    public static final String MESSAGE_COMMAND_TOO_LONG = "Command is too long (maximum " + MAX_COMMAND_LENGTH
+            + " characters, including spaces). Shorten it and try again.";
 
     /**
      * Used for initial separation of command word and args.
