@@ -33,6 +33,21 @@ public class CommandResultTest {
 
         // different exit value -> returns false
         assertFalse(commandResult.equals(new CommandResult("feedback", false, true)));
+
+        // different isDataChanged value -> returns false
+        assertFalse(commandResult.equals(CommandResult.withoutDataChange("feedback")));
+    }
+
+    @Test
+    public void isDataChanged() {
+        assertTrue(new CommandResult("feedback").isDataChanged());
+        assertTrue(new CommandResult("feedback", true, false).isDataChanged());
+
+        CommandResult unchanged = CommandResult.withoutDataChange("feedback");
+        assertFalse(unchanged.isDataChanged());
+        assertEquals("feedback", unchanged.getFeedbackToUser());
+        assertFalse(unchanged.isShowHelp());
+        assertFalse(unchanged.isExit());
     }
 
     @Test
@@ -50,6 +65,9 @@ public class CommandResultTest {
 
         // different exit value -> returns different hashcode
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, true).hashCode());
+
+        // different isDataChanged value -> returns different hashcode
+        assertNotEquals(commandResult.hashCode(), CommandResult.withoutDataChange("feedback").hashCode());
     }
 
     @Test
@@ -57,7 +75,7 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", isDataChanged=" + commandResult.isDataChanged() + "}";
         assertEquals(expected, commandResult.toString());
     }
 }
