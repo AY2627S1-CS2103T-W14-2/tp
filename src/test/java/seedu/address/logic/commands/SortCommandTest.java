@@ -19,6 +19,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class SortCommandTest {
 
@@ -30,6 +31,17 @@ public class SortCommandTest {
         Model expectedModel = modelWith(ALICE_NAMESAKE, ALICE, BENSON, CARL);
 
         assertCommandSuccess(sortCommand, model, String.format(SortCommand.MESSAGE_SUCCESS, 4), expectedModel);
+    }
+
+    @Test
+    public void execute_namesWithNumbers_ordersNumbersByValue() {
+        Person alexTwo = PersonBuilder.named("Alex 2").build();
+        Person alexTen = PersonBuilder.named("Alex 10").build();
+        Person alexYeoh = PersonBuilder.named("Alex Yeoh").build();
+        Model model = modelWith(alexTen, alexYeoh, alexTwo);
+        Model expectedModel = modelWith(alexTwo, alexTen, alexYeoh);
+
+        assertCommandSuccess(sortCommand, model, String.format(SortCommand.MESSAGE_SUCCESS, 3), expectedModel);
     }
 
     @Test

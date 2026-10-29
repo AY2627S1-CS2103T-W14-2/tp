@@ -147,6 +147,35 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        getRoot().addEventFilter(KeyEvent.KEY_TYPED, event -> redirectTypingToCommandBox(event, commandBox));
+    }
+
+    /**
+     * Sends a typed character to the command box when focus is elsewhere, such as after the user clicks
+     * a contact, so that keyboard input is not lost.
+     */
+    private void redirectTypingToCommandBox(KeyEvent event, CommandBox commandBox) {
+        if (isTypedIntoEditableField(event) || !isPlainCharacter(event)) {
+            return;
+        }
+        commandBox.appendAndFocus(event.getCharacter());
+        event.consume();
+    }
+
+    /**
+     * Returns true if {@code event} is typed into a field that accepts the text itself, such as the command box.
+     */
+    private static boolean isTypedIntoEditableField(KeyEvent event) {
+        return event.getTarget() instanceof TextInputControl input && input.isEditable();
+    }
+
+    /**
+     * Returns true if {@code event} types a visible character rather than a control key or a shortcut.
+     */
+    private static boolean isPlainCharacter(KeyEvent event) {
+        String character = event.getCharacter();
+        boolean hasShortcutModifier = event.isControlDown() || event.isMetaDown() || event.isAltDown();
+        return !hasShortcutModifier && !character.isEmpty() && !Character.isISOControl(character.charAt(0));
     }
 
     /**
@@ -220,7 +249,7 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
+            logger.info("Command executed successfully.");
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
             if (commandResult.isShowHelp()) {
@@ -233,7 +262,7 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
+            logger.info("An error occurred while executing a command.");
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
         }

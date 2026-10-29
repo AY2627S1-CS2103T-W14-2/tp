@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -47,6 +49,17 @@ public class CommandBox extends UiPart<Region> {
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
+    }
+
+    /**
+     * Moves keyboard focus to the command box and appends {@code text} after any input already typed.
+     */
+    void appendAndFocus(String text) {
+        requireNonNull(text);
+        commandTextField.requestFocus();
+        // Focus changes can reset the caret or selection, so append to keep the existing input intact.
+        commandTextField.appendText(text);
+        commandTextField.end();
     }
 
     /**
