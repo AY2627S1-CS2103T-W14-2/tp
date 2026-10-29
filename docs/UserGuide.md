@@ -157,7 +157,8 @@ digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate 
 Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
 is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
-in lowercase.
+in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the standard
+size limits for email addresses (RFC 5321), and mail servers may reject longer addresses.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores. A leading `@` is
 optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
@@ -569,7 +570,9 @@ use `undo` after fixing storage. An undo that cannot save leaves the contacts an
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
-case when accepted by the legacy loading rules, even if they do not meet today's input rules.
+case when accepted by the legacy loading rules, even if they do not meet today's input rules. However, saved
+emails must still be within the [email length limits](#adding-a-person-add); a file containing a longer email is
+treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged.
 Before the first save that removes address or tags, LinkUp creates a
 backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves

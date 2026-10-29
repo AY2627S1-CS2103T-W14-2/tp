@@ -9,6 +9,14 @@ import org.junit.jupiter.api.Test;
 
 public class EmailTest {
 
+    private static final String LOCAL_PART_64 = "a".repeat(Email.MAX_LOCAL_PART_LENGTH);
+    /** Exactly 254 characters, with realistic domain labels of at most 63 characters. */
+    private static final String TOTAL_254 = LOCAL_PART_64 + "@"
+            + "b".repeat(63) + "." + "c".repeat(63) + "." + "d".repeat(57) + ".com";
+    /** One character over the total limit. */
+    private static final String TOTAL_255 = LOCAL_PART_64 + "@"
+            + "b".repeat(63) + "." + "c".repeat(63) + "." + "d".repeat(58) + ".com";
+
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Email(null));
@@ -76,6 +84,39 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_lengthLimits() {
+        assertTrue(Email.isValidEmail(LOCAL_PART_64 + "@example.com")); // local part at its limit
+        assertFalse(Email.isValidEmail(LOCAL_PART_64 + "a@example.com")); // local part one over
+
+        assertEquals(Email.MAX_LENGTH, TOTAL_254.length());
+        assertEquals(Email.MAX_LENGTH + 1, TOTAL_255.length());
+        assertTrue(Email.isValidEmail(TOTAL_254)); // whole address at its limit
+        assertFalse(Email.isValidEmail(TOTAL_255)); // one over
+        assertTrue(Email.isValidStoredEmail(TOTAL_254));
+        assertFalse(Email.isValidStoredEmail(TOTAL_255));
+    }
+
+    @Test
+    public void isTooLong() {
+        assertFalse(Email.isTooLong(LOCAL_PART_64 + "@example.com"));
+        assertTrue(Email.isTooLong(LOCAL_PART_64 + "a@example.com"));
+        assertFalse(Email.isTooLong(TOTAL_254));
+        assertTrue(Email.isTooLong(TOTAL_255));
+        assertTrue(Email.isTooLong(LOCAL_PART_64 + "a")); // no @: the whole value counts as the local part
+        assertFalse(Email.isTooLong("alex@example.com"));
+    }
+
+    @Test
+    public void validation_manyDottedParts_rejectedWithoutStackOverflow() {
+        // Issue #196: this local part used to overflow the stack in the recursive pattern.
+        String dotted = "a.".repeat(17_770) + "a@example.com";
+        assertFalse(Email.isValidEmail(dotted));
+        assertFalse(Email.isValidStoredEmail(dotted));
+        assertThrows(IllegalArgumentException.class, () -> new Email(dotted));
+        assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue(dotted));
+    }
+
+    @Test
     public void constructor_newEmail_storesLowercase() {
         assertEquals("alex.tan@example.com", new Email("Alex.Tan@Example.COM").value);
     }
@@ -85,6 +126,7 @@ public class EmailTest {
         assertEquals("Alex@Example", Email.fromStoredValue("Alex@Example").value);
         assertEquals("Alex@Example.COM", Email.fromStoredValue("Alex@Example.COM").value);
         assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue("not-an-email"));
+        assertThrows(IllegalArgumentException.class, () -> Email.fromStoredValue("A".repeat(65) + "@Example.COM"));
     }
 
     @Test

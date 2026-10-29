@@ -203,7 +203,7 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
 | `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
 
