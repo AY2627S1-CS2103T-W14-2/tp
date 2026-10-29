@@ -29,6 +29,7 @@ import seedu.address.model.project.Project;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Integration tests for issue #177: invisible format characters, such as a pasted zero-width space, must not create
@@ -56,7 +57,8 @@ public class ProjectInvisibleCharactersIntegrationTest {
 
     @Test
     public void execute_pastedZeroWidthSpace_sameProjectAsTypedName() throws Exception {
-        assertEquals(String.format(ProjectCommand.MESSAGE_SUCCESS, "AlphaBeta", ALICE.getName()),
+        Person aliceWithProject = new PersonBuilder(ALICE).withProjects("AlphaBeta").build();
+        assertEquals(String.format(ProjectCommand.MESSAGE_SUCCESS, "AlphaBeta", Messages.format(aliceWithProject)),
                 logic.execute("project 1 pr/Alpha" + ZERO_WIDTH_SPACE + "Beta").getFeedbackToUser());
 
         // The issue's second step: the visibly identical name is now the same project, not a second one.

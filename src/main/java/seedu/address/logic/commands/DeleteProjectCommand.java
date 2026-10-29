@@ -26,7 +26,7 @@ public class DeleteProjectCommand extends Command {
             + ": Removes a project from contacts at the displayed indices.\n"
             + "Parameters: INDEX [MORE_INDICES] (positive integers) pr/PROJECT\n"
             + "Example: " + COMMAND_WORD + " 1 pr/Orbital";
-    public static final String MESSAGE_SUCCESS = "Removed project %1$s from contact %2$s.";
+    public static final String MESSAGE_SUCCESS = "Removed project %1$s from contact: %2$s";
 
     public static final String MESSAGE_DUPLICATE_INDEX = "Contact index %1$d is repeated.";
     public static final String MESSAGE_MULTIPLE_SUCCESS = "Removed project %1$s from contacts %2$s.";
@@ -70,7 +70,7 @@ public class DeleteProjectCommand extends Command {
             model.setPerson(originals.get(i), replacements.get(i));
         }
         logger.fine("Removed project association from " + originals.size() + " contact(s)");
-        return createSuccessResult(originals);
+        return createSuccessResult(originals, replacements);
     }
 
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
@@ -105,16 +105,20 @@ public class DeleteProjectCommand extends Command {
                 original.getTelegramUsername(), projects);
     }
 
-    /** Formats the existing single-contact or batch success message using the original indices. */
-    private CommandResult createSuccessResult(List<Person> contacts) {
-        if (contacts.size() == 1) {
-            Person contact = contacts.get(0);
+    /**
+     * Formats the single-contact or batch success message using the original indices.
+     * The removed project keeps the original contact's casing; the details shown are the updated contact's.
+     */
+    private CommandResult createSuccessResult(List<Person> originals, List<Person> updatedContacts) {
+        if (originals.size() == 1) {
+            Person contact = originals.get(0);
             Project removedProject = contact.getProjects().get(contact.getProjects().indexOf(project));
-            return new CommandResult(String.format(MESSAGE_SUCCESS, removedProject, contact.getName()));
+            return new CommandResult(String.format(MESSAGE_SUCCESS, removedProject,
+                    Messages.format(updatedContacts.get(0))));
         }
         List<String> selectedContacts = new ArrayList<>();
-        for (int i = 0; i < contacts.size(); i++) {
-            selectedContacts.add(indices.get(i).getOneBased() + ": " + contacts.get(i).getName());
+        for (int i = 0; i < originals.size(); i++) {
+            selectedContacts.add(indices.get(i).getOneBased() + ": " + originals.get(i).getName());
         }
         return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
                 String.join(", ", selectedContacts)));

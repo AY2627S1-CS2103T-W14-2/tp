@@ -69,7 +69,10 @@ public class ContactWorkflowIntegrationTest {
 
         logic.execute("findproject ORB");
         assertEquals(List.of(associated), logic.getFilteredPersonList());
-        assertEquals("Deleted contact: Alex Tan.", logic.execute("delete 1").getFeedbackToUser());
+        // The phone number tells this Alex Tan apart from the other contact with the same name.
+        assertEquals("Deleted contact: Alex Tan; Phone: +6587654321; Email: other@example.com; "
+                + "Telegram: @other_alex; Projects: Orbital, Team Alpha",
+                logic.execute("delete 1").getFeedbackToUser());
         assertEquals(List.of(), logic.getFilteredPersonList());
         assertSavedContacts(ALEX);
 
