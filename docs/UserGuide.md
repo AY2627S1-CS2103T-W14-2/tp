@@ -81,7 +81,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Command words and prefixes are case-sensitive: use `findproject`, not `FindProject` or `findp`.
+* Command words ignore case, so `FIND alex` and `Find alex` work like `find alex`, but they cannot be shortened:
+  use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
   Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
 
 * `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
@@ -175,8 +176,12 @@ control characters. Surrounding whitespace is removed, repeated internal whitesp
 names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
-In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
-For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
+In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
+`t/`) starts a new field, even within a project name. For example, `pr/Team n/Beta` is rejected because `n/` is
+repeated, and `pr/Team a/b` is rejected because `a/` is retired. Prefixes without a space before them, such as in
+`Team-n/Beta`, and other punctuation and symbols such as `*()!%$#&` are accepted. To give a contact a project
+name like `Team n/Beta`, add the contact with another project first, then use `project INDEX pr/Team n/Beta`,
+which only treats `pr/` as a prefix.
 </box>
 
 Examples:
