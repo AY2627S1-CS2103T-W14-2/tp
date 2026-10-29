@@ -213,14 +213,14 @@ public class MainWindowTest {
 
                 // Clicking a contact moves focus to the list; typing there must still reach the command box.
                 persons.requestFocus();
-                type(persons, "l", false);
+                type(persons, "l");
                 assertEquals("l", input.getText());
                 assertEquals(input, stage.getScene().getFocusOwner());
                 assertEquals(1, input.getCaretPosition());
 
                 // Input already in the command box is kept, and the read-only result box redirects too.
                 result.requestFocus();
-                type(result, "i", false);
+                type(result, "i");
                 assertEquals("li", input.getText());
                 assertEquals(input, stage.getScene().getFocusOwner());
 
@@ -230,22 +230,26 @@ public class MainWindowTest {
                 input.setText("lis");
                 input.positionCaret(1);
                 persons.requestFocus();
-                type(persons, "t", false);
+                type(persons, "t");
                 assertEquals("list", input.getText());
                 assertEquals(input.getLength(), input.getCaretPosition());
 
-                // Shortcuts and control keys such as Enter are left alone.
+                // Shortcuts (Ctrl, Alt or Cmd held down), control keys such as Enter, and events without a
+                // character are left alone.
                 persons.requestFocus();
-                type(persons, "c", true);
-                type(persons, "\r", false);
+                type(persons, "c", KeyCode.CONTROL);
+                type(persons, "c", KeyCode.ALT);
+                type(persons, "c", KeyCode.META);
+                type(persons, "\r");
+                type(persons, "");
                 assertEquals("list", input.getText());
                 assertEquals(persons, stage.getScene().getFocusOwner());
 
                 // Full flow: click a contact, type a whole command and press Enter.
                 input.clear();
                 persons.requestFocus();
-                type(persons, "l", false);
-                "ist".chars().forEach(character -> type(input, Character.toString(character), false));
+                type(persons, "l");
+                "ist".chars().forEach(character -> type(input, Character.toString(character)));
                 input.fireEvent(new ActionEvent());
                 assertEquals("Listed all contacts.", result.getText());
                 assertEquals("", input.getText());
@@ -277,9 +281,11 @@ public class MainWindowTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
     }
 
-    private void type(Node target, String character, boolean isShortcutDown) {
-        target.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, character, "", KeyCode.UNDEFINED,
-                false, isShortcutDown, false, false));
+    /** Types {@code character} into {@code target} while holding down the given modifier keys. */
+    private void type(Node target, String character, KeyCode... modifiers) {
+        List<KeyCode> heldKeys = List.of(modifiers);
+        target.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, character, "", KeyCode.UNDEFINED, false,
+                heldKeys.contains(KeyCode.CONTROL), heldKeys.contains(KeyCode.ALT), heldKeys.contains(KeyCode.META)));
     }
 
     private void enter(TextField input, String command) {
