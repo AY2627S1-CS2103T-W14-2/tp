@@ -4,6 +4,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.project.Project;
@@ -13,6 +14,7 @@ import seedu.address.model.project.Project;
  */
 public class ProjectContainsKeywordPredicate implements Predicate<Person> {
     private final String keyword;
+    private final Pattern pattern;
 
     /**
      * Creates a predicate with a non-blank phrase, normalising whitespace and case for matching.
@@ -21,12 +23,13 @@ public class ProjectContainsKeywordPredicate implements Predicate<Person> {
         String normalizedKeyword = Project.normalize(keyword);
         checkArgument(!normalizedKeyword.isEmpty(), "Project keyword must not be blank");
         this.keyword = normalizedKeyword.toLowerCase(Locale.ROOT);
+        pattern = Pattern.compile(Pattern.quote(normalizedKeyword), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
 
     @Override
     public boolean test(Person person) {
         return person.getProjects().stream()
-                .anyMatch(project -> project.projectName.toLowerCase(Locale.ROOT).contains(keyword));
+                .anyMatch(project -> pattern.matcher(project.projectName).find());
     }
 
     @Override

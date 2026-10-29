@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,21 @@ public class ProjectContainsKeywordPredicateTest {
         assertFalse(predicate.test(new PersonBuilder().withProjects().build()));
         assertFalse(predicate.test(new PersonBuilder().withName("Orbital")
                 .withEmail("orbital@example.com").build()));
+    }
+
+    @Test
+    public void test_greekSigmaForms_matchExactCharacterAndCaseVariants() {
+        Person person = new PersonBuilder().withProjects("ΟΣ").build();
+        for (String keyword : List.of("ΟΣ", "Σ", "σ", "ς")) {
+            assertTrue(new ProjectContainsKeywordPredicate(keyword).test(person), keyword);
+        }
+    }
+
+    @Test
+    public void test_regexCharacters_areMatchedLiterally() {
+        Person person = new PersonBuilder().withProjects("C++ [Team]/Alpha").build();
+        assertTrue(new ProjectContainsKeywordPredicate("++ [team]").test(person));
+        assertFalse(new ProjectContainsKeywordPredicate(".*").test(person));
     }
 
     @Test
