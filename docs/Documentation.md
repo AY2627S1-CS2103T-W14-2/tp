@@ -37,14 +37,14 @@ The workflow runs on pushes to `master`, uses `docs` as its root, and sets `/tp`
 | `DeveloperGuide.md` | Architecture, implementation, current scope, backlog distinctions and manual tests. |
 | `SettingUp.md`, `Testing.md`, `DevOps.md` | Developer setup, verification and release workflow. |
 | `images/` | Screenshots and other image assets. `Ui.png` is also used by the root README. |
-| `diagrams/` | PlantUML sources. Current developer-guide UML is retained but marked as not yet updated. |
+| `diagrams/` | PlantUML sources for the developer-guide UML diagrams. |
 | `_markbind/`, `site.json` | Shared layout, navigation and site configuration. |
 
 ## Keeping documentation consistent with code
 
 Before describing a feature as available, inspect its command/parser, model validation and storage paths.
 Check new-input rules separately from legacy-data loading. For example, `add` requires an initial project,
-while old contacts can load with no projects; `edit` currently supports only name, phone and email.
+while old contacts can load with no projects; `edit` changes only name, phone, email and Telegram username.
 Keep future requirements explicitly labelled as deferred rather than presenting them as current commands.
 
 When changing commands or validation, update both guides and their examples. Use a separate test data folder
@@ -53,8 +53,8 @@ for screenshots, with no personal contact data. Update `images/Ui.png` for the m
 
 Before submitting documentation, run `npm run build`, review warnings, and inspect the changed rendered pages
 for readable tables, working navigation, correct screenshots and command examples. Run repository-wide checks
-as described in [DevOps](DevOps.md). UML updates are deferred for this release; preserve the notice until the
-diagrams have been checked against the implementation.
+as described in [DevOps](DevOps.md). When a change affects a diagram, update its source in `diagrams/` and check
+the diagram against the implementation.
 
 ## Style guidance
 

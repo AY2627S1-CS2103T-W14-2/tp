@@ -203,7 +203,7 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. Surrounding spaces are trimmed. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. Stored in lowercase. |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores; optional leading `@` is removed and letters are lowercased. |
 | `Project` | 1–40 Unicode code points after whitespace normalisation; no ISO control characters. Equality ignores case. |
 
@@ -325,7 +325,9 @@ the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the f
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
 so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
 somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
-backup. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
+backup. In that case `initModelManager` also records a startup message naming the backup, which `MainApp` passes
+to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box, so the
+user knows the empty list is recoverable before running a command that saves over the original file. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
