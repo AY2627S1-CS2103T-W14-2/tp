@@ -74,7 +74,8 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Command words and prefixes are case-sensitive: use `findproject`, not `FindProject` or `findp`.
+* Command words ignore case, so `FIND alex` and `Find alex` work like `find alex`, but they cannot be shortened:
+  use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
   Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
 
 * `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
@@ -148,9 +149,11 @@ The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is store
 numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
 number is assigned or callable.
 
-Names must contain 1–60 characters after surrounding spaces are removed. English letters, digits, spaces,
-apostrophes, hyphens, and periods are accepted; at least one English letter is required. The name keeps its
-capitalization for display.
+Names must contain 1–60 characters after surrounding spaces are removed and repeated spaces are reduced to one.
+For example, `n/Emma   First` is saved as `Emma First`, and pasted spacing such as a non-breaking space also
+counts as a space. A pasted tab is different: the command box removes it, so `Emma<tab>First` is saved as
+`EmmaFirst`. English letters, digits, spaces, apostrophes, hyphens, and periods are accepted; at least one
+English letter is required. The name keeps its capitalization for display.
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
@@ -168,16 +171,22 @@ control characters. Surrounding whitespace is removed, repeated internal whitesp
 names are compared case-insensitively. Supply exactly one non-empty `pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
-In `add`, a space followed by `a/` or `t/` is treated as a retired field prefix, even within a project name.
-For example, `pr/Team a/b` is rejected. Other punctuation and symbols such as `*()!%$#&` are accepted.
+In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
+`t/`) starts a new field, even within a project name. For example, `pr/Team n/Beta` is rejected because `n/` is
+repeated, and `pr/Team a/b` is rejected because `a/` is retired. Prefixes without a space before them, such as in
+`Team-n/Beta`, and other punctuation and symbols such as `*()!%$#&` are accepted. To give a contact a project
+name like `Team n/Beta`, add the contact with another project first, then use `project INDEX pr/Team n/Beta`,
+which only treats `pr/` as a prefix.
 </box>
 
 Examples:
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
-After a successful add, LinkUp confirms the contact and its initial project, for example:
-`Added contact: John Doe [CS2103T]`
+After a successful add, LinkUp shows all contacts and confirms the new contact's index, name and initial project.
+For example, adding John Doe to the six sample contacts shows:
+`Added contact 7: John Doe [CS2103T]`
+Use that index in later commands, such as `project 7 pr/Orbital`.
 
 <box type="info" seamless>
 
@@ -210,6 +219,8 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
+* For one contact, the success message shows that contact's updated details, so contacts with the same
+  name can be told apart. For several contacts, it lists each contact by displayed index and name.
 * Missing or invalid indices, missing or blank project names, and repeated `pr/` prefixes are rejected.
   These input errors leave contacts unchanged.
 * Project associations are saved automatically. Unlike `add ... pr/PROJECT`, this command updates saved contacts.
@@ -249,7 +260,7 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
   cannot be included literally in a project name in this command.
 
 Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
-first displayed contact. The success message identifies the old project, new project and contact.
+first displayed contact. The success message identifies the old project, new project and contact, showing the contact's updated details.
 
 ### Removing a contact's project association: `deleteproject`
 
@@ -274,7 +285,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
 Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
-The success message identifies the project and selected contacts.
+The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
 ### Listing all persons: `list`
 
@@ -294,9 +305,10 @@ Format: `sort`
 * Names are compared ignoring case, so `alex Tan` comes before `Bernice Yu`. Names that differ only in case are
   ordered by their exact spelling, and contacts with the same name are ordered by phone number, so the result is
   always the same.
-* Names are compared character by character, so `Alex 10` comes before `Alex 2`.
+* Numbers in names are ordered by value, so `Alex 2` comes before `Alex 10`, which comes before `Alex Yeoh`.
 * The new order is saved and kept after you restart LinkUp. Contacts you add later are placed at the end until
-  you sort again.
+  you sort again. Editing a contact, including their name, keeps them in the same position; run `sort` again to
+  re-sort.
 * All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
   now in sorted order.
 * Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
@@ -348,8 +360,8 @@ Examples:
 * If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
 
 Like other commands that change contacts, rename updates the current session before saving. If saving fails,
-the change remains in memory with an undo entry. Correct the storage problem, then use `undo` to restore the
-previous state or another successful command to save the current state.
+LinkUp restores the contacts, current search, and undo history to their previous state. Correct the storage
+problem and retry the rename.
 
 ### Editing a person: `edit`
 
@@ -512,6 +524,8 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, ...
 * Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
 * Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
+* The success message shows the deleted contact's name, phone and email, and any Telegram username or projects,
+  so contacts with the same name can be told apart.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
@@ -521,8 +535,11 @@ Examples:
 
 Clears all entries from the address book.
 
+On success, LinkUp shows `Cleared all contacts and project associations from LinkUp.`
+
 This removes **all contacts**, including those hidden by a search filter, without a confirmation prompt.
 Use `undo` before closing the application if you need to restore them.
+If no contacts are saved, it reports `No contacts to clear.` without saving or adding an undo entry.
 
 Format: `clear`
 
@@ -559,16 +576,18 @@ Format: `exit`
 
 ### Saving the data
 
-LinkUp automatically attempts to save after each successfully executed command, including searches and `list`.
-Commands rejected during parsing or validation do not save. There is no separate save command.
+LinkUp saves the contact list after a command changes contacts or their order, including `undo`. Read-only
+commands such as `list`, `find`, `findproject`, `projects`, and `help` do not save. Commands that make no change,
+or are rejected during parsing or validation, do not save either. There is no separate save command.
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
 
-If a save error appears, the displayed contact list may already contain your change even though it was not saved.
-Keep the application open, correct the storage or permission problem, then run `list` to retry saving the current
-contacts. Do not repeat an `add` blindly, as the contact may already be in the list. If you want to reverse the change,
-use `undo` after fixing storage. An undo that cannot save leaves the contacts and undo history unchanged and can be retried.
+If a save error appears after a command that changes contacts, LinkUp restores the contacts, current search,
+and undo history to their state before that command. Fix the storage or permission problem, then retry the
+original command. Do not run `undo` to recover from that failed command: `undo` would reverse an earlier
+successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
+retry `undo`.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
@@ -577,8 +596,9 @@ emails must still be within the [email length limits](#adding-a-person-add); a f
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
-Before the first save that removes address or tags, LinkUp creates a
-backup beside the original file, named `<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
+The first command that changes contacts after loading the older file triggers a save. Before that save removes
+address or tags, LinkUp creates a backup beside the original file, named
+`<original filename>.pre-v1.3-<unique suffix>.bak`. The backup preserves
 the original file exactly. New saves omit address and tags; later saves of the updated file do not create more
 migration backups. Importing another old file creates a separate backup. If the backup cannot be written,
 LinkUp reports a save error and leaves the original file untouched.
@@ -602,7 +622,8 @@ LinkUp does not infer a country code, so `91234567` and `+6591234567` are differ
 If your changes make the data file invalid, LinkUp starts with an empty contact list at the next run. Before
 starting, it copies the invalid file to a backup beside it, named `<original filename>.unreadable-<unique suffix>.bak`,
 and the result box says that the file could not be read and names the backup.
-The next successfully executed command attempts to save the current contact list over the original file.
+The next command that changes contacts attempts to save the current contact list over the original file.
+Commands such as `list` and `find` leave the file untouched.
 To recover, close LinkUp, fix the problem in the backup, and copy it over the original data file. If the
 backup cannot be created (for example, because the disk is full or the folder is read-only), LinkUp shows an
 error and does not start, so that your data file is never overwritten. Copy the data file somewhere safe, fix the
