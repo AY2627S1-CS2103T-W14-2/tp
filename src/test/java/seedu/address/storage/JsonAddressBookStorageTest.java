@@ -173,6 +173,17 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAddressBook_projectNameWithLineBreak_throwsDataLoadingException() throws Exception {
+        Path file = testFolder.resolve("project-with-line-break.json");
+        Files.writeString(file, """
+                {"persons":[{"name":"Alex Tan","phone":"91234567","email":"alex@example.com",
+                  "telegramUsername":"alex_tan","projects":["Alpha\\nBeta"]}]}
+                """);
+
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+    }
+
+    @Test
     public void readAddressBook_invalidAndValidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidAndValidPersonAddressBook.json"));
     }

@@ -142,6 +142,13 @@ public class MainWindow extends UiPart<Stage> {
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
     }
 
+    /**
+     * Shows {@code message} in the result box, e.g. to explain why the contact list is empty at startup.
+     */
+    void showStartupMessage(String message) {
+        resultDisplay.setFeedbackToUser(message);
+    }
+
     /** Keeps the session favourite in sync with searches and contact changes. */
     private void updateMostSearchedContact() {
         var person = logic.mostSearchedPersonProperty().get();

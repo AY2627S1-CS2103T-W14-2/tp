@@ -40,6 +40,11 @@ public class MainApp extends Application {
             + "LinkUp will not start, so that the file is not overwritten. Copy the file somewhere safe, "
             + "fix the storage or permission problem, then start LinkUp again.";
 
+    static final String MESSAGE_UNREADABLE_DATA_FILE = "Could not read %1$s, so LinkUp started with an empty "
+            + "contact list.\nClose LinkUp before running any command, then see \"Editing the data file\" in the "
+            + "User Guide.%2$s";
+    static final String MESSAGE_UNREADABLE_FILE_BACKUP = "\nBackup: %1$s";
+
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
@@ -51,6 +56,9 @@ public class MainApp extends Application {
 
     /** Set when startup must stop before the UI opens; {@code null} if startup succeeded. */
     private String startupErrorMessage;
+
+    /** Shown in the result box once the UI opens; {@code null} if the data file loaded normally. */
+    private String startupMessage;
 
     @Override
     public void init() throws Exception {
@@ -74,7 +82,7 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = new UiManager(logic, storage.getAddressBookFilePath(), startupMessage);
     }
 
     /**
@@ -99,7 +107,8 @@ public class MainApp extends Application {
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded.");
-            backUpUnreadableAddressBook(storage);
+            Optional<Path> backup = backUpUnreadableAddressBook(storage);
+            startupMessage = createUnreadableDataFileMessage(storage.getAddressBookFilePath(), backup);
             logger.warning("Will be starting with an empty AddressBook.");
             initialData = new AddressBook();
         }
@@ -110,11 +119,31 @@ public class MainApp extends Application {
     /**
      * Preserves the unreadable data file before the next save replaces it with the empty address book.
      *
+     * @return the backup's path, or an empty {@code Optional} if the data file no longer exists.
      * @throws IOException if the backup could not be written.
      */
-    private void backUpUnreadableAddressBook(Storage storage) throws IOException {
-        storage.backupAddressBook().ifPresent(backup ->
-                logger.warning("The unreadable data file was copied to " + backup));
+    private Optional<Path> backUpUnreadableAddressBook(Storage storage) throws IOException {
+        Optional<Path> backup = storage.backupAddressBook();
+        backup.ifPresent(path -> logger.warning("The unreadable data file was copied to " + path));
+        return backup;
+    }
+
+    /**
+     * Explains that {@code dataFile} could not be read and names its {@code backup}, if one was made,
+     * so that users know their contacts can still be recovered.
+     */
+    static String createUnreadableDataFileMessage(Path dataFile, Optional<Path> backup) {
+        String backupSentence = backup
+                .map(path -> String.format(MESSAGE_UNREADABLE_FILE_BACKUP, path.getFileName()))
+                .orElse("");
+        return String.format(MESSAGE_UNREADABLE_DATA_FILE, dataFile, backupSentence);
+    }
+
+    /**
+     * Returns the message to show once the UI opens, if loading the data file needs the user's attention.
+     */
+    Optional<String> getStartupMessage() {
+        return Optional.ofNullable(startupMessage);
     }
 
     /**

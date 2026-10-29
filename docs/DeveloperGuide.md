@@ -323,7 +323,9 @@ the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the f
 backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
 so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
 somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
-backup. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
+backup. In that case `initModelManager` also records a startup message naming the backup, which `MainApp` passes
+to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box, so the
+user knows the empty list is recoverable before running a command that saves over the original file. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
