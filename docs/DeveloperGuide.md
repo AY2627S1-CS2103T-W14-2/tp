@@ -403,6 +403,8 @@ The `findproject KEYWORD` command implements UC02 using the existing filtered co
    rejects them as control characters; a search phrase is never stored, so this only widens what a search ignores.
 3. `ProjectContainsKeywordPredicate` uses `Project.normalize()` and `Locale.ROOT` to normalise the search phrase
    once. It checks whether any project returned by `Person.getProjects()` contains that whole phrase, ignoring case.
+   Known limit: the one-letter keyword `ß` does not match a stored `ẞ`, although `Project.equals` treats them as the
+   same. Keywords of two or more letters match.
 4. `FindProjectCommand` passes the predicate to `Model.updateFilteredPersonList(...)` and returns the result count
    or a specific no-matches message. The UI observes this list and displays the existing contact cards and indices.
 
