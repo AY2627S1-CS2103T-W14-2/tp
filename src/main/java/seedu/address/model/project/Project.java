@@ -3,7 +3,6 @@ package seedu.address.model.project;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -50,7 +49,12 @@ public class Project {
         checkArgument(isValidProjectName(projectName), MESSAGE_CONSTRAINTS);
         String normalizedProjectName = normalize(projectName);
         this.projectName = normalizedProjectName;
-        canonicalProjectName = normalizedProjectName.toLowerCase(Locale.ROOT);
+        // Compared letter by letter, as String#equalsIgnoreCase does. Lowercasing the whole name would turn the
+        // sigma in "ΟΣ" into a final sigma, which differs from the sigma in "οσ".
+        canonicalProjectName = normalizedProjectName.codePoints()
+                .map(codePoint -> Character.toLowerCase(Character.toUpperCase(codePoint)))
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
     }
 
     /**
