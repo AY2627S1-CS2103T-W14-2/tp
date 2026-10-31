@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -186,6 +188,45 @@ public class ProjectTest {
 
         assertEquals(uppercaseProject, lowercaseProject);
         assertEquals(uppercaseProject.hashCode(), lowercaseProject.hashCode());
+    }
+
+    @Test
+    public void equals_letterCaseVariants_returnsTrueWithSameHashCode() {
+        assertSameProjects();
+    }
+
+    @Test
+    public void equals_turkishDefaultLocale_matchesUsingSameRule() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            assertSameProjects();
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
+    }
+
+    @Test
+    public void equals_letterCaseVariants_preservesDisplayedSpelling() {
+        assertEquals("ΟΣ", new Project("ΟΣ").projectName);
+        assertEquals("οσ", new Project("οσ").projectName);
+    }
+
+    @Test
+    public void equals_differentLengthCaseMappings_returnsFalse() {
+        assertNotEquals(new Project("Straße"), new Project("STRASSE"));
+        assertNotEquals(new Project("ﬁ"), new Project("FI"));
+    }
+
+    private static void assertSameProjects() {
+        List<List<String>> variants = List.of(List.of("ΟΣ", "οσ"), List.of("ΟΣ", "ος"), List.of("CS2103T", "cs2103t"),
+                List.of("µ", "μ"), List.of("ß", "ẞ"), List.of("ı", "I"), List.of("İ", "i"));
+        for (List<String> names : variants) {
+            Project first = new Project(names.get(0));
+            Project second = new Project(names.get(1));
+            assertEquals(first, second, names.toString());
+            assertEquals(first.hashCode(), second.hashCode(), names.toString());
+        }
     }
 
     @Test
