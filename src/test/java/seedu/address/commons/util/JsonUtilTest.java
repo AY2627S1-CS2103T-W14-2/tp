@@ -5,8 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.testutil.SerializableTestClass;
@@ -48,6 +52,33 @@ public class JsonUtilTest {
         DataLoadingException exception = assertThrows(DataLoadingException.class, () ->
                 JsonUtil.readJsonFile(SERIALIZATION_FILE, SerializableTestClass.class));
         assertEquals(JsonUtil.MESSAGE_NULL_CONTENT, exception.getCause().getMessage());
+    }
+
+    @Test
+    public void fromJsonString_contentAfterFirstValue_throwsJsonProcessingException() {
+        for (String trailing : List.of("{\"a\":2}", "[]", "1", "null", "text", "}")) {
+            assertThrows(JsonProcessingException.class, () ->
+                    JsonUtil.fromJsonString("{\"a\":1} " + trailing, JsonNode.class), trailing);
+        }
+    }
+
+    @Test
+    public void fromJsonString_repeatedKey_throwsJsonProcessingException() {
+        assertThrows(JsonProcessingException.class, () ->
+                JsonUtil.fromJsonString("{\"a\":1,\"a\":2}", JsonNode.class));
+        assertThrows(JsonProcessingException.class, () ->
+                JsonUtil.fromJsonString("{\"a\":[{\"b\":1,\"b\":2}]}", JsonNode.class));
+    }
+
+    @Test
+    public void fromJsonString_trailingWhitespace_readsValue() throws IOException {
+        assertEquals(1, JsonUtil.fromJsonString("{\"a\":1} \r\n\t ", JsonNode.class).get("a").asInt());
+    }
+
+    @Test
+    public void fromJsonString_sameKeyInDifferentObjects_readsValue() throws IOException {
+        JsonNode value = JsonUtil.fromJsonString("{\"a\":{\"b\":1},\"c\":{\"b\":2}}", JsonNode.class);
+        assertEquals(2, value.get("c").get("b").asInt());
     }
 
     //TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()

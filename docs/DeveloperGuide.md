@@ -330,7 +330,8 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON i
 up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
 at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
 backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
-before the next save replaces it.
+before the next save replaces it. `JsonUtil.fromJsonString` also rejects content after the first JSON value and
+repeated keys, so such a file takes the same backup path as other malformed JSON.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
