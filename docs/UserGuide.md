@@ -10,11 +10,11 @@ LinkUp is a **desktop contact manager for students working across projects and t
 contact details, associate project mates with projects, and find the right person by name or project. The contact
 list shows phone numbers, emails, Telegram usernames, and projects so you can distinguish people with the same name.
 
-**MVP scope:** `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Same-name contacts, duplicate-detail checks and automatic saving are included. Beyond the MVP, `edit` changes a
-contact's name, phone number, email or Telegram username, and `sort` orders contacts by name; projects are added
-with `project`, removed with `deleteproject`, replaced individually with `replaceproject`, and renamed or
-merged across contacts with `renameproject`.
+LinkUp supports adding, listing, finding, editing, sorting and deleting contacts, with checks for duplicate
+contact details and automatic saving. Contacts may share a name. Use `project` to add project associations,
+`deleteproject` to remove them, `replaceproject` to replace one association, and `renameproject` to rename
+or merge a project across contacts. Use `undo` to reverse supported changes, `help` for command guidance,
+and `exit` to close LinkUp.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -67,8 +67,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 **Notes about the command format:**<br>
 
 * The complete command must be at most **1,000 characters**, including the command word, prefixes, values,
-  and all spaces (including leading and trailing spaces). Each supplementary Unicode character, such as
-  most emoji, counts as two characters. Longer commands are rejected with
+  and all spaces (including leading and trailing spaces). Some characters, including most emoji, count as two characters toward this limit. Longer commands are rejected with
   `Command is too long (maximum 1000 characters, including spaces). Shorten it and try again.`
   Rejection leaves saved contacts and search results unchanged.
   Individual field and search keyword limits still apply.
@@ -86,7 +85,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
   Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
 
-* `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
+* `INDEX` always refers to the numbered main contact list, including search results. The **Recent search**
   section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
@@ -105,8 +104,8 @@ For example, a result header reads `Alex Tan | @alex_tan` or `Alex Tan | No Tele
 Hover over the header to see the full name and handle if the text is too long to fit.
 
 Project tags appear below the header as purple labels such as `Project: Orbital`, using the same styling as
-the main person cards. Tags wrap onto additional lines when needed, and results scroll independently to show
-all details. Contacts without projects have no project tags. Use the main person list to view phone numbers and emails.
+the main contact cards. Tags wrap onto additional lines when needed, and results scroll independently to show
+all details. Contacts without projects have no project tags. Use the main contact list to view phone numbers and emails.
 
 The shared search label appears once above the rows, for example `Latest search: Name: Alex` or
 `Latest search: Project: Team Alpha`.
@@ -138,7 +137,7 @@ Format: `help`
 The reference lists every command. Resize the help window or scroll to reach later commands and
 the Copy URL button.
 
-### Adding a person: `add`
+### Adding a contact: `add`
 
 Adds a contact to LinkUp.
 
@@ -168,8 +167,7 @@ digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate 
 Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
 is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
-in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the standard
-size limits for email addresses (RFC 5321), and mail servers may reject longer addresses.
+in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These limits help keep addresses compatible with email services, which may reject longer addresses.
 
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
 letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
@@ -179,8 +177,7 @@ command box removes pasted line breaks and tabs. Surrounding whitespace is remov
 collapsed, and project names are compared case-insensitively. Invisible formatting characters, such as a zero-width
 space copied from a chat app, are removed, so a pasted name matches the same name typed by hand. Joiners that
 combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi are kept; a joiner next to an
-English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the Hangul filler
-(U+3164), are not removed. Supply exactly one non-empty
+English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the blank Hangul filler used in Korean text, are not removed. Supply exactly one non-empty
 `pr/PROJECT`. If `pr/` is missing, the
 command reports `Project is required. Use pr/PROJECT.`
 
@@ -305,9 +302,9 @@ Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed c
 Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
 The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
-### Listing all persons: `list`
+### Listing all contacts: `list`
 
-Shows a list of all persons in the address book.
+Shows all contacts saved in LinkUp.
 
 Clears the current search filter. Shows `Listed all contacts.` when contacts exist, or `No contacts saved yet.`
 when the list is empty. The **Recent search** section retains the latest search results.
@@ -386,7 +383,7 @@ Like other commands that change contacts, rename updates the current session bef
 LinkUp restores the contacts, current search, and undo history to their previous state. Correct the storage
 problem and retry the rename.
 
-### Editing a person: `edit`
+### Editing a contact: `edit`
 
 Changes the name, phone number, email or Telegram username of an existing contact.
 
@@ -398,7 +395,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   `edit 1 n/Alice tele/@alice_tan` are the same command.
 * Only the fields you supply change. All other details, including every project and their order, stay exactly
   as they are. Contacts saved by older versions without a Telegram username can still have other fields edited.
-* Values follow the same rules and formatting as [`add`](#adding-a-person-add): phone numbers need `+` and a
+* Values follow the same rules and formatting as [`add`](#adding-a-contact-add): phone numbers need `+` and a
   country code, new emails are stored in lowercase, and Telegram usernames are stored in lowercase without `@`.
 * A field cannot be left blank or cleared. For example, `edit 1 n/Weien tele/` is rejected as a whole, and the
   name does not change either.
@@ -408,7 +405,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   Use `replaceproject` to replace one association, `deleteproject` to remove associations, or `renameproject`
   to rename across all contacts. Address (`a/`) and tags (`t/`) are no longer supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
-  hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
+  hidden by a search, following the same [duplicate-contact rule](#adding-a-contact-add) as `add`. You can keep
   a contact's own details, and you can give a contact the same name as another contact.
 * If any part of the command is invalid, nothing changes: the contact, the current search results, the saved
   data and the undo history all stay as they were. LinkUp reports one error at a time.
@@ -540,14 +537,14 @@ Examples:
 * `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
   `hackathon 2026`, ignoring case.
 
-### Deleting a person: `delete`
+### Deleting a contact: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified contact from LinkUp.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the contact at the specified `INDEX`.
+* The index refers to the index number shown in the displayed contact list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
 * Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
@@ -555,12 +552,12 @@ Format: `delete INDEX`
   so contacts with the same name can be told apart.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd contact in LinkUp.
+* `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all contacts from LinkUp.
 
 On success, LinkUp shows `Cleared all contacts and project associations from LinkUp.`
 
@@ -574,7 +571,7 @@ The command takes no parameters. Extra text is rejected without changing any con
 
 ### Undo a command: `undo`
 
-Undo the last supported command. The supported commands are:
+Reverses the last supported command. The supported commands are:
 * `add`
 * `delete`
 * `edit`
@@ -621,7 +618,7 @@ retry `undo`.
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
 case when accepted by the legacy loading rules, even if they do not meet today's input rules. However, saved
-emails must still be within the [email length limits](#adding-a-person-add); a file containing a longer email is
+emails must still be within the [email length limits](#adding-a-contact-add); a file containing a longer email is
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
@@ -661,7 +658,7 @@ error and does not start, so that your data file is never overwritten. Copy the 
 storage or permission problem, then start LinkUp again. Still, we recommend backing up the file yourself before
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
-[duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
+[duplicate-contact rule](#adding-a-contact-add) and is also rejected on load.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
@@ -697,16 +694,16 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
+**Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
+**Help**   | `help`
 **List**   | `list`
+**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**List projects** | `projects`
 **Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
-**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
-**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
-**List projects** | `projects`
-**Help**   | `help`
 **Undo**   | `undo`
-**Exit**   | `exit`
