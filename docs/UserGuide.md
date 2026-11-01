@@ -571,7 +571,6 @@ Format: `delete INDEX`
   so contacts with the same name can be told apart.
 
 Examples:
-
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
@@ -592,7 +591,6 @@ The command takes no parameters. Extra text is rejected without changing any con
 ### Undo a command: `undo`
 
 Undo the last supported command. The supported commands are:
-
 * `add`
 * `delete`
 * `edit`
