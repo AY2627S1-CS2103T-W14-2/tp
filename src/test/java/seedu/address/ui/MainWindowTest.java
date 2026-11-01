@@ -41,6 +41,7 @@ public class MainWindowTest {
     private static final double MIN_WINDOW_HEIGHT = 600;
     private static final double DEFAULT_WINDOW_WIDTH = 740;
     private static final double DIVIDER_SHIFT = 0.2;
+    private static final int TAGS_FILLING_TWO_ROWS = 12;
     private static final String LONGEST_NAME = "W".repeat(60);
     private static final String LONGEST_PROJECT_NAME = "W".repeat(Project.MAX_NAME_LENGTH);
     private static final String LONG_EMAIL = "a".repeat(60) + "@example.com";
@@ -286,6 +287,28 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void projectCommand_windowOpen_tagsStayAbovePhone() throws Exception {
+        FxTestUtil.run(() -> {
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder().build());
+            Stage stage = showMainWindow(model, DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+            try {
+                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+                for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
+                    enter(input, "project 1 pr/Tag " + tagNumber);
+                    layOut(stage);
+                }
+                Node tags = stage.getScene().lookup("#projects");
+                double lowestTagEdge = tags.lookupAll(".label").stream()
+                        .mapToDouble(MainWindowTest::bottomEdge).max().orElseThrow();
+                assertTrue(lowestTagEdge <= topEdge(stage.getScene().lookup("#phone")));
+            } finally {
+                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            }
+        });
+    }
+
     /** Shows a filled main window of the given size for {@code model} and lays it out. */
     private Stage showMainWindow(Model model, double width, double height) {
         model.setGuiSettings(new GuiSettings(width, height, 100, 100));
@@ -299,6 +322,14 @@ public class MainWindowTest {
 
     private static double rightEdge(Node node) {
         return node.localToScene(node.getLayoutBounds()).getMaxX();
+    }
+
+    private static double topEdge(Node node) {
+        return node.localToScene(node.getLayoutBounds()).getMinY();
+    }
+
+    private static double bottomEdge(Node node) {
+        return node.localToScene(node.getLayoutBounds()).getMaxY();
     }
 
     private void layOut(Stage stage) {
