@@ -25,7 +25,7 @@ LinkUp v1.4 expands contact editing and project management, making it easier to 
 
 The updated interface places **Most searched** and **Recent search** side by side above the numbered **Current contact list**.
 
-<img width="745" height="790" alt="LinkUp window with search summaries above the numbered contact list" src="https://github.com/user-attachments/assets/25a6ecb8-378e-471a-b8dc-0ccfe94b0cd5" />
+<img width="745" height="790" alt="Screenshot 2026-10-22 105520" src="https://github.com/user-attachments/assets/25a6ecb8-378e-471a-b8dc-0ccfe94b0cd5" />
 
 
 ## Getting started
