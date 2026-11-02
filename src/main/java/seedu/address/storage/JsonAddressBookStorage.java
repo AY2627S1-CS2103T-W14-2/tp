@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.ReadOnlyAddressBook;
 
@@ -29,11 +28,17 @@ public class JsonAddressBookStorage {
     private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
 
     private Path filePath;
+    private final AtomicFileWriter fileWriter;
     // The exact bytes last backed up as unreadable, so a save does not back up the same broken file twice.
     private byte[] unreadableBytesBackedUp;
 
     public JsonAddressBookStorage(Path filePath) {
+        this(filePath, new AtomicFileWriter());
+    }
+
+    JsonAddressBookStorage(Path filePath, AtomicFileWriter fileWriter) {
         this.filePath = filePath;
+        this.fileWriter = requireNonNull(fileWriter);
     }
 
     public Path getAddressBookFilePath() {
@@ -91,9 +96,9 @@ public class JsonAddressBookStorage {
         requireNonNull(addressBook);
         requireNonNull(filePath);
 
+        String content = JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook));
         backupLegacyData(filePath);
-        FileUtil.createIfMissing(filePath);
-        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
+        fileWriter.write(filePath, content);
     }
 
     /**

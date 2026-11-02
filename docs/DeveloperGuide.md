@@ -66,7 +66,12 @@ snapshots, rollback and undo bookkeeping are excluded here. The Logic component 
 the parser and command interactions in [the Logic section](#logic-component).
 Persistence and undo details are covered in the [undo implementation section](#undo-command-implementation).
 
-Each of the four main components (also shown in the diagram above),
+The UML diagrams use selective detail to explain the intended design, following the
+[CS2103/T Week 8 modelling guidance](https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/topics.html).
+Association roles and multiplicities distinguish stored collections and live views; sequence diagrams
+show the relevant calls and label omitted details rather than translating every statement of code.
+
+Each of the four main components (also shown in the diagram above):
 
 * defines its *API* in an `interface` with the same name as the Component.
 * provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
@@ -446,13 +451,13 @@ The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or mor
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
 project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-The sequence diagram below focuses on the command and model during a successful `project 1 2 pr/Orbital`.
-The command validates the complete batch and prepares every replacement before changing either contact.
+The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
+command validates the complete batch before changing either contact.
 
-<puml src="diagrams/ProjectCommandSequenceDiagram.puml" alt="Validation and updates for a multi-contact project command" />
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760" alt="Interactions inside the Logic and Model components for a multi-contact project command" />
 
-Parsing and result construction are omitted. For rollback snapshots, saving and undo recording, see
-[Shared project persistence and undo handling](#shared-project-persistence-and-undo-handling).
+Filter and search-history snapshot capture and failed-save rollback are abstracted in this diagram;
+see [Shared project persistence and undo handling](#shared-project-persistence-and-undo-handling).
 
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.

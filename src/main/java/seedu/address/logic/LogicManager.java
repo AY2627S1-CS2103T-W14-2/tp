@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -30,10 +31,18 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
+    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s"
+            + "\nThe change was not saved. Check available storage, file and folder permissions,"
+            + " and whether another program is using the data file, then retry the command.";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+            "Could not save data to file %s. Access was denied."
+            + "\nThe change was not saved. Check file and folder permissions and close other programs"
+            + " using the data file, then retry the command.";
+
+    public static final String FILE_OPS_ATOMIC_MOVE_ERROR =
+            "Could not save data because this location does not support atomic file replacement."
+            + "\nThe change was not saved. Use a data location that supports atomic replacement.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -103,6 +112,8 @@ public class LogicManager implements Logic {
     private void saveAddressBook(ReadOnlyAddressBook addressBook) throws CommandException {
         try {
             storage.saveAddressBook(addressBook);
+        } catch (AtomicMoveNotSupportedException e) {
+            throw new CommandException(FILE_OPS_ATOMIC_MOVE_ERROR, e);
         } catch (AccessDeniedException e) {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
