@@ -44,6 +44,11 @@ activate Before
 Before --> LogicManager
 deactivate Before
 
+note over LogicManager, Model
+    Filter predicate and search-history snapshots are also captured.
+    See the shared persistence diagram.
+end note
+
 LogicManager -> SortCommand : execute(m)
 activate SortCommand
 
@@ -52,29 +57,30 @@ activate Model
 Model --> SortCommand : addressBook
 deactivate Model
 
-SortCommand -> SortCommand : isSorted(contacts)
-activate SortCommand
-SortCommand --> SortCommand : sorted
-deactivate SortCommand
-
 alt no contacts or already sorted
-    create CommandResult
-    SortCommand -> CommandResult : withoutDataChange(message)
-    activate CommandResult
-    CommandResult --> SortCommand : r
-    deactivate CommandResult
-else otherwise
+    note right of SortCommand
+        Feedback: no contacts or already sorted.
+        Result has isDataChanged() = false.
+    end note
+else contacts need sorting
     SortCommand -> Model : sortPersons(nameComparator)
     activate Model
     Model --> SortCommand
     deactivate Model
-
-    create CommandResult
-    SortCommand -> CommandResult
-    activate CommandResult
-    CommandResult --> SortCommand : r
-    deactivate CommandResult
+    note right of SortCommand
+        Feedback: sorted contact count.
+        Result has isDataChanged() = true.
+    end note
 end
+
+create CommandResult
+SortCommand -> CommandResult : create result
+activate CommandResult
+CommandResult --> SortCommand : r
+deactivate CommandResult
+note over SortCommand, CommandResult
+    Result creation is abstracted; factory details are omitted.
+end note
 SortCommand --> LogicManager : r
 deactivate SortCommand
 
@@ -84,6 +90,11 @@ CommandResult --> LogicManager : changed
 deactivate CommandResult
 
 opt changed
+    note over LogicManager, Storage
+        Successful save shown.
+        Failed-save rollback: see the shared persistence diagram.
+    end note
+
     LogicManager -> Model : getAddressBook()
     activate Model
     Model --> LogicManager : addressBook

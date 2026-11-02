@@ -62,6 +62,7 @@
         "project-association-implementation": "Project association implementation",
         "replacing-a-project-association": "Replacing a project association",
         "removing-a-project-association": "Removing a project association",
+        "shared-project-persistence-and-undo-handling": "Shared project persistence and undo handling",
         "edit-command-implementation": "Edit command implementation",
         "project-renaming-and-merging": "Project renaming and merging",
         "projects-command-implementation": "Projects command implementation",
