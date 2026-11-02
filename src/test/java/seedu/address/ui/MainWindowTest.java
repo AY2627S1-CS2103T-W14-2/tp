@@ -300,13 +300,45 @@ public class MainWindowTest {
                     layOut(stage);
                 }
                 Node tags = stage.getScene().lookup("#projects");
-                double lowestTagEdge = tags.lookupAll(".label").stream()
-                        .mapToDouble(MainWindowTest::bottomEdge).max().orElseThrow();
-                assertTrue(lowestTagEdge <= topEdge(stage.getScene().lookup("#phone")));
+                assertTrue(lowestTagEdge(tags) <= topEdge(stage.getScene().lookup("#phone")));
             } finally {
                 List.copyOf(Window.getWindows()).forEach(Window::hide);
             }
         });
+    }
+
+    @Test
+    public void projectCommand_searchResultShowing_tagsStayInsideSearchPanels() throws Exception {
+        FxTestUtil.run(() -> {
+            assertTagsStayInsideSearchPanels(DEFAULT_WINDOW_WIDTH);
+            assertTagsStayInsideSearchPanels(MIN_WINDOW_WIDTH);
+        });
+    }
+
+    /** Adds tags to a contact while it is a search result, then checks both panels reserved enough height. */
+    private void assertTagsStayInsideSearchPanels(double width) {
+        Model model = new ModelManager();
+        model.addPerson(new PersonBuilder().withName("Alex Yeoh").build());
+        Stage stage = showMainWindow(model, width, MIN_WINDOW_HEIGHT);
+        try {
+            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+            enter(input, "find Alex");
+            layOut(stage);
+            for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
+                enter(input, "project 1 pr/Tag " + tagNumber);
+                layOut(stage);
+            }
+            for (String panel : List.of("#recentFindListView", "#mostSearchedDetails")) {
+                Node tags = stage.getScene().lookup(panel).lookup("#projects");
+                assertTrue(lowestTagEdge(tags) <= bottomEdge(tags), panel + " at width " + width);
+            }
+        } finally {
+            List.copyOf(Window.getWindows()).forEach(Window::hide);
+        }
+    }
+
+    private static double lowestTagEdge(Node tags) {
+        return tags.lookupAll(".label").stream().mapToDouble(MainWindowTest::bottomEdge).max().orElseThrow();
     }
 
     /** Shows a filled main window of the given size for {@code model} and lays it out. */
