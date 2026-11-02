@@ -193,7 +193,9 @@ public class RenameProjectCommandIntegrationTest {
 
     @Test
     public void execute_quotedSource_matchesOnlyNameContainingLiteralQuotes() throws Exception {
-        assertThrows(CommandException.class, () -> logic.execute("renameproject old/\"CS2103T\" new/Final"));
+        CommandException failure = assertThrows(CommandException.class, () ->
+                logic.execute("renameproject old/\"CS2103T\" new/Final"));
+        assertEquals("No contacts belong to project \"\\\"CS2103T\\\"\".", failure.getMessage());
         assertEquals(original, snapshot(model.getAddressBook()));
         assertEquals(0, storage.saves);
         assertFalse(model.canUndo());
@@ -203,6 +205,26 @@ public class RenameProjectCommandIntegrationTest {
                 List.of("cs2103t", "Internship", "orbital"), List.of("ORBITAL", "Unrelated"),
                 List.of("CS2103T Team B", "Final")));
         assertPersisted();
+    }
+
+    @Test
+    public void execute_missingBackslashSource_escapesBackslashesInError() throws Exception {
+        CommandException failure = assertThrows(CommandException.class, () ->
+                logic.execute("renameproject old/a\\b new/Final"));
+        assertEquals("No contacts belong to project \"a\\\\b\".", failure.getMessage());
+        assertEquals(original, snapshot(model.getAddressBook()));
+        assertEquals(0, storage.saves);
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_missingQuotedBackslashSource_escapesQuotesAndBackslashesInError() throws Exception {
+        CommandException failure = assertThrows(CommandException.class, () ->
+                logic.execute("renameproject old/\"Team\\Blue\" new/Final"));
+        assertEquals("No contacts belong to project \"\\\"Team\\\\Blue\\\"\".", failure.getMessage());
+        assertEquals(original, snapshot(model.getAddressBook()));
+        assertEquals(0, storage.saves);
+        assertFalse(model.canUndo());
     }
 
     @Test
@@ -237,7 +259,9 @@ public class RenameProjectCommandIntegrationTest {
 
     @Test
     public void execute_invalidOrMissingSource_doesNotSaveOrChangeHistory() throws Exception {
-        assertThrows(CommandException.class, () -> logic.execute("renameproject old/Unknown new/Orbital"));
+        CommandException failure = assertThrows(CommandException.class, () ->
+                logic.execute("renameproject old/Unknown new/Orbital"));
+        assertEquals("No contacts belong to project \"Unknown\".", failure.getMessage());
         assertThrows(ParseException.class, () -> logic.execute("renameproject old/CS2103T new/"));
         assertThrows(ParseException.class, () -> logic.execute("renameproject old/ new/Space"));
         assertThrows(ParseException.class, () -> logic.execute("renameproject 1 old/Orbital new/Space"));
