@@ -23,8 +23,13 @@ public class SearchContactDetails extends VBox {
         FlowPane projects = new FlowPane();
         projects.setId("projects");
         projects.setMinWidth(0);
-        person.getProjects().forEach(project ->
-                projects.getChildren().add(new Label("Project: " + project.projectName)));
+        person.getProjects().forEach(project -> {
+            Label tag = new Label("Project: " + project.projectName);
+            tag.setMinWidth(0);
+            tag.maxWidthProperty().bind(projects.widthProperty());
+            tag.setTooltip(new Tooltip(tag.getText()));
+            projects.getChildren().add(tag);
+        });
         projects.setVisible(!person.getProjects().isEmpty());
         projects.setManaged(projects.isVisible());
         setMinWidth(0);
