@@ -46,7 +46,7 @@ Visit the [LinkUp product website](https://ay2627s1-cs2103t-w14-2.github.io/tp/)
 
 - [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
 - [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
-- [LinkUp v1.4 Release Notes](docs/ReleaseNotes.md)
+- [Release notes](docs/ReleaseNotes.md)
 - [About Us](https://ay2627s1-cs2103t-w14-2.github.io/tp/AboutUs.html)
 
 ## Acknowledgement
