@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 public class EmailTest {
@@ -94,6 +96,32 @@ public class EmailTest {
         assertFalse(Email.isValidEmail(TOTAL_255)); // one over
         assertTrue(Email.isValidStoredEmail(TOTAL_254));
         assertFalse(Email.isValidStoredEmail(TOTAL_255));
+    }
+
+    @Test
+    public void isValidEmail_domainLabelLength() {
+        String atLimit = "a".repeat(Email.MAX_DOMAIN_LABEL_LENGTH);
+        String overLimit = atLimit + "a";
+
+        assertTrue(Email.isValidEmail("a@" + atLimit + ".com"));
+        assertTrue(Email.isValidEmail("a@sub." + atLimit + ".com"));
+        assertTrue(Email.isValidEmail("a@example." + atLimit));
+        assertFalse(Email.isValidEmail("a@" + overLimit + ".com")); // first label
+        assertFalse(Email.isValidEmail("a@sub." + overLimit + ".com")); // middle label
+        assertFalse(Email.isValidEmail("a@example." + overLimit)); // last label
+        assertThrows(IllegalArgumentException.class, () -> new Email("a@" + overLimit + ".com"));
+    }
+
+    @Test
+    public void fromStoredValue_overlongDomainLabel_preservesOriginalValue() {
+        String overLimit = "a".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1);
+
+        // The last two match only the current format, not the rule retained for older data files.
+        for (String email : List.of("Alex@" + overLimit + ".com", "a!b@" + overLimit + ".com",
+                "a@" + overLimit + ".c")) {
+            assertTrue(Email.isValidStoredEmail(email), email);
+            assertEquals(email, Email.fromStoredValue(email).value);
+        }
     }
 
     @Test
