@@ -27,7 +27,9 @@ LinkUp v1.5 improves reliability, command feedback, search consistency and usabi
 2. Place it in a writable folder.
 3. Open a terminal in that folder and run:
 
+   ```text
    java -jar LinkUp.jar
+   ```
 
 4. Enter `help` to view the command reference.
 
