@@ -25,8 +25,7 @@ Open the local URL printed by MarkBind. Stop the preview with Ctrl+C. To build w
 execution policy prevents running `npm.ps1`. Generated pages and `node_modules` are not documentation sources.
 
 The local dependency currently specifies MarkBind `^5.1.0`, while `.github/workflows/docs.yml` requests
-`^7.2.1` for deployment. These versions have not been aligned in this documentation change. A successful local
-build is useful validation but does not establish identical rendering in the deployment workflow.
+`^7.2.1` for deployment. A successful local build does not guarantee identical rendering in deployment.
 The workflow runs on pushes to `master`, uses `docs` as its root, and sets `/tp` as the deployed base URL.
 
 ## Where to make changes
@@ -66,4 +65,4 @@ Use British English consistently in explanatory prose. Keep command output, code
 
 ## Converting to PDF
 
-* See the guide [guide to saving web documents as PDF files](https://se-education.org/guides/tutorials/savingPdf.html).
+* See the [guide to saving web documents as PDF files](https://se-education.org/guides/tutorials/savingPdf.html).
