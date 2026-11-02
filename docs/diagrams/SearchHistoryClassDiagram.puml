@@ -1,0 +1,47 @@
+@startuml
+!include style.puml
+skinparam arrowColor LOGIC_COLOR_T4
+skinparam classBackgroundColor LOGIC_COLOR
+skinparam classAttributeFontColor #FFFFFF
+
+package Logic {
+class LogicManager
+class SearchHistory {
+    -searchSequence: long
+    -mostSearchedPerson: ReadOnlyObjectWrapper<Person>
+    +record(matches: List<Person>)
+    +mostSearchedPersonProperty(): ReadOnlyObjectProperty<Person>
+    ~snapshot(): Snapshot
+    ~restore(snapshot: Snapshot)
+}
+class "SearchHistory.SearchCount" as SearchCount <<record>> {
+    -count: long
+    -lastSearch: long
+}
+class "SearchHistory.Snapshot" as Snapshot {
+    -searchSequence: long
+}
+}
+
+package Model {
+class Person MODEL_COLOR
+}
+
+show SearchHistory members
+show SearchCount members
+show Snapshot members
+LogicManager *--> "1" SearchHistory : searchHistory
+SearchHistory --> "0..*" Person : persons {ordered}\nobserves unfiltered contacts
+SearchHistory --> "0..*" SearchCount : counts [Person]
+Snapshot --> "0..*" SearchCount : counts [Person]
+SearchHistory ..> Snapshot : <<create>>
+LogicManager ..> Snapshot : rollback state
+
+note bottom of SearchHistory
+    Session-only statistics; no JSON persistence.
+    Rank by count, then lastSearch, then contact order.
+    List listener transfers counts on replacement,
+    prunes removed contacts and updates the winner.
+    snapshot()/restore() support failed-save rollback.
+end note
+@enduml

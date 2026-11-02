@@ -3,13 +3,17 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
 
 Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
 Class AddressBook
-Class ModelManager
+Class ModelManager {
+    -filteredPersons: FilteredList<Person>
+    -recentFind: FilteredList<Person>
+}
 Class UserPrefs
 
 Class UniquePersonList
@@ -36,12 +40,12 @@ ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
-UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> TelegramUsername
-Person *--> "0..* {ordered}" Project
+UniquePersonList --> "0..* {ordered}" Person : internalList
+Person --> "1" Name
+Person --> "1" Phone
+Person --> "1" Email
+Person --> "1" TelegramUsername
+Person --> "0..* {ordered}" Project
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
@@ -51,5 +55,10 @@ Phone -[hidden]right-> TelegramUsername
 TelegramUsername -[hidden]right-> Project
 Project -[hidden]right-> Email
 
-ModelManager --> "~* filtered" Person
+show ModelManager members
+note bottom of ModelManager
+    Two distinct live FilteredList<Person> views
+    backed by the same address book contacts.
+    recentFind retains the latest search predicate.
+end note
 @enduml
