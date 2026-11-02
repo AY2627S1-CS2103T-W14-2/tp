@@ -18,7 +18,7 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 [[github](https://github.com/NGWEIJIEN35)]
 
 * Role: Developer
-* Responsibilities: Contact management and input validation.
+* Responsibilities: Contact creation, input validation, project-name normalisation and project listing.
 
 ### Teoh Yi Le
 
@@ -27,7 +27,7 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 [[github](https://github.com/yileteoh)]
 
 * Role: Team Lead
-* Responsibilities: UI
+* Responsibilities: Team coordination, project association, replacement and removal, integration testing and documentation.
 
 ### Tan Teck Heang
 
@@ -36,7 +36,7 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 [[github](https://github.com/TTHeang520)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Duplicate-contact detection, contact listing, deletion and sorting, UI improvements and startup recovery.
 
 ### Teng Ywee See
 
@@ -45,7 +45,7 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 [[github](https://github.com/TYS2)]
 
 * Role: Developer
-* Responsibilities: Features implementation, UML diagrams
+* Responsibilities: Undo, command help, search-summary integration, command-input handling and UML diagrams.
 
 ### Xue Xinyu
 
@@ -54,4 +54,4 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 [[github](https://github.com/xinyu0410)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: Name and project search, project renaming and merging, and reliable data saving.
