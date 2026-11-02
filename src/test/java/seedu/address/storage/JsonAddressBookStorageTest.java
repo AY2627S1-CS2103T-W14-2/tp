@@ -135,6 +135,33 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readThenSave_trailingContent_keepsExactUnreadableBackup() throws Exception {
+        assertRejectedAndBackedUpBeforeSave("{\"persons\":[]} {\"persons\":[{\"name\":\"Trailing Contact\"}]}");
+    }
+
+    @Test
+    public void readThenSave_repeatedKey_keepsExactUnreadableBackup() throws Exception {
+        assertRejectedAndBackedUpBeforeSave("{\"persons\":[{\"name\":\"Repeated Key\"}],\"persons\":[]}");
+    }
+
+    private void assertRejectedAndBackedUpBeforeSave(String content) throws Exception {
+        Path file = testFolder.resolve("broken.json");
+        Files.writeString(file, content);
+        byte[] original = Files.readAllBytes(file);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+
+        // No startup backup, as if the file was broken by hand while LinkUp was open.
+        storage.saveAddressBook(getTypicalAddressBook());
+
+        assertEquals(1, backupFiles().size());
+        Path backup = backupFiles().getFirst();
+        assertTrue(backup.getFileName().toString().startsWith("broken.json.unreadable-"));
+        assertArrayEquals(original, Files.readAllBytes(backup));
+        assertEquals(getTypicalAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void backupThenSave_malformedData_keepsOnlyUnreadableBackup() throws Exception {
         Path file = testFolder.resolve("broken.json");
         Files.writeString(file, """
