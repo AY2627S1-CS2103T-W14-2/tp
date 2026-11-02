@@ -97,6 +97,13 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_overlongDomainLabel_rejected() {
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/a@"
+                + "b".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1) + ".com" + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
+                Email.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_localPhone_rejectedForNewContact() {
         assertParseFailure(parser, NAME_DESC_BOB + " p/91234567" + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);

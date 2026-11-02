@@ -176,8 +176,9 @@ English letter is required. The name keeps its capitalisation for display.
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
-Domain labels contain English letters and digits, with hyphens allowed only inside a label. Surrounding whitespace
-is trimmed before validation. Internal whitespace, surrounding
+Domain labels contain English letters and digits, with hyphens allowed only inside a label. Each domain
+label can have at most 63 characters. This limit applies to newly entered emails, so saved emails with longer
+labels still load. Surrounding whitespace is trimmed before validation. Internal whitespace, surrounding
 punctuation such as a copied comma, and prefixes such as `mailto:` are rejected. Newly entered emails are stored
 in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the standard
 size limits for email addresses (RFC 5321), and mail servers may reject longer addresses.
@@ -660,7 +661,7 @@ the same data file while LinkUp is saving.
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
 case when accepted by the legacy loading rules, even if they do not meet today's input rules. However, saved
-emails must still be within the [email length limits](#adding-a-person-add); a file containing a longer email is
+emails must still be within the [254-character and 64-character limits](#adding-a-person-add); a file containing a longer email is
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
@@ -701,6 +702,10 @@ storage or permission problem, then start LinkUp again. Still, we recommend back
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
 [duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
+Unrecognised keys inside a contact are ignored without warning. If you misspell the optional `telegramUsername` or
+`projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
+the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
+contacts in LinkUp before running a command that changes them.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
