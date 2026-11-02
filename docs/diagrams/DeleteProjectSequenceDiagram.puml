@@ -1,0 +1,33 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":DeleteProjectCommand" as Command LOGIC_COLOR
+participant ":Model" as Model MODEL_COLOR
+
+[-> Logic : execute(input)
+ref over Logic, Command
+    Parse removal arguments
+    AddressBookParser / DeleteProjectCommandParser
+end ref
+ref over Logic, Model : Capture rollback state (shared diagram)
+Logic -> Command : execute(model)
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayedContacts
+Command -> Command : copy list; resolve indices; validate all selections
+alt invalid index or any missing association
+    Command --> Logic : CommandException
+    [<-- Logic : error
+else all selections valid
+    Command -> Model : getAddressBook()
+    Model --> Command : contacts (for stored project spelling)
+    Command -> Command : build all replacements before mutation
+    loop each captured original and replacement
+        Command -> Model : setPerson(original, replacement)
+    end
+    Command --> Logic : result
+    ref over Logic, Model : Persist and record undo (shared diagram)
+    [<-- Logic : result or save error
+end
+@enduml
