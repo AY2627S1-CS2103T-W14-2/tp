@@ -23,6 +23,7 @@ Notable uses of AI:
 * ChatGPT, Codex and Claude were used for preliminary code and PR reviews.
 * Codex and Claude assisted with feature implementation, bug investigation and fixes, and writing and running tests.
 * Codex and Claude assisted with documentation updates; Codex also helped check and update UML diagrams.
+* ChatGPT generated the LinkUp icon (`linkup_icon.png`).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -980,7 +981,7 @@ Use case ends.
 **MSS**
 
 1. Student requests to add a contact, supplying a name, phone number, email, Telegram username and one initial project.
-2. LinkUp saves the contact and displays a success message with its details.
+2. LinkUp saves the contact and displays a success message with its index, name and project.
 
 Use case ends.
 

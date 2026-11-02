@@ -284,7 +284,6 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
 * Both names must contain 1–40 characters. The command box removes pasted tabs and line breaks, joining the text around them, so `Team` and `Alpha` on two lines become `TeamAlpha`. Other separators that survive pasting, such as U+0085 and U+2028, produce the general `Invalid command format!` help message.
-* A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
   Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
   association on that contact. Capitalisation corrections
@@ -295,8 +294,10 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 * The replacement keeps the old project's position. The active filter is preserved, so a contact
   may disappear from `findproject` results when its replacement no longer matches.
 * Successful changes are saved and can be reversed with `undo`.
-* A space followed by `old/` or `new/` is interpreted as a command prefix, so these sequences
-  cannot be included literally in a project name in this command.
+* Entering lowercase ` old/` or ` new/` verbatim inside a project-name value is interpreted as another
+  command prefix and causes a parsing error. Prefix parsing is case-sensitive, but project-name matching
+  ignores case: change the prefix-like text inside the value to ` OLD/` or ` NEW/` to match the saved name.
+  For example, after `project 1 pr/Team old/X`, use `replaceproject 1 old/Team OLD/X new/Safe`.
 
 Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
 first displayed contact. The success message identifies the old project, new project and contact, showing the contact's updated details.
@@ -354,7 +355,8 @@ Format: `sort`
   re-sort.
 * All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
   now in sorted order.
-* Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
+* Indices follow the new order, so check them again before using `edit`, `delete`, `project`, `replaceproject` or
+  `deleteproject`.
 * On success, LinkUp shows `Sorted N contact(s) by name.`, where N is the number of saved contacts.
 * If the contacts are already in order, LinkUp shows `Contacts are already sorted by name.`. If there are no
   contacts, it shows `No contacts saved yet.`. These are normal messages, not errors: the command box clears as
@@ -363,8 +365,10 @@ Format: `sort`
 
 Examples:
 
-* `sort` puts the whole contact list in name order.
-* `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
+* Starting with the six unmodified sample contacts, run
+  `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`,
+  then `sort`. Aaron moves to the top, and LinkUp shows `Sorted 7 contact(s) by name.`
+* With an unsorted list, `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex.
 
 ### Renaming or merging a project: `renameproject`
 
@@ -372,8 +376,6 @@ Renames a project across **all saved contacts**, including contacts hidden by a 
 unrelated projects are preserved. Use `replaceproject` to change an association on just one contact.
 
 Format: `renameproject old/OLD_NAME new/NEW_NAME`
-
-A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
 
 * Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
 * Project names must contain 1–40 characters after surrounding and repeated whitespace is cleaned up.
@@ -394,8 +396,11 @@ A project whose name contains ` old/` or ` new/`, which `project` can create, ca
   One `undo` reverses the entire rename or merge, including original capitalisation and project order.
 * Quotation marks and backslashes are literal characters. For example, `old/"CS2103T"` matches only a
   project whose name includes the quotation marks; it does not match `CS2103T`.
-* As with `replaceproject`, a space followed by `old/` or `new/` is a command prefix. These sequences
-  cannot appear literally inside a name in this command; adding quotation marks does not escape them.
+* Entering lowercase ` old/` or ` new/` verbatim inside a project-name value is interpreted as another
+  command prefix and causes a parsing error; adding quotation marks does not escape it. Prefix parsing is
+  case-sensitive, but project-name matching ignores case: change the prefix-like text inside the value
+  to ` OLD/` or ` NEW/` to match the saved name. For example, after `project 1 pr/Team old/X`, use
+  `renameproject old/Team OLD/X new/Safe`.
 
 **Merging into an existing project**
 
