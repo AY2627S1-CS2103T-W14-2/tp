@@ -314,7 +314,6 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
 * Both names must contain 1–40 characters. The command box removes pasted tabs and line breaks, joining the text around them, so `Team` and `Alpha` on two lines become `TeamAlpha`. Other separators that survive pasting, such as U+0085 and U+2028, produce the general `Invalid command format!` help message.
-* A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
   Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
   association on that contact. Capitalisation corrections
@@ -325,8 +324,10 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 * The replacement keeps the old project's position. The active filter is preserved, so a contact
   may disappear from `findproject` results when its replacement no longer matches.
 * Successful changes are saved and can be reversed with `undo`.
-* A space followed by `old/` or `new/` is interpreted as a command prefix, so these sequences
-  cannot be included literally in a project name in this command.
+* Entering lowercase ` old/` or ` new/` verbatim inside a project-name value is interpreted as another
+  command prefix and causes a parsing error. Prefix parsing is case-sensitive, but project-name matching
+  ignores case: change the prefix-like text inside the value to ` OLD/` or ` NEW/` to match the saved name.
+  For example, after `project 1 pr/Team old/X`, use `replaceproject 1 old/Team OLD/X new/Safe`.
 
 Example: `replaceproject 1 old/CS2103T new/Orbital` replaces CS2103T with Orbital on the
 first displayed contact. The success message identifies the old project, new project and contact, showing the contact's updated details.
@@ -402,8 +403,6 @@ unrelated projects are preserved. Use `replaceproject` to change an association 
 
 Format: `renameproject old/OLD_NAME new/NEW_NAME`
 
-A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
-
 * Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
 * Project names must contain 1–40 characters after surrounding and repeated whitespace is cleaned up.
 * Source matching is exact and case-insensitive: `Orbital` matches `orbital`, but not `Orbital Team B`.
@@ -423,8 +422,11 @@ A project whose name contains ` old/` or ` new/`, which `project` can create, ca
   One `undo` reverses the entire rename or merge, including original capitalisation and project order.
 * Quotation marks and backslashes are literal characters. For example, `old/"CS2103T"` matches only a
   project whose name includes the quotation marks; it does not match `CS2103T`.
-* As with `replaceproject`, a space followed by `old/` or `new/` is a command prefix. These sequences
-  cannot appear literally inside a name in this command; adding quotation marks does not escape them.
+* Entering lowercase ` old/` or ` new/` verbatim inside a project-name value is interpreted as another
+  command prefix and causes a parsing error; adding quotation marks does not escape it. Prefix parsing is
+  case-sensitive, but project-name matching ignores case: change the prefix-like text inside the value
+  to ` OLD/` or ` NEW/` to match the saved name. For example, after `project 1 pr/Team old/X`, use
+  `renameproject old/Team OLD/X new/Safe`.
 
 **Merging into an existing project**
 
