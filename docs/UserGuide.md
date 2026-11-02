@@ -101,6 +101,30 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
+### Viewing the most searched contact
+
+The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
+shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
+The **Current contact list** below provides the numbered contacts for commands.
+
+* Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
+  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
+  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
+  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
+  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
+* **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
+  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
+  no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
+  `list` and other commands do not add search counts.
+* Editing a contact or adding a project preserves their count and search recency; their displayed details update
+  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
+  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
+  These commands leave the recent search text unchanged.
+* Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
+  section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
+  to read the full text. Project tags wrap below the contact header. Only one most searched contact is shown,
+  and its details scroll when needed.
+
 ### Viewing recent search results
 
 The **Recent search** section sits above the **Current contact list**, beside **Most searched**.
@@ -450,26 +474,6 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank, overlong, or slash-containing input produces an error without changing the current results or saved contacts.
-* The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
-  shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
-  The **Current contact list** below provides the numbered contacts for commands.
-  Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
-  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
-  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
-  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
-  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
-* **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
-  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
-  no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
-  `list` and other commands do not add search counts.
-* Editing a contact or adding a project preserves their count and search recency; their displayed details update
-  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
-  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
-  These commands leave the recent search text unchanged.
-* Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
-  section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
-  to read the full text. Project tags wrap below the contact header. Only one most searched contact is shown,
-  and its details scroll when needed.
 
 Examples:
 * `find John` returns `john` and `John Doe`
@@ -595,7 +599,7 @@ Each `undo` reverses the most recent successful supported command that has not a
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
 `No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
-A successful undo displays all contacts again.
+A successful undo reports `Last command undone.` and displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
 If there are no commands left to undo, the application reports `No command to undo.`

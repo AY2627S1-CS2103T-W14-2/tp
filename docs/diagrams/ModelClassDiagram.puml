@@ -37,11 +37,11 @@ UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
 UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> TelegramUsername
-Person *--> "0..* {ordered}" Project
+Person --> "1" Name
+Person --> "1" Phone
+Person --> "1" Email
+Person --> "1" TelegramUsername
+Person --> "0..* {ordered}" Project
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I

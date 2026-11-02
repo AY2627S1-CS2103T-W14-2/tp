@@ -153,6 +153,9 @@ The `Model` component,
 * keeps undo snapshots in an in-memory `Deque<AddressBook>`; they are not stored in JSON.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
+`Person` refers to immutable value objects rather than owning their lifetimes. For example, a batch project
+association can share one `Project` instance across contacts, and an edited contact can reuse unchanged field
+objects. The diagram therefore uses ordinary associations for these fields.
 
 
 
@@ -248,7 +251,7 @@ the username with its leading `@`. The header tooltip contains the full name and
 Commands continue to resolve indices exclusively against `Model.getFilteredPersonList()`.
 
 `SearchContactDetails` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
-the existing tag colors, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
+the existing tag colours, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
 width so tags wrap within the list. Empty project lists are hidden and unmanaged.
 
 The panel binds its single latest-search label to `Logic.recentSearchProperty()`. `LogicManager` owns the
@@ -276,7 +279,7 @@ and the tooltip text.
 
 `RecentFindPanelTest` checks populated and missing Telegram usernames, header tooltips, project order,
 and cleanup when cells are reused or results are cleared. Its rendered styling test compares project tags
-with a `PersonCard` for background, text color, padding, font, border, and spacing, and verifies wrapping.
+with a `PersonCard` for background, text colour, padding, font, border, and spacing, and verifies wrapping.
 
 ### Most searched contact and shared latest search
 
@@ -457,10 +460,12 @@ The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or mor
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
 project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
 
-The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
-command validates the complete batch before changing either contact.
+The sequence diagram below focuses on the command and model during a successful `project 1 2 pr/Orbital`.
+The command validates the complete batch and prepares every replacement before changing either contact.
+Parsing, result construction, saving and undo bookkeeping are omitted; persistence and undo follow the shared
+`LogicManager` flow described below.
 
-<puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760" alt="Interactions inside the Logic and Model components for a multi-contact project command" />
+<puml src="diagrams/ProjectCommandSequenceDiagram.puml" alt="Validation and updates for a multi-contact project command" />
 
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
@@ -741,6 +746,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | student | add a contact                                                          | save the details of a project mate                                |
 | `* * *`  | student | view all my contacts                                                   | see the people whose information I have saved                     |
 | `* * *`  | student | delete a contact                                                       | remove contacts I no longer need                                  |
+| `* * *`  | student | undo my most recent supported change during the current session        | recover from an accidental change to my contacts or projects       |
 | `* * *`  | student | search for a contact by name                                           | quickly find someone                                              |
 | `* * *`  | student | associate a contact with a project                                     | remember where I know the person from                             |
 | `* * *`  | student | search for contacts by project                                         | find members of a particular project                              |
@@ -920,20 +926,34 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-These are design targets, not a claim that performance or usability benchmarks have been completed.
-CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
+These are quality targets. Performance and usability targets still need to be tested.
 
-1.  **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
-2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
-3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
-4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
-5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
-6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
-7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
-8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
-    file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
-    failures preserve the previously saved file, report an error and restore the previous in-memory state,
-    as described above. Contact saves require a filesystem that supports atomic replacement.
+For capacity and speed checks, use 1,000 valid contacts with ten projects each, Java 25, a computer with at
+least four CPU cores at 2 GHz, 8 GB RAM and a local SSD. Run only one LinkUp instance and no other heavy workloads.
+
+1. **Compatibility:** The same JAR shall support adding, editing, searching, deleting, undoing and saving contacts
+   on Windows, macOS and Linux with Java 25, without changing the code for each platform.
+2. **Capacity:** LinkUp shall load, display and save at least 1,000 contacts without running out of memory or
+   losing contact details or project associations.
+3. **Speed:** Each of `find`, `findproject`, `list` and `sort` shall update the results within two seconds of
+   pressing Enter in at least 19 of 20 test runs. Each sort test shall start with an unsorted list.
+4. **Ease of learning:** After ten minutes reading the User Guide, at least four of five new users who are
+   comfortable with terminal commands shall be able to add, edit, find, delete and restore a contact using undo
+   within a further ten minutes. They may refer to the guide but shall not need help from another person.
+5. **Keyboard use:** With the command box selected, users shall be able to add, edit, find, delete and undo changes,
+   list contacts, open help and exit using only the keyboard.
+6. **Readability:** At a window size of 450 by 600 pixels and 100% display scaling, all main sections shall remain
+   accessible. Users shall be able to read long content by scrolling or resizing sections, and see complete
+   truncated search headers and queries by hovering over them.
+7. **Protection against failed changes:** Invalid commands and failed saves shall leave contacts, their order,
+   the saved file, search results, search counts and undo history unchanged. If saving an undo fails, users shall
+   be able to retry it.
+8. **Data recovery:** After a successful save and normal restart, contact details, contact order and project
+   associations shall be restored exactly. An unreadable data file shall be backed up without changing its contents
+   before it is replaced. If the startup backup fails, LinkUp shall stop without overwriting the original file.
+   This requirement excludes power loss and changes made by other programs while LinkUp is running.
+9. **Offline use:** After installation, managing contacts, searching, sorting, undoing and saving shall work
+   without an internet connection. External documentation links require internet access.
 
 ### Glossary
 
@@ -942,7 +962,12 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
 * **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
 * **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
+* **Most searched contact**: The contact matched by the most successful name or project searches in the current session.
+  Ties favour the most recently matched contact, then the first contact in the contact list.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
+* **Legacy data file**: Contact data saved by an older version of LinkUp. It may contain retired fields such as address and
+* tags, lack a Telegram username or project, or use older formats such as a local phone number. LinkUp still loads it, and 
+* values you don't change are kept as saved.
 
 --------------------------------------------------------------------------------------------------------------------
 
