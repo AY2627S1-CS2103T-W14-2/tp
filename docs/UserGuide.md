@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# LinkUp User Guide
+# LinkUp user guide
 
 LinkUp is a **desktop contact manager for students working across projects and teams**. Type commands to save
 contact details, associate project mates with projects, and find the right person by name or project. The contact
@@ -483,6 +483,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   contacts again, clearing the previous search filter.
 
 Examples:
+
 *  `edit 1 p/+6591234567 e/johndoe@example.com` changes the phone number and email of the 1st contact to
    `+6591234567` and `johndoe@example.com`.
 *  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
@@ -506,17 +507,18 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   (for example, `find n/alex`) produce an error explaining the correct format.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
-* No matches produces an empty list and the message `0 contact(s) listed!`.
+* A search with no matches produces an empty list and the message `0 contact(s) listed!`.
 * Successful searches report `N contact(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank, overlong, or slash-containing input produces an error without changing the current results or saved contacts.
 
 Examples:
+
 * `find John` returns `john` and `John Doe`
 * `find ale` returns contacts such as `Alex Tan` and `Alexander Lee`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+  ![Contacts matching the name search find alex david](images/findAlexDavidResult.png)
 
 ### Finding contacts by project: `findproject`
 
@@ -606,6 +608,7 @@ Format: `delete INDEX`
   so contacts with the same name can be told apart.
 
 Examples:
+
 * `list` followed by `delete 2` deletes the 2nd contact in LinkUp.
 * `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
 
@@ -626,7 +629,8 @@ The command takes no parameters. Extra text is rejected without changing any con
 
 ### Undo a command: `undo`
 
-Undo the last supported command. The supported commands are:
+Reverses the last supported command. The supported commands are:
+
 * `add`
 * `delete`
 * `edit`
@@ -730,7 +734,7 @@ Changes must satisfy the [duplicate-contact rule](#adding-a-contact-add) and the
 * **Project:** Optional. Each name follows the `add` rules, and repeats on one contact are dropped.
 
 In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
-hyphens. The command input `p/+65 9123-4567` is normalized before saving; that formatted string is not accepted
+hyphens. The command input `p/+65 9123-4567` is normalised before saving; that formatted string is not accepted
 directly in JSON. Older digit-only numbers such as `"91234567"` remain loadable and are preserved exactly.
 LinkUp does not infer a country code, so `91234567` and `+6591234567` are different stored phone values.
 
@@ -778,7 +782,7 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -800,16 +804,16 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
+**Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
+**Help**   | `help`
 **List**   | `list`
+**List projects** | `projects`
+**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
-**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
-**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
-**List projects** | `projects`
-**Help**   | `help`
 **Undo**   | `undo`
-**Exit**   | `exit`
