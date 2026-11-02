@@ -153,9 +153,10 @@
       "src": "UserGuide.md",
       "title": "User Guide",
       "headings": {
-        "linkup-user-guide": "LinkUp user guide",
+        "linkup-user-guide": "LinkUp User Guide",
         "quick-start": "Quick start",
         "features": "Features",
+        "viewing-the-most-searched-contact": "Viewing the most searched contact",
         "viewing-recent-search-results": "Viewing recent search results",
         "viewing-help-help": "Viewing help: help",
         "adding-a-contact-add": "Adding a contact: add",
