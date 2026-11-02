@@ -3,7 +3,7 @@
 [![Java CI](https://github.com/AY2627S1-CS2103T-W14-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W14-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W14-2/tp/branch/master/graph/badge.svg)](https://app.codecov.io/gh/AY2627S1-CS2103T-W14-2/tp)
 
-**LinkUp is a desktop address book for students who manage contacts across multiple projects and teams.**
+**LinkUp is a desktop contact manager for students working across projects and teams.**
 
 It helps students organise their project mates' contact details together with relevant project information. This makes it easier to retrieve the right contact quickly and distinguish between people with identical or similar names across different projects.
 
@@ -27,11 +27,11 @@ duplicate-contact handling, and data recovery.
 - Add a project to multiple contacts, replace or remove individual associations, list tracked projects, and rename
   or merge projects across all contacts.
 - Edit contact details, sort contacts by name, and keep the latest and most frequently matched contacts visible.
-- List all contacts, clear the address book, open command help, and exit the app.
+- List all contacts, clear all contacts, open command help, and exit the app.
 
-The MVP command set is `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
-Beyond the MVP, `edit` changes a contact's name, phone number, email or Telegram username, and `sort` orders
-contacts by name. Projects are added with `project`, replaced on one contact with `replaceproject`, removed
+The core commands are `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`.
+`edit` changes a contact's name, phone number, email or Telegram username, and `sort` orders contacts by name.
+Projects are added with `project`, listed with `projects`, replaced on one contact with `replaceproject`, removed
 with `deleteproject`, and renamed or merged across all contacts with `renameproject`.
 
 ## UI
@@ -46,7 +46,7 @@ Visit the [LinkUp product website](https://ay2627s1-cs2103t-w14-2.github.io/tp/)
 
 - [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
 - [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
-- [LinkUp v1.4 Release Notes](docs/ReleaseNotes.md)
+- [Release notes](docs/ReleaseNotes.md)
 - [About Us](https://ay2627s1-cs2103t-w14-2.github.io/tp/AboutUs.html)
 
 ## Acknowledgement

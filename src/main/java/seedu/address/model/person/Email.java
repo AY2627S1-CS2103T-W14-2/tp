@@ -14,10 +14,12 @@ import java.util.Locale;
  */
 public class Email {
 
+    /** Standard maximum length of one dot-separated part of a domain (RFC 1035). */
+    public static final int MAX_DOMAIN_LABEL_LENGTH = 63;
     public static final String MESSAGE_CONSTRAINTS = "Email must be in the format local@domain, with exactly one @. "
             + "The local part may contain letters, digits, and common email symbols, with dots only between "
-            + "non-empty parts. The domain needs at least two dot-separated labels of letters, digits, or "
-            + "inner hyphens. Whitespace is not allowed.";
+            + "non-empty parts. The domain needs at least two dot-separated labels of up to "
+            + MAX_DOMAIN_LABEL_LENGTH + " letters, digits, or inner hyphens. Whitespace is not allowed.";
     /** Standard maximum length of an address (RFC 5321 path limit of 256, minus the enclosing angle brackets). */
     public static final int MAX_LENGTH = 254;
     /** Standard maximum length of the part before the {@code @} (RFC 5321). */
@@ -73,7 +75,7 @@ public class Email {
         if (isTooLong(test)) {
             return false;
         }
-        return isValidEmail(test) || test.matches(LEGACY_VALIDATION_REGEX);
+        return hasValidFormat(test) || test.matches(LEGACY_VALIDATION_REGEX);
     }
 
     /**
@@ -93,6 +95,15 @@ public class Email {
      */
     public static boolean isValidEmail(String test) {
         requireNonNull(test);
+        return hasValidFormat(test) && Arrays.stream(test.substring(test.indexOf('@') + 1).split("\\."))
+                .allMatch(label -> label.length() <= MAX_DOMAIN_LABEL_LENGTH);
+    }
+
+    /**
+     * Returns true if {@code test} has the format of a new email. Saved emails need not meet the domain label
+     * limit, so that data files from older versions still load.
+     */
+    private static boolean hasValidFormat(String test) {
         // Checked first: the local-part pattern recurses once per dot and overflows the stack on very long input.
         if (isTooLong(test)) {
             return false;

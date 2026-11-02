@@ -46,8 +46,8 @@ MainWindow *-down-> "1" StatusBarFooter
 MainWindow --> "1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
-MainWindow *-down-> "0..1" SearchContactDetails
-RecentFindPanel -down-> "*" SearchContactDetails
+MainWindow *-down-> "0..1" SearchContactDetails : active details
+RecentFindPanel -down-> "*" SearchContactDetails : recent results
 
 MainWindow -left-|> UiPart
 
