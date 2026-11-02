@@ -18,6 +18,12 @@ The layered architecture, command infrastructure, and parts of this documentatio
 The application uses JavaFX for its interface and Jackson for JSON storage; dependencies and versions are
 declared in `build.gradle`. Documentation is built with MarkBind.
 
+Notable uses of AI:
+
+* ChatGPT, Codex and Claude were used for preliminary code and PR reviews.
+* Codex and Claude assisted with feature implementation, bug investigation and fixes, and writing and running tests.
+* Codex and Claude assisted with documentation updates; Codex also helped check and update UML diagrams.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -219,7 +225,7 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). New input also limits each domain label to 63 characters; saved emails do not, so older data files still load. Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case letter by letter, as `String#equalsIgnoreCase` does, so `ΟΣ` and `οσ` are the same project (issue #241). `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), except the zero-width non-joiner and joiner (U+200C/U+200D). It then removes those joiners too when they join nothing visible: next to a Latin letter, a digit, punctuation or whitespace, or at either end of the name; a run of joiners is removed as a whole. Joiners between emoji (e.g. 👨‍💻) or between letters of scripts such as Persian or Hindi are kept. Together these stop pasted names from creating look-alike duplicates (issue #177). It then collapses whitespace and removes only spaces at either end (not `String#strip`, which would also drop U+001C–U+001F); tabs and line breaks become spaces, so `normalize` alone does not validate a name. Before any cleaning, `isValidProjectName` rejects malformed text (an unpaired surrogate, since removing a character between two unpaired surrogates could join them into a new character) and any control character, including tabs and line breaks (issue #202). Known limits: a joiner between letters of other non-Latin scripts (e.g. Cyrillic) is kept, tag characters in subdivision flag emoji are removed, and invisible characters outside category Cf (e.g. U+3164 Hangul filler) are not handled. Saved names are normalised the same way when loaded. |
 
@@ -361,7 +367,8 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON i
 up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
 at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
 backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
-before the next save replaces it.
+before the next save replaces it. `JsonUtil.fromJsonString` also rejects content after the first JSON value and
+repeated keys, so such a file takes the same backup path as other malformed JSON.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
@@ -630,7 +637,7 @@ so the order of any contact list is fully determined.
 When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
 by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
 message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
-commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise `SortCommand#execute` calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: after a successful save, `LogicManager` stores the previous address book, and `undo` restores the
@@ -913,10 +920,76 @@ Use case ends.
 * 1b. The phone number, email or Telegram username is already used by another contact. Emails and Telegram
   usernames are compared ignoring case; names and projects are not compared.
 
-  * 1b1. LinkUp names the first clashing detail, in the order phone number, email, Telegram username, and the
-    contact that uses it, without changing saved contacts.
+  * 1b1. LinkUp selects the first conflicting contact in saved list order. Within that contact, it reports the
+    first clashing detail in the order phone number, email, then Telegram username, without changing saved contacts.
 
   Use case resumes at step 1.
+
+#### UC06: Edit a contact
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student requests to change one or more details of a contact at a displayed index, supplying the new values.
+4. LinkUp updates only the supplied details, keeps the contact's projects, displays all contacts, and displays a success message with the contact's updated details.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3b. No detail is supplied, a detail is invalid or repeated, or a project is supplied.
+
+  * 3b1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3c. The new phone number, email or Telegram username is already used by another contact, including one hidden by a search.
+
+  * 3c1. LinkUp names the clashing detail and contact without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3d. The supplied details match the contact's saved details.
+
+  * 3d1. LinkUp displays a message indicating that no changes were made.
+
+  Use case ends.
+
+#### UC07: Sort contacts by name
+
+**MSS**
+
+1. Student requests to sort the contacts.
+2. LinkUp orders all saved contacts by name, ignoring case, saves the new order, preserves any active search filter, and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 2b. The contacts are already in name order.
+
+  * 2b1. LinkUp displays a message indicating that the contacts are already sorted, without changing them.
+
+  Use case ends.
 
 ### Non-functional requirements
 
