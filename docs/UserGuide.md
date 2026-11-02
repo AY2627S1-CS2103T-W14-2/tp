@@ -115,13 +115,15 @@ The **Current contact list** below provides the numbered contacts for commands.
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
   no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
   `list` and other commands do not add search counts.
-* Editing a contact or adding a project preserves their count and search recency; their displayed details update
-  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
-  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
+* Editing a contact or changing their projects with `project`, `replaceproject`, `deleteproject` or `renameproject`
+  preserves their count and search recency. Their displayed details update immediately. Undoing any of these
+  changes also preserves these statistics. Deleting a contact removes their count; `clear` removes all counts.
+  Undoing deletion or clearing restores contacts without their old counts.
   These commands leave the recent search text unchanged.
 * Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
   section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
-  to read the full text. Project tags wrap below the contact header. Only one most searched contact is shown,
+  to read the full text. Project tags wrap below the contact header. A project tag too long for its panel ends
+  in an ellipsis and shows the full project name in a tooltip. Only one most searched contact is shown,
   and its details scroll when needed.
 
 ### Viewing recent search results
@@ -129,12 +131,13 @@ The **Current contact list** below provides the numbered contacts for commands.
 The **Recent search** section sits above the **Current contact list**, beside **Most searched**.
 It shows contacts matching the latest name or project search and scrolls independently. Each result shows a matching contact's name and Telegram handle, with project tags
 underneath. Contacts without a Telegram username show `No Telegram Username` beside their name.
-For example, a result header reads `Alex Tan | @alex_tan` or `Alex Tan | No Telegram Username`.
+For example, a result header reads `Alex Tan  |  @alex_tan` or `Alex Tan  |  No Telegram Username`.
 Hover over the header to see the full name and handle if the text is too long to fit.
 
 Project tags appear below the header as purple labels such as `Project: Orbital`, using the same styling as
-the main contact cards. Tags wrap onto additional lines when needed, and results scroll independently to show
-all details. Contacts without projects have no project tags. Use the main contact list to view phone numbers and emails.
+the main contact cards. Tags wrap onto additional lines when needed. A project tag too long for its panel ends
+in an ellipsis and shows the full project name in a tooltip. Results scroll independently to show all details.
+Contacts without projects have no project tags. Use the main contact list to view phone numbers and emails.
 
 The shared search label appears once above the rows, for example `Latest search: Name: Alex` or
 `Latest search: Project: Team Alpha`.
@@ -345,9 +348,9 @@ Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed c
 With the original sample list displayed, use `deleteproject 1 2 pr/CS2103T` to remove the association from Alex and Bernice.
 The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
-### Listing all persons: `list`
+### Listing all contacts: `list`
 
-Shows a list of all persons in the address book.
+Shows all contacts saved in LinkUp.
 
 Clears the current search filter. Shows `Listed all contacts.` when contacts exist, or `No contacts saved yet.`
 when the list is empty. The **Recent search** section retains the latest search results.
@@ -426,7 +429,7 @@ Like other commands that change contacts, rename updates the current session bef
 LinkUp restores the contacts, current search, and undo history to their previous state. Correct the storage
 problem and retry the rename.
 
-### Editing a person: `edit`
+### Editing a contact: `edit`
 
 Changes the name, phone number, email or Telegram username of an existing contact.
 
@@ -438,7 +441,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   `edit 1 n/Alice tele/@alice_tan` are the same command.
 * Only the fields you supply change. All other details, including every project and their order, stay exactly
   as they are. Contacts saved by older versions without a Telegram username can still have other fields edited.
-* Values follow the same rules and formatting as [`add`](#adding-a-person-add): phone numbers need `+` and a
+* Values follow the same rules and formatting as [`add`](#adding-a-contact-add): phone numbers need `+` and a
   country code, new emails are stored in lowercase, and Telegram usernames are stored in lowercase without `@`.
 * A field cannot be left blank or cleared. For example, `edit 1 n/Weien tele/` is rejected as a whole, and the
   name does not change either.
@@ -448,7 +451,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   Use `replaceproject` to replace one association, `deleteproject` to remove associations, or `renameproject`
   to rename across all contacts. Address (`a/`) and tags (`t/`) are no longer supported either.
 * The new phone number, email and Telegram username must not belong to any other contact, including contacts
-  hidden by a search, following the same [duplicate-contact rule](#adding-a-person-add) as `add`. You can keep
+  hidden by a search, following the same [duplicate-contact rule](#adding-a-contact-add) as `add`. You can keep
   a contact's own details, and you can give a contact the same name as another contact.
 * If any part of the command is invalid, nothing changes: the contact, the current search results, the saved
   data and the undo history all stay as they were. LinkUp reports one error at a time.
@@ -561,14 +564,14 @@ Examples:
 * `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
   `hackathon 2026`, ignoring case.
 
-### Deleting a person: `delete`
+### Deleting a contact: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified contact from LinkUp.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the contact at the specified `INDEX`.
+* The index refers to the index number shown in the displayed contact list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * Only the selected contact is removed, even if others have the same name. The current search filter is preserved.
 * Deletion takes effect immediately without a confirmation prompt. Use `undo` in the same session to reverse it.
@@ -576,12 +579,12 @@ Format: `delete INDEX`
   so contacts with the same name can be told apart.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd contact in LinkUp.
+* `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all contacts from LinkUp.
 
 On success, LinkUp shows `Cleared all contacts and project associations from LinkUp.`
 
@@ -659,7 +662,7 @@ the same data file while LinkUp is saving.
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
 case when accepted by the legacy loading rules, even if they do not meet today's input rules. However, saved
-emails must still be within the [email length limits](#adding-a-person-add); a file containing a longer email is
+emails must still be within the [254-character and 64-character limits](#adding-a-contact-add); a file containing a longer email is
 treated as invalid (see [Editing the data file](#editing-the-data-file)).
 Previously saved local phone numbers also load unchanged, as do previously saved Telegram usernames that start
 with a digit or underscore or end with an underscore.
@@ -699,7 +702,11 @@ error and does not start, so that your data file is never overwritten. Copy the 
 storage or permission problem, then start LinkUp again. Still, we recommend backing up the file yourself before
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
-[duplicate-contact rule](#adding-a-person-add) and is also rejected on load.<br>
+[duplicate-contact rule](#adding-a-contact-add) and is also rejected on load.<br>
+Unrecognised keys inside a contact are ignored without warning. If you misspell the optional `telegramUsername` or
+`projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
+the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
+contacts in LinkUp before running a command that changes them.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 

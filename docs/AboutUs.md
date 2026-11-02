@@ -42,10 +42,10 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 
 <img src="images/tys2.png" width="200px">
 
-[[github](http://github.com/TYS2)]
+[[github](https://github.com/TYS2)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: Features implementation, UML diagrams
 
 ### Xue Xinyu
 

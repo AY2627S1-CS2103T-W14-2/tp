@@ -253,7 +253,8 @@ Commands continue to resolve indices exclusively against `Model.getFilteredPerso
 
 `SearchContactDetails` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
 the existing tag colours, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
-width so tags wrap within the list. Empty project lists are hidden and unmanaged.
+width so tags wrap within the list. A project tag too long for its panel ends in an ellipsis and shows the full
+project name in a tooltip. Empty project lists are hidden and unmanaged.
 
 The panel binds its single latest-search label to `Logic.recentSearchProperty()`. `LogicManager` owns the
 read-only string wrapper and updates it after either search command executes; searches do not save. The stored
@@ -297,8 +298,9 @@ or `null`. Same-name contacts have separate entries. A no-match search updates r
 any contact's frequency or recency.
 
 The contact-list listener transfers statistics across replacements without changing their last-search sequence.
-It handles both single-element edits/project updates and equal-sized snapshot replacements from undo. Contacts
-already present in the replacement retain their own statistics, so list reordering cannot exchange counts.
+It handles both single-element edits/project updates and equal-sized whole-list replacements from `renameproject`
+and undo. Contacts already present in the replacement retain their own statistics, so list reordering cannot
+exchange counts.
 Removed contacts are pruned. Deletion and clear therefore discard the affected counts permanently; undoing
 those operations restores contacts without restoring their discarded counts. Undoing an edit or project change
 preserves counts. Search statistics are not part of the contact undo snapshots, JSON data or user preferences,
@@ -308,15 +310,16 @@ and reset on restart. The latest search query survives contact mutations until t
 the two search sections in an equal-width `GridPane`, above the numbered Current contact list.
 Most searched is on the left, with the subtitle Top contact this session; Recent search is on the right.
 Both content areas align vertically and scroll independently. The horizontal scrollbar of the recent
-results list is hidden; contact headers truncate with tooltips, while project tags wrap.
+results list is hidden; contact headers truncate with tooltips, while project tags wrap. A project tag too long
+for its panel ends in an ellipsis and shows the full project name in a tooltip.
 The latest query appears only once, in `RecentFindPanel`. `SearchContactDetails` renders contact headers,
-Telegram fallbacks, full-text tooltips and wrapping project tags for both features. The favourite shows
+Telegram fallbacks, full-text tooltips and wrapping project tags for both features. The most searched section shows
 `No contacts searched yet.` when no current contact has a count, and its details scroll when needed.
 
 `SearchHistoryTest` covers frequency, search recency, same-search ordering, namesakes, edits, snapshot restore,
 reordering, deletion, empty results and session reset. `LogicManagerTest` covers command integration, Unicode
 query trimming, repeated keywords, failed searches, searches with unwritable storage, edits/undo and clear/undo.
-`SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the session favourite,
+`SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the most searched contact,
 tooltips, equal column widths, aligned content and compact layout at the 450-pixel minimum width.
 
 ### Saving contact data safely
