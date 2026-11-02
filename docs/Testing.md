@@ -56,6 +56,19 @@ directories. `SameNameContactsIntegrationTest` covers namesake workflows, and `P
 covers project association and persistence. UI tests in `seedu.address.ui` exercise JavaFX components;
 `MainAppTest` covers startup, shutdown, preferences and unreadable-data recovery.
 
+`AtomicFileWriterTest` injects failures after a partial temporary write and before replacement, then checks
+the original bytes and reloads the saved contacts. It also covers failed first saves, cleanup, permissions
+and symbolic links. `AtomicSaveIntegrationTest` exercises edit/undo rollback and retry through real JSON
+storage. The byte-range lock test runs only on Windows; POSIX permission and symbolic-link tests run on
+macOS and Linux. A passing run on one platform does not verify the other platforms' filesystem behaviour.
+
+For Windows save-failure verification, run `AtomicFileWriterTest` on Windows with Java 25, using temporary
+test data. The lock case holds a byte range just beyond the old end of the file while saving a larger contact
+list. Depending on file-sharing support, saving may succeed with complete new data or fail with the original
+bytes intact. After the handle is closed, retry must succeed and the new contacts must reload. Also verify
+in the app that a blocked save reports an error and that retrying the original command after releasing the
+file succeeds. Never use real contacts for failure testing.
+
 For a packaged-release smoke test, follow the [manual testing instructions](DeveloperGuide.md#appendix-instructions-for-manual-testing).
 Record which cases and platforms were actually exercised; automated test success does not imply every manual
 scenario or performance target has been verified.
