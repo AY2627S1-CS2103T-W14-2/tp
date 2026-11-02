@@ -11,4 +11,4 @@ Contact data is stored separately in `data/addressbook.json`, relative to the sa
 
 To reset the window size and position, close LinkUp and remove `preferences.json` from the launch folder. LinkUp creates default preferences the next time it starts. This does not delete your contacts.
 
-For contact-file recovery and transfer instructions, see [Saving the data in the User Guide](UserGuide.md#saving-the-data).
+For contact-file recovery, see [Saving the data in the User Guide](UserGuide.md#saving-the-data). For transfer instructions, see the [FAQ](UserGuide.md#faq).
