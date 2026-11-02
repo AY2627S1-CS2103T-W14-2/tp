@@ -18,6 +18,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import seedu.address.logic.Logic;
@@ -34,6 +35,45 @@ import seedu.address.testutil.PersonBuilder;
 public class SearchSummaryUiTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void longProjectTag_fitsBothSearchPanelsAtDefaultAndMinimumWidths() throws Exception {
+        FxTestUtil.run(() -> {
+            String project = "W".repeat(40);
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder(ALICE).withProjects(project).build());
+            Logic logic = new LogicManager(model, new StorageManager(
+                    new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+            Stage stage = new Stage();
+            try {
+                MainWindow window = new MainWindow(stage, logic, temporaryFolder.resolve("contacts.json"));
+                window.fillInnerParts();
+                window.show();
+                logic.execute("find Alice");
+                Parent root = stage.getScene().getRoot();
+                for (int width : new int[] {740, 450}) {
+                    root.resize(width, 600);
+                    root.applyCss();
+                    root.layout();
+                    for (String panel : java.util.List.of("#mostSearchedDetails", "#recentFindListView")) {
+                        FlowPane projects = (FlowPane) root.lookup(panel).lookup("#projects");
+                        Label tag = (Label) projects.getChildren().get(0);
+                        assertTrue(tag.getWidth() > 0, panel);
+                        assertTrue(tag.getWidth() <= projects.getWidth(), panel + " at " + width);
+                        assertTrue(tag.getBoundsInParent().getMaxX() <= projects.getWidth() + 1,
+                                panel + " at " + width + ": " + tag.getBoundsInParent());
+                        assertTrue(tag.getWidth() < tag.prefWidth(-1), panel);
+                        assertEquals("Project: " + project, tag.getTooltip().getText());
+                    }
+                }
+            } catch (Exception e) {
+                throw new AssertionError(e);
+            } finally {
+                stage.close();
+            }
+        });
+    }
 
     @Test
     public void caseOnlyProjectChangesAndUndo_refreshBothSearchPanels() throws Exception {

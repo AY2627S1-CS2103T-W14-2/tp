@@ -167,6 +167,14 @@ public class MainAppTest {
     }
 
     @Test
+    public void initPrefs_nullGuiSettings_recreatesDefaults() throws Exception {
+        JsonUserPrefsStorage prefs = new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"));
+        Files.writeString(prefs.getUserPrefsFilePath(), "{\"guiSettings\":null}");
+        assertEquals(new UserPrefs(), new MainApp().initPrefs(prefs));
+        assertEquals(new UserPrefs(), prefs.readUserPrefs().orElseThrow());
+    }
+
+    @Test
     public void initPrefs_existingSettings_preservesWindowPosition() throws Exception {
         JsonUserPrefsStorage prefs = new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"));
         UserPrefs expected = new UserPrefs();
