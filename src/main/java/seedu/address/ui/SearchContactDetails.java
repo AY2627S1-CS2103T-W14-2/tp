@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
@@ -23,8 +24,15 @@ public class SearchContactDetails extends VBox {
         FlowPane projects = new FlowPane();
         projects.setId("projects");
         projects.setMinWidth(0);
-        person.getProjects().forEach(project ->
-                projects.getChildren().add(new Label("Project: " + project.projectName)));
+        person.getProjects().forEach(project -> {
+            Label tag = new Label("Project: " + project.projectName);
+            tag.setMinWidth(0);
+            // Until the panel is laid out its width is 0, which would make every tag measure as empty
+            tag.maxWidthProperty().bind(Bindings.when(projects.widthProperty().greaterThan(0))
+                    .then(projects.widthProperty()).otherwise(Double.MAX_VALUE));
+            tag.setTooltip(new Tooltip(tag.getText()));
+            projects.getChildren().add(tag);
+        });
         projects.setVisible(!person.getProjects().isEmpty());
         projects.setManaged(projects.isVisible());
         setMinWidth(0);
