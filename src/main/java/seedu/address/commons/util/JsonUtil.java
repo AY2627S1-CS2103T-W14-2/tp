@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,11 +28,14 @@ public class JsonUtil {
 
     public static final String MESSAGE_NULL_CONTENT = "The file contains null instead of the expected data.";
 
+    private static final String MESSAGE_TRAILING_CONTENT = "The file contains extra content after the JSON data.";
+
     private static final Logger logger = LogsCenter.getLogger(JsonUtil.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(JsonParser.Feature.STRICT_DUPLICATE_DETECTION, true)
             .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
             .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
@@ -96,9 +101,16 @@ public class JsonUtil {
      * Converts a given string representation of JSON data to an instance of a class
      * @param <T> The generic type to create an instance of
      * @return The instance of T with the specified values in the JSON string
+     * @throws JsonProcessingException if the JSON is malformed, repeats a key or has content after the first value
      */
     public static <T> T fromJsonString(String json, Class<T> instanceClass) throws IOException {
-        return objectMapper.readValue(json, instanceClass);
+        try (JsonParser parser = objectMapper.getFactory().createParser(json)) {
+            T value = objectMapper.readValue(parser, instanceClass);
+            if (parser.nextToken() != null) {
+                throw new JsonParseException(parser, MESSAGE_TRAILING_CONTENT);
+            }
+            return value;
+        }
     }
 
     /**
