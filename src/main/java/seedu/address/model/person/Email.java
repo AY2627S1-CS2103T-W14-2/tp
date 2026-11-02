@@ -52,10 +52,10 @@ public class Email {
         this(email, false);
     }
 
-    private Email(String email, boolean fromStorage) {
+    private Email(String email, boolean isFromStorage) {
         requireNonNull(email);
-        checkArgument(fromStorage ? isValidStoredEmail(email) : isValidEmail(email), MESSAGE_CONSTRAINTS);
-        value = fromStorage ? email : email.toLowerCase(Locale.ROOT);
+        checkArgument(isFromStorage ? isValidStoredEmail(email) : isValidEmail(email), MESSAGE_CONSTRAINTS);
+        value = isFromStorage ? email : email.toLowerCase(Locale.ROOT);
     }
 
     /**
