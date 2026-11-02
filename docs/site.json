@@ -1,7 +1,7 @@
 {
   "baseUrl": "",
   "titlePrefix": "LinkUp",
-  "titleSuffix": "AddressBook Level-3",
+  "faviconPath": "images/linkup_icon.png",
   "style": {
     "codeTheme": "light"
   },

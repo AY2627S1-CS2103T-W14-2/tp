@@ -29,6 +29,12 @@ loop for each selected contact
     deactivate ProjectCommand
 end
 
+note over ProjectCommand, Model
+    ProjectContactSelection.updateContacts builds every replacement
+    via createUpdatedContact, then calls Model.setPerson for each.
+    The helper lifeline is omitted here.
+end note
+
 loop for each prepared replacement
     ProjectCommand -> Model : setPerson(original, replacement)
     activate Model

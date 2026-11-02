@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# LinkUp Developer Guide
+# LinkUp developer guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -38,28 +38,29 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <puml src="diagrams/ArchitectureDiagram.puml" width="280" />
 
-The ***Architecture Diagram*** given above explains the high-level design of the App.
+The architecture diagram above explains the high-level design of the application.
 
 The following provides a quick overview of the main components and their interactions.
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the application startup and shutdown.
+
+* At app launch, it initialises the other components in the correct sequence, and connects them up with each other.
+* During shutdown, it shuts down the other components and invokes cleanup methods where necessary.
 
 The bulk of the app's work is done by the following four components:
 
-* [**`UI`**](#ui-component): The UI of the App.
+* [**`UI`**](#ui-component): The UI of the application.
 * [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
+* [**`Model`**](#model-component): Holds the data of the application in memory.
 * [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
 
 [**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The sequence diagram below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
@@ -72,14 +73,9 @@ snapshots, rollback and undo bookkeeping are excluded here. The Logic component 
 the parser and command interactions in [the Logic section](#logic-component).
 Persistence and undo details are covered in the [undo implementation section](#undo-command-implementation).
 
-The UML diagrams use selective detail to explain the intended design, following the
-[CS2103/T Week 8 modelling guidance](https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/topics.html).
-Association roles and multiplicities distinguish stored collections and live views; sequence diagrams
-show the relevant calls and label omitted details rather than translating every statement of code.
-
 Each of the four main components (also shown in the diagram above):
 
-* defines its *API* in an `interface` with the same name as the Component.
+* defines its API in an `interface` with the same name as the component.
 * provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
 
 For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
@@ -96,7 +92,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `RecentFindPanel`,
 `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`
-class, which captures common behavior among classes that represent visible GUI parts.
+class, which captures common behaviour among classes that represent visible GUI parts.
 
 `RecentFindPanel` displays names, Telegram usernames, and project tags in a compact,
 independently scrolling list above `PersonListPanel`.
@@ -132,7 +128,7 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 <box type="info" seamless>
 
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
+**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues until the end of the diagram.
 </box>
 
 
@@ -141,7 +137,7 @@ How the `Logic` component works:
 1. When `Logic` is called upon to execute a command, it passes the text to `AddressBookParser`.
    Commands with structured arguments use a matching parser (e.g., `DeleteCommandParser`); commands such as
    `list`, `help`, and `undo` are constructed directly.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
+1. `AddressBookParser` returns a `Command` object, such as a `DeleteCommand`, to `LogicManager`. `LogicManager` then executes that command.
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    For simplicity, the diagram shows only a successful deletion; checking the index, recording the undo history and saving to storage are left out.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
@@ -151,11 +147,13 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
+
 * For commands with structured arguments, `AddressBookParser` creates an `XYZCommandParser` (`XYZ` stands for
   the command name, e.g., `Add`). That parser validates arguments and returns an `XYZCommand` object as a `Command`.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W14-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
@@ -183,6 +181,7 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
+
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -239,7 +238,7 @@ field's value, so callers must use the documented grammar.
 | `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). New input also limits each domain label to 63 characters; saved emails do not, so older data files still load. Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
-| `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
+| `TelegramUsername` | 5–32 English letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case letter by letter, as `String#equalsIgnoreCase` does, so `ΟΣ` and `οσ` are the same project (issue #241). `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), except the zero-width non-joiner and joiner (U+200C/U+200D). It then removes those joiners too when they join nothing visible: next to a Latin letter, a digit, punctuation or whitespace, or at either end of the name; a run of joiners is removed as a whole. Joiners between emoji (e.g. 👨‍💻) or between letters of scripts such as Persian or Hindi are kept. Together these stop pasted names from creating look-alike duplicates (issue #177). It then collapses whitespace and removes only spaces at either end (not `String#strip`, which would also drop U+001C–U+001F); tabs and line breaks become spaces, so `normalize` alone does not validate a name. Before any cleaning, `isValidProjectName` rejects malformed text (an unpaired surrogate, since removing a character between two unpaired surrogates could join them into a new character) and any control character, including tabs and line breaks (issue #202). Known limits: a joiner between letters of other non-Latin scripts (e.g. Cyrillic) is kept, tag characters in subdivision flag emoji are removed, and invisible characters outside category Cf (e.g. U+3164 Hangul filler) are not handled. Saved names are normalised the same way when loaded. |
 
 `JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
@@ -341,11 +340,38 @@ query trimming, repeated keywords, failed searches, searches with unwritable sto
 `SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the session favourite,
 tooltips, equal column widths, aligned content and compact layout at the 450-pixel minimum width.
 
+### Saving contact data safely
+
+`JsonAddressBookStorage.saveAddressBook` serializes the new address book, performs the existing legacy or
+unreadable-data backup checks, then delegates to `AtomicFileWriter`. The writer creates missing parent
+directories and a unique sibling temporary file, writes and closes the complete JSON, and uses
+`Files.move` with `ATOMIC_MOVE` to replace the destination. It does not create an empty destination first.
+Neither a partial temporary write nor a rejected replacement truncates the previous contact file.
+
+Atomic replacement is required: there is no direct-write or non-atomic move fallback. Java's filesystem
+provider determines whether an existing target can be replaced atomically. Unsupported replacement and
+Windows file-sharing conflicts propagate as save errors. The destination directory must be writable;
+an existing read-only file is rejected even if directory permissions would allow replacing it. Existing
+symbolic links are resolved to their target, with dangling links rejected. POSIX permissions and ACLs are
+copied to the temporary file where the provider supports them, before replacement.
+
+Successful replacement is the commit point. The writer performs no cleanup after it succeeds, so cleanup
+cannot report a failed save after the new data has been committed. On failure it attempts to delete the
+temporary file; cleanup errors are logged without replacing the original exception. A leftover temporary
+file is never loaded as the contact file. `LogicManager` retains its existing command rollback and undo
+behaviour, and reports unsupported atomic replacement separately from general I/O or access errors.
+
+`AtomicFileWriterTest` covers partial writes, replacement failure, unsupported atomic moves, first-save
+failure, cleanup failure, reloads, permissions, symbolic links, and a Windows-only byte-range lock case.
+`AtomicSaveIntegrationTest` verifies disk contents, model state, search results and undo history across
+failed edits, failed undo and successful retries. These checks protect against failed saves; they do not
+establish power-loss durability or coordinate concurrent external edits to the same data file.
+
 ### Removing retired contact fields
 
 `Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
 have been removed from the model, contact cards, and JSON output. `AddCommandParser` and
-`EditCommandParser` recognize the old `a/` and `t/` delimiters only to reject them with
+`EditCommandParser` recognise the old `a/` and `t/` delimiters only to reject them with
 `ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS`; this prevents old arguments from becoming another field's value.
 These delimiter sequences following a space remain reserved in add/edit input.
 
@@ -455,7 +481,7 @@ the same project predicate through its separate filtered list.
 The `project INDEX [MORE_INDICES] pr/PROJECT` command extends UC03 to one or more contacts.
 `AddressBookParser` delegates to `ProjectCommandParser`, which splits the index preamble on whitespace,
 validates every token with `ParserUtil.parseIndex`, rejects repeated indices, and requires exactly one
-project prefix. `ParserUtil.parseProject` reuses shared project validation and normalization.
+project prefix. `ParserUtil.parseProject` reuses shared project validation and normalisation.
 
 The sequence diagram below shows a successful execution of `project 1 2 pr/Orbital`, including how the
 command validates the complete batch before changing either contact.
@@ -479,7 +505,7 @@ The existing `LogicManager` persists the resulting address book and then records
 entire command. One `undo` restores all affected contacts; rejected commands leave undo history intact.
 No new storage format is needed. FINE logs record parsing failures, rejected selections and success counts.
 
-Tests cover single-contact compatibility, multiple indices, malformed or repeated indices, normalization,
+Tests cover single-contact compatibility, multiple indices, malformed or repeated indices, normalisation,
 validation before mutation, filtered-list changes, persistence, one-step undo and diagnostic output.
 Manual check: run `findproject Team`, then `project 1 2 pr/Orbital`; verify both selected contacts gain
 Orbital. Run `undo` once and verify both associations are removed. Try a valid index followed by an
@@ -507,7 +533,7 @@ This is a local association change, not a global project rename.
 
 The command returns `isUndoable() == true`, allowing `LogicManager` to save the prior snapshot
 only after successful execution. Existing JSON storage persists the replacement without schema changes.
-Parser and command tests cover normalization, boundaries, invalid inputs, duplicates and filtered indices.
+Parser and command tests cover normalisation, boundaries, invalid inputs, duplicates and filtered indices.
 The integration test verifies dispatch, filter re-evaluation, JSON persistence and undo after rejected commands.
 
 ### Removing a project association
@@ -522,13 +548,12 @@ is omitted; a successful batch creates one undo entry.
 
 `deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
 including their last project.
-`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which splits at the first ` pr/` delimiter
-and treats everything after it as the project name, including further literal `pr/` text.
-It uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
+`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
+and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
 
 `DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
 It locates the project using `Project.equals`,
-which ignores case and normalizes whitespace. Invalid indices and missing associations are rejected
+which ignores case and normalises whitespace. Invalid indices and missing associations are rejected
 before mutation. Missing-association errors list all conflicting selections; invalid indices take precedence.
 The parser rejects repeated indices with a specific message. The command copies each ordered project list,
 removes the matched entry and constructs
@@ -540,7 +565,7 @@ and all selected contacts. FINE logs record
 successful removal and rejection reasons. `isUndoable()` enables the existing snapshot mechanism;
 failed commands do not replace undo history. One undo restores the entire batch.
 Existing JSON storage supports empty project lists.
-Parser and command tests cover validation, normalization, order, last-project removal and diagnostics.
+Parser and command tests cover validation, normalisation, order, last-project removal and diagnostics.
 An integration test covers filtered selection, disappearance from results, persistence and undo after errors.
 
 Manual check: run `findproject CS2103T`, then `deleteproject 1 pr/cs2103t`. Confirm the selected
@@ -637,6 +662,20 @@ a failed save restores the previous contacts, filter, search summary, and undo h
 Tests cover literal quotes and backslashes, Unicode length boundaries, mixed display spelling, hidden contacts,
 merge overlap/order, filter re-evaluation, locale-independent counts, failed saves, restart, and one undo
 restoring exact strings. `RenameProjectUiTest` verifies visible project labels after case-only renaming and undo.
+
+### Projects command implementation
+
+`projects` lists every saved project with its contact count. `ListProjectsCommandParser` rejects any argument,
+unlike `list`, so a mistyped `project 2 pr/Orbital` cannot pass as a listing. `ListProjectsCommand#execute` reads
+`Model#getAddressBook()` rather than the filtered list, so hidden contacts are counted and the filter is unchanged.
+It fills a `LinkedHashMap<Project, Integer>`. Because `Project#equals` ignores case, case variants share one key and
+the first saved spelling is shown. Lines are sorted by `Locale.ROOT` lowercase text. The command is not undoable,
+so it adds no save or undo entry.
+
+**Design trade-off:** Deriving the list takes one pass over the contacts each time. A separate project list in the
+model would avoid that pass, but it would have to stay in sync with every contact change.
+
+`ListProjectsCommandTest` and `ListProjectsCommandParserTest` cover this behaviour.
 
 ### Sort command implementation
 
@@ -742,7 +781,7 @@ commands available in this release. No archiving design has been implemented yet
 
 --------------------------------------------------------------------------------------------------------------------
 
-## **Appendix: Requirements**
+## **Appendix: requirements**
 
 ### Product scope
 
@@ -757,7 +796,7 @@ commands available in this release. No archiving design has been implemented yet
 * values quick contact lookup and updates over navigating a feature-heavy
   contacts application
 
-**Value proposition**: LinkUp helps students quickly add, organize, and retrieve
+**Value proposition**: LinkUp helps students quickly add, organise, and retrieve
   project-related contacts and their details from one keyboard-driven address
   book, reducing the need to search across separate course or project contact
   lists.
@@ -771,8 +810,9 @@ recent search results, a session-only most searched contact, `clear` and `help`.
 Editing covers name, phone, email and Telegram username. Project associations can be replaced with
 `replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
 New contacts require all five add fields; optional missing Telegram/project data is supported only when
-loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
-multi-criteria search, viewing recently added contacts, and highlighting which project matched remain backlog items.
+loading legacy files. Contacts can be sorted by name, and `projects` lists saved projects. Notes, roles,
+sorting by project, archiving, multi-criteria search, adding contacts with missing details, viewing recently added
+contacts, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -799,7 +839,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | search for contacts by their role                                      | find the person responsible for a particular task                 |
 | `* *`    | student | see a contact's complete information                                   | verify that I have found the correct person                       |
 | `* *`    | student | detect duplicate contact information                                   | avoid accidentally saving the same person multiple times         |
-| `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 | `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
 | `* *`    | student | keep the latest search results visible after listing all contacts      | refer back to the people I just found                            |
@@ -813,6 +852,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `*`      | student | archive contacts from completed projects                               | prevent old contacts from cluttering my active contact list      |
 | `*`      | student | restore archived contacts                                              | reuse their information if I work with them again                |
 | `*`      | student | remove a project                                                       | prevent completed or incorrectly created projects from cluttering my records |
+| `*`      | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 
 ### Use cases
 
@@ -1038,7 +1078,8 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
 8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
     file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
-    failures report an error and restore the previous in-memory state, as described above.
+    failures preserve the previously saved file, report an error and restore the previous in-memory state,
+    as described above. Contact saves require a filesystem that supports atomic replacement.
 
 ### Glossary
 
@@ -1051,7 +1092,7 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 
 --------------------------------------------------------------------------------------------------------------------
 
-## **Appendix: Instructions for manual testing**
+## **Appendix: instructions for manual testing**
 
 Use a separate writable test folder with Java 25 and a freshly built `LinkUp.jar`. These steps modify test
 contacts and files. Keep real contact data outside this folder. Record the commit, OS, Java version, commands,
