@@ -42,6 +42,7 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_atLengthLimit_acceptsCommand() throws Exception {
+        // Boundary value: command length equals MAX_COMMAND_LENGTH.
         String input = "findproject a";
         input += " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - input.length());
         assertEquals(new FindProjectCommand(new ProjectContainsKeywordPredicate("a")), parser.parseCommand(input));
@@ -49,6 +50,7 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_overLengthLimit_rejectsBeforeTrimmingOrDispatch() {
+        // Boundary value: command length is one UTF-16 code unit above the limit.
         for (String input : List.of("help" + " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - 3),
                 " ".repeat(AddressBookParser.MAX_COMMAND_LENGTH - 3) + "help",
                 "x".repeat(AddressBookParser.MAX_COMMAND_LENGTH + 1),
