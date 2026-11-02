@@ -8,6 +8,7 @@ package Storage as StoragePackage {
 
 Class "<<interface>>\nStorage" as Storage
 Class StorageManager
+Class AtomicFileWriter
 
 package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
@@ -17,6 +18,7 @@ package "AddressBook Storage" #F4F6F6{
 Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson
+Class JsonAdaptedProject
 }
 
 }
@@ -29,6 +31,8 @@ StorageManager -down-> "1" JsonUserPrefsStorage
 StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
+JsonAddressBookStorage ..> AtomicFileWriter : writes atomically
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
+JsonAdaptedPerson --> "0..*" JsonAdaptedProject : projects
 
 @enduml

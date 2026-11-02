@@ -1,0 +1,36 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":Model" as Model MODEL_COLOR
+participant ":SearchHistory" as History LOGIC_COLOR
+participant ":Storage" as Storage STORAGE_COLOR
+
+group Capture rollback state
+    Logic -> Model : getAddressBook()
+    Model --> Logic : addressBook
+    Logic -> Logic : before = new AddressBook(addressBook)
+    Logic -> Model : getFilteredPersonPredicate()
+    Model --> Logic : previousPredicate
+    Logic -> History : snapshot()
+    History --> Logic : historyBefore
+end
+ref over Logic, Model : Command execution (feature diagram)
+group Persist and record undo [successful execution with data changes only]
+    Logic -> Model : getAddressBook()
+    Model --> Logic : current data
+    Logic -> Storage : saveAddressBook(current data)
+    alt save fails
+        Storage --> Logic : IOException
+        Logic -> Model : setAddressBook(before)
+        Logic -> Model : updateFilteredPersonList(previousPredicate)
+        Logic -> History : restore(historyBefore)
+        note over Logic : Throw CommandException; no undo entry.
+    else save succeeds
+        Storage --> Logic
+        Logic -> Model : saveUndoState(before)
+        note over Logic : Return result; one undo entry for the command.
+    end
+end
+@enduml
