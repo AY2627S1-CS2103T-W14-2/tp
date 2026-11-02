@@ -36,6 +36,7 @@ public class ReplaceProjectCommandParserTest {
 
     @Test
     public void parse_invalidNames_failure() {
+        // EPs: blank, overlong, and control-character-containing names in either field.
         for (String name : new String[] {" ", "x".repeat(41), "Team\u0000Alpha"}) {
             assertParseFailure(parser, "1 old/" + name + " new/B", Project.MESSAGE_CONSTRAINTS);
             assertParseFailure(parser, "1 old/A new/" + name, Project.MESSAGE_CONSTRAINTS);
@@ -44,6 +45,7 @@ public class ReplaceProjectCommandParserTest {
 
     @Test
     public void parse_duplicatePrefixes_failure() {
+        // EP: old/ or new/ occurs more than once.
         assertParseFailure(parser, "1 old/A old/B new/C",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_OLD_PROJECT));
         assertParseFailure(parser, "1 old/A new/B new/C",

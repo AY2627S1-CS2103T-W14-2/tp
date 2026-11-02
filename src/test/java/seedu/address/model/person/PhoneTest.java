@@ -22,10 +22,10 @@ public class PhoneTest {
 
     @Test
     public void isValidPhone() {
-        // null phone number
+        // EP: null phone number
         assertThrows(NullPointerException.class, () -> Phone.isValidPhone(null));
 
-        // invalid phone numbers
+        // EP: invalid phone numbers
         assertFalse(Phone.isValidPhone("")); // empty string
         assertFalse(Phone.isValidPhone(" ")); // spaces only
         assertFalse(Phone.isValidPhone("91")); // less than 3 numbers
@@ -42,7 +42,7 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("+65\t91234567")); // internal tabs are not separators
         assertFalse(Phone.isValidPhone("+" + "6".repeat(16))); // too many digits
 
-        // valid phone numbers
+        // EP: valid phone numbers
         assertTrue(Phone.isValidPhone("+123")); // exactly 3 digits
         assertTrue(Phone.isValidPhone("+6591234567"));
         assertTrue(Phone.isValidPhone("+65 9123-4567")); // permitted separators

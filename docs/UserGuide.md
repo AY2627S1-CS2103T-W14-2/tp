@@ -497,7 +497,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
+* `find` searches names only, not phone numbers, email addresses or Telegram usernames. Use `findproject` to search
+  project names.
 * Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
 * Contacts matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
@@ -666,6 +667,8 @@ or are rejected during parsing or validation, do not save either. There is no se
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
+LinkUp also writes diagnostic log files named `addressbook.log.*` in the launch folder. You do not need them to keep
+or transfer your contacts.
 
 Contact saves write a complete temporary file beside the data file before replacing the previous file in
 one operation. If writing or replacement fails, the previous data file stays intact. The data folder must
@@ -755,6 +758,7 @@ Unrecognised keys inside a contact are ignored without warning. If you misspell 
 `projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
 the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
 contacts in LinkUp before running a command that changes them.<br>
+Save the data file as UTF-8 without a byte order mark (BOM). LinkUp treats a file beginning with a BOM as invalid.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
@@ -791,6 +795,19 @@ The following are not supported in this version:
   Use an English spelling with the supported punctuation.
 * Adding a contact without all five details, clearing a Telegram username, or storing more than one phone number,
   email or Telegram username for a contact.
+* Notes, roles, tags, archiving, and project details such as deadlines.
+* Keeping a project with no contacts. Removing a project's last association also removes it from `projects`.
+* Searching the phone-number, email or Telegram username fields, combined name-and-project searches, and
+  typo-tolerant search. Each `find` or `findproject` replaces the current search; searches are not combined.
+* Automatic sorting or choosing a different sort field. `sort` orders contacts primarily by name, with the
+  documented tie-breakers. New contacts are appended until you run `sort`.
+* Warnings about similar contacts. For example, `John Doe` and `john doe` can both be saved if their phone number,
+  email and Telegram username are different.
+* Restoring search counts removed by `delete` or `clear`. `undo` restores the contact, but not the count.
+* Checking that an email or Telegram username really exists, or entering an email with non-English letters.
+* Command history and auto-complete in the command box.
+* In-app import/export commands or a configurable data-file path. To transfer contacts manually, follow the
+  [FAQ](#faq).
 
 --------------------------------------------------------------------------------------------------------------------
 
