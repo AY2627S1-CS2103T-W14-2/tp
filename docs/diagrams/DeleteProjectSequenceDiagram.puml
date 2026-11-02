@@ -28,7 +28,7 @@ alt invalid index or any missing association
 else all selections valid
     Command -> Model : getAddressBook()
     activate Model
-    Model --> Command : contacts (for stored project spelling)
+    Model --> Command : addressBook
     deactivate Model
     Command -> Command : build all replacements before mutation
     activate Command

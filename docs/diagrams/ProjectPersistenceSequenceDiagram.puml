@@ -10,7 +10,9 @@ participant ":Storage" as Storage STORAGE_COLOR
 group Capture rollback state
     Logic -> Model : getAddressBook()
     Model --> Logic : addressBook
-    Logic -> Logic : before = new AddressBook(addressBook)
+    note over Logic
+        before = new AddressBook(addressBook)
+    end note
     Logic -> Model : getFilteredPersonPredicate()
     Model --> Logic : previousPredicate
     Logic -> History : snapshot()
