@@ -271,8 +271,9 @@ the username with its leading `@`. The header tooltip contains the full name and
 Commands continue to resolve indices exclusively against `Model.getFilteredPersonList()`.
 
 `SearchContactDetails` gives the projects `FlowPane` the same `projects` ID used by `PersonCard`, reusing
-the existing tag colors, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
-width so tags wrap within the list. Empty project lists are hidden and unmanaged.
+the existing tag colours, padding, corners, font, and spacing in `DarkTheme.css`. The card width follows the cell
+width so tags wrap within the list. A project tag too long for its panel ends in an ellipsis and shows the full
+project name in a tooltip. Empty project lists are hidden and unmanaged.
 
 The panel binds its single latest-search label to `Logic.recentSearchProperty()`. `LogicManager` owns the
 read-only string wrapper and updates it after either search command executes; searches do not save. The stored
@@ -299,7 +300,7 @@ and the tooltip text.
 
 `RecentFindPanelTest` checks populated and missing Telegram usernames, header tooltips, project order,
 and cleanup when cells are reused or results are cleared. Its rendered styling test compares project tags
-with a `PersonCard` for background, text color, padding, font, border, and spacing, and verifies wrapping.
+with a `PersonCard` for background, text colour, padding, font, border, and spacing, and verifies wrapping.
 
 ### Most searched contact and shared latest search
 
@@ -319,8 +320,9 @@ or `null`. Same-name contacts have separate entries. A no-match search updates r
 any contact's frequency or recency.
 
 The contact-list listener transfers statistics across replacements without changing their last-search sequence.
-It handles both single-element edits/project updates and equal-sized snapshot replacements from undo. Contacts
-already present in the replacement retain their own statistics, so list reordering cannot exchange counts.
+It handles both single-element edits/project updates and equal-sized whole-list replacements from `renameproject`
+and undo. Contacts already present in the replacement retain their own statistics, so list reordering cannot
+exchange counts.
 Removed contacts are pruned. Deletion and clear therefore discard the affected counts permanently; undoing
 those operations restores contacts without restoring their discarded counts. Undoing an edit or project change
 preserves counts. Search statistics are not part of the contact undo snapshots, JSON data or user preferences,
@@ -330,15 +332,16 @@ and reset on restart. The latest search query survives contact mutations until t
 the two search sections in an equal-width `GridPane`, above the numbered Current contact list.
 Most searched is on the left, with the subtitle Top contact this session; Recent search is on the right.
 Both content areas align vertically and scroll independently. The horizontal scrollbar of the recent
-results list is hidden; contact headers truncate with tooltips, while project tags wrap.
+results list is hidden; contact headers truncate with tooltips, while project tags wrap. A project tag too long
+for its panel ends in an ellipsis and shows the full project name in a tooltip.
 The latest query appears only once, in `RecentFindPanel`. `SearchContactDetails` renders contact headers,
-Telegram fallbacks, full-text tooltips and wrapping project tags for both features. The favourite shows
+Telegram fallbacks, full-text tooltips and wrapping project tags for both features. The most searched section shows
 `No contacts searched yet.` when no current contact has a count, and its details scroll when needed.
 
 `SearchHistoryTest` covers frequency, search recency, same-search ordering, namesakes, edits, snapshot restore,
 reordering, deletion, empty results and session reset. `LogicManagerTest` covers command integration, Unicode
 query trimming, repeated keywords, failed searches, searches with unwritable storage, edits/undo and clear/undo.
-`SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the session favourite,
+`SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the most searched contact,
 tooltips, equal column widths, aligned content and compact layout at the 450-pixel minimum width.
 
 ### Saving contact data safely
@@ -867,6 +870,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | student | add a contact                                                          | save the details of a project mate                                |
 | `* * *`  | student | view all my contacts                                                   | see the people whose information I have saved                     |
 | `* * *`  | student | delete a contact                                                       | remove contacts I no longer need                                  |
+| `* * *`  | student | undo my most recent supported change during the current session        | recover from an accidental change to my contacts or projects       |
 | `* * *`  | student | search for a contact by name                                           | quickly find someone                                              |
 | `* * *`  | student | associate a contact with a project                                     | remember where I know the person from                             |
 | `* * *`  | student | search for contacts by project                                         | find members of a particular project                              |
@@ -1112,20 +1116,20 @@ Use case ends.
 
 ### Non-functional requirements
 
-These are design targets, not a claim that performance or usability benchmarks have been completed.
-CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
+The following requirements specify LinkUp's supported environment and quality criteria.
 
-1.  **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
-2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
-3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
-4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
-5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
-6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
-7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
-8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
-    file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
-    failures preserve the previously saved file, report an error and restore the previous in-memory state,
-    as described above. Contact saves require a filesystem that supports atomic replacement.
+1. **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
+2. **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
+3. **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
+4. **Usability:** The system shall display a clear success message or a specific error message after every command.
+5. **Usability:** Command feedback shall use plain language and identify the affected contact, project or input where relevant, so users can understand the outcome without consulting the code.
+6. **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
+7. **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
+8. **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
+9. **Data integrity:** Rejected commands shall cause no loss or partial modification of contact data, including when a command targets multiple contacts.
+10. **Maintainability:** Commands shall share the model's validation and normalisation rules rather than duplicate them, so changes to input rules remain consistent across features.
+11. **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save failures preserve the previously saved file, report an error and restore the previous in-memory state, as described above. Contact saves require a filesystem that supports atomic replacement.
+12. **Backward compatibility:** The system shall load supported legacy contact data while preserving retained contact details, and back up the original file before saving a migrated version that removes retired fields.
 
 ### Glossary
 
@@ -1134,7 +1138,13 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
 * **Displayed contact list**: The numbered main contact list, including results of a search; command indices refer to this list.
 * **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
+* **Most searched contact**: The contact matched by the most successful name or project searches in the current session.
+  Ties favour the most recently matched contact, then the first contact in the contact list.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
+* **Legacy data file**: Contact data saved by an older version of LinkUp. It may contain retired fields such as address and
+  tags, lack a Telegram username or project, or use older formats such as a local phone number. LinkUp still loads it;
+  unchanged contact values are preserved, but project names may be normalised and deduplicated, and retired address/tag
+  fields are removed on saving.
 
 --------------------------------------------------------------------------------------------------------------------
 
