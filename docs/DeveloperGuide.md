@@ -20,8 +20,8 @@ declared in `build.gradle`. Documentation is built with MarkBind.
 
 Notable uses of AI:
 
-* ChatGPT and Codex were used for preliminary code and PR reviews.
-* Codex assisted with feature implementation, bug investigation and fixes, and writing and running tests.
+* ChatGPT, Codex and Claude were used for preliminary code and PR reviews.
+* Codex and Claude assisted with feature implementation, bug investigation and fixes, and writing and running tests.
 * Codex and Claude assisted with documentation updates; Codex also helped check and update UML diagrams.
 
 --------------------------------------------------------------------------------------------------------------------
