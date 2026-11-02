@@ -102,7 +102,7 @@ public class JsonAddressBookStorageTest {
         byte[] original = Files.readAllBytes(file);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(file) {
             @Override
-            void backupLegacyData(Path filePath) throws IOException {
+            void backupBeforeReplacing(Path filePath) throws IOException {
                 throw new IOException("Backup failed");
             }
         };

@@ -13,7 +13,8 @@ public class Project {
 
     public static final int MAX_NAME_LENGTH = 40;
     public static final String MESSAGE_CONSTRAINTS =
-            "Project names should contain 1 to 40 characters and no line breaks or other control characters";
+            "Project names should contain 1 to " + MAX_NAME_LENGTH
+                    + " characters and no line breaks or other control characters";
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("[\\s\\p{Z}]+");
     // Invisible format characters (e.g. zero-width space, byte order mark, direction marks), except the zero-width
     // non-joiner and joiner, which some scripts and emoji sequences such as a man technologist need.

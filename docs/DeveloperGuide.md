@@ -381,7 +381,7 @@ These delimiter sequences following a space remain reserved in add/edit input.
 
 `JsonAdaptedPerson` ignores old address/tag properties through the existing Jackson unknown-property
 configuration. Missing Telegram usernames and projects retain their legacy defaults. Before saving,
-`JsonAddressBookStorage.backupLegacyData` inspects the existing file for retired fields and writes its original
+`JsonAddressBookStorage.backupBeforeReplacing` inspects the existing file for retired fields and writes its original
 bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON is not legacy data: it is backed
 up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
 at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one

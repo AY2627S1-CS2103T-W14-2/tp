@@ -95,8 +95,11 @@ public class Email {
      */
     public static boolean isValidEmail(String test) {
         requireNonNull(test);
-        return hasValidFormat(test) && Arrays.stream(test.substring(test.indexOf('@') + 1).split("\\."))
-                .allMatch(label -> label.length() <= MAX_DOMAIN_LABEL_LENGTH);
+        if (!hasValidFormat(test)) {
+            return false;
+        }
+        String domain = test.substring(test.indexOf('@') + 1);
+        return Arrays.stream(domain.split("\\.")).allMatch(label -> label.length() <= MAX_DOMAIN_LABEL_LENGTH);
     }
 
     /**
