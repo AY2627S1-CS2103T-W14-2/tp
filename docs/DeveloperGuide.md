@@ -15,7 +15,7 @@
 
 LinkUp builds on [se-edu AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
 The layered architecture, command infrastructure, and parts of this documentation originate from that project.
-The application uses JavaFX for its interface and Jackson for JSON storage; dependencies and versions are
+The application uses JavaFX for its interface, Jackson for JSON storage and JUnit for testing; dependencies and versions are
 declared in `build.gradle`. Documentation is built with MarkBind.
 
 Notable uses of AI:
@@ -238,14 +238,14 @@ list two names that are now equal. These compatibility rules do not make those f
 ### Name search and displayed indices
 
 `FindCommandParser` trims surrounding whitespace and rejects blank input or more than 60 Unicode code points
-before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compares lowercase text using
+before splitting keywords on whitespace. It also rejects `/`: for example, `find n/alex` gives the slash error. `NameContainsKeywordsPredicate` compares lowercase text using
 `Locale.ROOT` and matches any keyword as a substring (OR semantics), including partial words.
 For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
 
 Both search commands replace the predicate on the full address book rather than searching only the previous
-results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
-`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
-unchanged `edit` retain the active filter.
+results. `delete`, `edit`, `project`, `replaceproject` and `deleteproject` resolve one-based indices against the displayed list.
+`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, `replaceproject`,
+`deleteproject`, `renameproject`, `sort`, and a failed or unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
 ### Recent search results
@@ -702,6 +702,7 @@ commands available in this release. No archiving design has been implemented yet
 
 ## **Documentation, logging, testing, dev-ops**
 
+* [Configuration guide](Configuration.md)
 * [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
 * [Logging guide](Logging.md)
@@ -734,12 +735,12 @@ commands available in this release. No archiving design has been implemented yet
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, undo,
-recent search results, and a session-only most searched contact.
+recent search results, a session-only most searched contact, `clear` and `help`.
 Editing covers name, phone, email and Telegram username. Project associations can be replaced with
 `replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
 New contacts require all five add fields; optional missing Telegram/project data is supported only when
 loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
-multi-criteria search, and highlighting which project matched remain backlog items.
+multi-criteria search, viewing recently added contacts, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -783,7 +784,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-The following use cases describe the currently implemented workflows of LinkUp.
+The following use cases describe the main workflows of LinkUp.
 For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
 The application is running. **MSS** stands for Main Success Scenario.
 
@@ -801,7 +802,7 @@ Use case ends.
 
 **Extensions**
 
-* 1a. The search input is empty or exceeds 60 Unicode code points after trimming surrounding whitespace.
+* 1a. The search input is empty, exceeds 60 Unicode code points after trimming surrounding whitespace, or contains `/`.
   Internal whitespace counts towards the limit before splitting the input into keywords.
 
   * 1a1. LinkUp displays an error message without changing saved contacts or the displayed results.
@@ -844,8 +845,8 @@ Use case ends.
 
 1. Student requests to list contacts.
 2. LinkUp displays the saved contacts with their indices, contact details, and projects.
-3. Student requests to associate a contact at a displayed index with a project, supplying the project name.
-4. LinkUp adds the project association to that contact, preserves its existing project associations, and displays a success message.
+3. Student requests to associate one or more contacts at displayed indices with a project.
+4. LinkUp adds the project to every selected contact, keeps their existing projects, and displays a success message.
 
 Use case ends.
 
@@ -857,7 +858,7 @@ Use case ends.
 
   Use case ends.
 
-* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+* 3a. An index is missing, repeated, is not a positive integer, or does not refer to a contact in the displayed list.
 
   * 3a1. LinkUp displays the relevant input error without changing saved contacts.
 
@@ -869,9 +870,9 @@ Use case ends.
 
   Use case resumes at step 3.
 
-* 3c. The contact is already associated with the same normalised project.
+* 3c. A selected contact already has the project.
 
-  * 3c1. LinkUp displays a message indicating that the association already exists, without changing saved contacts.
+  * 3c1. LinkUp lists every such contact and changes none.
 
   Use case resumes at step 3.
 
@@ -993,15 +994,16 @@ Use case ends.
 
 ### Non-functional requirements
 
-The following requirements specify LinkUp's supported environment and quality criteria.
+These are design targets, not a claim that performance or usability benchmarks have been completed.
+CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
 
 1.  **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
-4.  **Usability:** Command feedback shall use plain language and identify the affected contact, project or input where relevant, so users can understand the outcome without consulting the code.
+4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
 5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
-6.  **Data integrity:** Rejected commands shall cause no loss or partial modification of contact data, including when a command targets multiple contacts.
-7.  **Maintainability:** Commands shall share the model's validation and normalisation rules rather than duplicate them, so changes to input rules remain consistent across features.
+6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
+7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
 8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
     file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
     failures preserve the previously saved file, report an error and restore the previous in-memory state,
@@ -1169,6 +1171,16 @@ With 997 spaces, it should instead report
 On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
 the command box and execute. Verify that the same command-length error appears within two seconds
 and that the displayed contacts, recent search and saved data remain unchanged.
+
+### Associating multiple contacts with a project
+
+Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `findproject Team` then `project 1 2 pr/Orbital` | `Added project Orbital to contacts 1: Alex Tan, 2: David Lim.` |
+| `undo` | Both associations are removed in one step; all three contacts are displayed. |
+| `project 1 9 pr/X` | Invalid-index error; no contact changes. |
 
 ### Replacing a project association
 
