@@ -797,7 +797,9 @@ do not save. Parsing and validation failures do not save.
 The data path is `data/addressbook.json`, relative to the launch folder; `preferences.json` records GUI
 settings. Both paths are constants in `MainApp`. Shutdown saves preferences, not a separate copy of contact data.
 
-A failed save is reported as a `CommandException`, with a separate message for access-denied errors.
+A failed save is reported as a `CommandException`, with separate messages for access-denied errors and
+unsupported atomic replacement (`AtomicMoveNotSupportedException`). The latter tells the user that the
+change was not saved and to use a data location that supports atomic replacement.
 `LogicManager` restores the previous address book and filter, and restores `SearchHistory` counts and its
 most-searched contact after the model has been restored. It records an undo snapshot only after a successful
 save. Fix storage and retry the original modifying command; `list` cannot retry a save because it is read-only.
