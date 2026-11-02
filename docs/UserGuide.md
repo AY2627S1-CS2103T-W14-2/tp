@@ -465,7 +465,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
+* `find` searches names only, not phone numbers, email addresses or Telegram usernames. Use `findproject` to search
+  project names.
 * Partial words match anywhere in a name; for example, `Han` matches `Hans`, and `LEX` matches `Alex`.
 * Contacts matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Keywords are separated by whitespace. The entire search input must contain 1–60 characters after
@@ -654,6 +655,8 @@ or are rejected during parsing or validation, do not save either. There is no se
 
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
+LinkUp also writes diagnostic log files named `addressbook.log.*` in the launch folder. You do not need them to keep
+or transfer your contacts.
 
 Contact saves write a complete temporary file beside the data file before replacing the previous file in
 one operation. If writing or replacement fails, the previous data file stays intact. The data folder must
