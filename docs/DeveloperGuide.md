@@ -189,10 +189,9 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Current command and contact model
 
-The MVP includes `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`,
-with same-name support, duplicate-detail validation and persistence. `edit` was outside the MVP release and now
-goes beyond it, covering name, phone, email and Telegram username; see
-[Edit command implementation](#edit-command-implementation).
+The core commands are `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and
+`exit`, with same-name support, duplicate-detail validation and persistence. `edit` covers name, phone, email and
+Telegram username; see [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
@@ -1014,7 +1013,7 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Contact**: A saved record for a project mate, containing their name, contact details, and associated projects.
 * **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
-* **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
+* **Displayed contact list**: The numbered main contact list, including results of a search; command indices refer to this list.
 * **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
 
@@ -1112,7 +1111,7 @@ After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee.
 | `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
 | `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |
 | `find LEX vid` | Three recent results can be scrolled independently of the main list. |
-| Resize the window | Most searched stays left of Recent search in equal-width columns above the main person list; project tags wrap as needed. |
+| Resize the window | Most searched stays left of Recent search in equal-width columns above the main contact list; project tags wrap as needed. |
 | Hover over a recent-result header | The tooltip shows the full name and Telegram handle. |
 | `exit`, then relaunch | Contacts persist; recent results start empty. |
 

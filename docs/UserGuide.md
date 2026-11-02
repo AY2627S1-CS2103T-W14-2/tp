@@ -39,6 +39,7 @@ and `exit` to close LinkUp.
    Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
    if no data file exists, LinkUp supplies sample contacts.<br>
    ![LinkUp window showing the command box, search summaries and contact list](images/Ui.png)<br>
+   _The window above shows the sample contacts after running `find bernice`, `findproject orbital`, then `list`._<br>
    Below the command box are three sections: the result box, the **Most searched** and **Recent search**
    sections, and the **Current contact list**. Drag the bar between two sections to give either one more space,
    for example to read a long `projects` list in the result box.
@@ -567,6 +568,11 @@ Examples:
   ```
 * `projects` followed by `findproject hackathon 2026` shows the contacts whose project names contain
   `hackathon 2026`, ignoring case.
+
+With the sample contacts, `projects` lists four projects. Drag the bar below the result box downwards if the list
+does not fit.
+
+![Result box listing the four sample projects and their contact counts](images/projects.png)
 
 ### Deleting a contact: `delete`
 
