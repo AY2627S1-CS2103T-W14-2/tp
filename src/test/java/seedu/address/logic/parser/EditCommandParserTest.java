@@ -149,6 +149,8 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 p/91234567", Phone.MESSAGE_CONSTRAINTS); // local phone needs country code
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1 e/alex@example", Email.MESSAGE_CONSTRAINTS); // domain needs a dot
+        assertParseFailure(parser, "1 e/a@" + "b".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1) + ".com",
+                Email.MESSAGE_CONSTRAINTS); // domain label over the limit
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
