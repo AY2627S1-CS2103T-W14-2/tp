@@ -319,6 +319,33 @@ query trimming, repeated keywords, failed searches, searches with unwritable sto
 `SearchSummaryUiTest` loads the actual FXML and checks distinct latest results and the session favourite,
 tooltips, equal column widths, aligned content and compact layout at the 450-pixel minimum width.
 
+### Saving contact data safely
+
+`JsonAddressBookStorage.saveAddressBook` serializes the new address book, performs the existing legacy or
+unreadable-data backup checks, then delegates to `AtomicFileWriter`. The writer creates missing parent
+directories and a unique sibling temporary file, writes and closes the complete JSON, and uses
+`Files.move` with `ATOMIC_MOVE` to replace the destination. It does not create an empty destination first.
+Neither a partial temporary write nor a rejected replacement truncates the previous contact file.
+
+Atomic replacement is required: there is no direct-write or non-atomic move fallback. Java's filesystem
+provider determines whether an existing target can be replaced atomically. Unsupported replacement and
+Windows file-sharing conflicts propagate as save errors. The destination directory must be writable;
+an existing read-only file is rejected even if directory permissions would allow replacing it. Existing
+symbolic links are resolved to their target, with dangling links rejected. POSIX permissions and ACLs are
+copied to the temporary file where the provider supports them, before replacement.
+
+Successful replacement is the commit point. The writer performs no cleanup after it succeeds, so cleanup
+cannot report a failed save after the new data has been committed. On failure it attempts to delete the
+temporary file; cleanup errors are logged without replacing the original exception. A leftover temporary
+file is never loaded as the contact file. `LogicManager` retains its existing command rollback and undo
+behaviour, and reports unsupported atomic replacement separately from general I/O or access errors.
+
+`AtomicFileWriterTest` covers partial writes, replacement failure, unsupported atomic moves, first-save
+failure, cleanup failure, reloads, permissions, symbolic links, and a Windows-only byte-range lock case.
+`AtomicSaveIntegrationTest` verifies disk contents, model state, search results and undo history across
+failed edits, failed undo and successful retries. These checks protect against failed saves; they do not
+establish power-loss durability or coordinate concurrent external edits to the same data file.
+
 ### Removing retired contact fields
 
 `Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
@@ -909,7 +936,8 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
 8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
     file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
-    failures report an error and restore the previous in-memory state, as described above.
+    failures preserve the previously saved file, report an error and restore the previous in-memory state,
+    as described above. Contact saves require a filesystem that supports atomic replacement.
 
 ### Glossary
 
