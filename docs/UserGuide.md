@@ -758,6 +758,7 @@ Unrecognised keys inside a contact are ignored without warning. If you misspell 
 `projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
 the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
 contacts in LinkUp before running a command that changes them.<br>
+Save the data file as UTF-8 without a byte order mark (BOM). LinkUp treats a file beginning with a BOM as invalid.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
@@ -794,6 +795,19 @@ The following are not supported in this version:
   Use an English spelling with the supported punctuation.
 * Adding a contact without all five details, clearing a Telegram username, or storing more than one phone number,
   email or Telegram username for a contact.
+* Notes, roles, tags, archiving, and project details such as deadlines.
+* Keeping a project with no contacts. Removing a project's last association also removes it from `projects`.
+* Searching the phone-number, email or Telegram username fields, combined name-and-project searches, and
+  typo-tolerant search. Each `find` or `findproject` replaces the current search; searches are not combined.
+* Automatic sorting or choosing a different sort field. `sort` orders contacts primarily by name, with the
+  documented tie-breakers. New contacts are appended until you run `sort`.
+* Warnings about similar contacts. For example, `John Doe` and `john doe` can both be saved if their phone number,
+  email and Telegram username are different.
+* Restoring search counts removed by `delete` or `clear`. `undo` restores the contact, but not the count.
+* Checking that an email or Telegram username really exists, or entering an email with non-English letters.
+* Command history and auto-complete in the command box.
+* In-app import/export commands or a configurable data-file path. To transfer contacts manually, follow the
+  [FAQ](#faq).
 
 --------------------------------------------------------------------------------------------------------------------
 
