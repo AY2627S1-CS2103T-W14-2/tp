@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -65,7 +66,9 @@ public class PersonCard extends UiPart<Region> {
     private Label createProjectTag(Project project) {
         Label tag = new Label("Project: " + project.projectName);
         tag.setMinWidth(0);
-        tag.maxWidthProperty().bind(projects.widthProperty());
+        // Until the card is laid out its width is 0, which would make every tag measure as empty
+        tag.maxWidthProperty().bind(Bindings.when(projects.widthProperty().greaterThan(0))
+                .then(projects.widthProperty()).otherwise(Double.MAX_VALUE));
         tag.setTooltip(new Tooltip(tag.getText()));
         return tag;
     }
