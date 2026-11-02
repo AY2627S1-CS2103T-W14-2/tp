@@ -59,6 +59,15 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_savedEmailWithOverlongDomainLabel_preservesSavedValue() throws Exception {
+        String savedEmail = "a!b@" + "b".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1) + ".com";
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, savedEmail,
+                VALID_TELEGRAM_USERNAME, VALID_PROJECTS);
+
+        assertEquals(savedEmail, person.toModelType().getEmail().value);
+    }
+
+    @Test
     public void toModelType_invalidName_throwsIllegalValueException() {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_TELEGRAM_USERNAME,
