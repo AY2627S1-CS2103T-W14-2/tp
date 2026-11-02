@@ -23,6 +23,7 @@ public class ProjectContainsKeywordPredicateTest {
 
     @Test
     public void test_exactPartialAndMixedCaseMatches_returnsTrue() {
+        // EP: keyword occurs in a project name, ignoring case.
         Person person = new PersonBuilder().withProjects("CS2103T Team Alpha").build();
         assertTrue(new ProjectContainsKeywordPredicate("CS2103T Team Alpha").test(person));
         assertTrue(new ProjectContainsKeywordPredicate("2103").test(person));
@@ -31,6 +32,7 @@ public class ProjectContainsKeywordPredicateTest {
 
     @Test
     public void test_multiwordPhrase_matchesContiguousPhraseOnly() {
+        // EP: individual words occur without the complete contiguous phrase.
         ProjectContainsKeywordPredicate predicate = new ProjectContainsKeywordPredicate("team alpha");
         assertFalse(predicate.test(new PersonBuilder().withProjects("Team Beta").build()));
         assertFalse(predicate.test(new PersonBuilder().withProjects("Alpha").build()));
@@ -55,6 +57,7 @@ public class ProjectContainsKeywordPredicateTest {
 
     @Test
     public void test_noMatchingProject_returnsFalse() {
+        // EP: no project name contains the keyword, including contacts with no projects.
         ProjectContainsKeywordPredicate predicate = new ProjectContainsKeywordPredicate("orbital");
         assertFalse(predicate.test(new PersonBuilder().withProjects("CS2103T").build()));
         assertFalse(predicate.test(new PersonBuilder().withProjects().build()));

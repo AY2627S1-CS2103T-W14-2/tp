@@ -82,6 +82,7 @@ public class ProjectTest {
     public void isValidProjectName_joinersOnly_rejected() {
         String joiner = String.valueOf((char) 0x200D);
         String nonJoiner = String.valueOf((char) 0x200C);
+        // EP: name contains joiners but no visible project-name character
         assertFalse(Project.isValidProjectName(joiner.repeat(3)));
         assertFalse(Project.isValidProjectName(joiner.repeat(5)));
         assertFalse(Project.isValidProjectName(nonJoiner + joiner + nonJoiner));
@@ -117,12 +118,14 @@ public class ProjectTest {
         String tagLow = String.valueOf((char) 0xDC01);
         String[] malformed = {tagHigh + zeroWidthSpace + tagLow, "Team " + tagHigh + zeroWidthSpace + tagLow,
             "A" + tagHigh, tagLow + "A", (char) 0xD83D + zeroWidthSpace + (char) 0xDC68};
+        // EP: name contains an unpaired surrogate
         for (String name : malformed) {
             // Cleaning would otherwise join the halves into a new character that a later cleaning changes again.
             assertFalse(Project.isValidProjectName(name));
             assertThrows(IllegalArgumentException.class, () -> new Project(name));
         }
-        assertTrue(Project.isValidProjectName("\uD83D\uDC68")); // a correctly paired emoji is still accepted
+        // EP: name contains a correctly paired supplementary character
+        assertTrue(Project.isValidProjectName("\uD83D\uDC68"));
     }
 
     @Test
@@ -160,13 +163,16 @@ public class ProjectTest {
 
     @Test
     public void isValidProjectName_invisibleFormatCharacters_notCounted() {
+        // EP: no visible characters remain after normalization
         assertFalse(Project.isValidProjectName("\u200B")); // nothing visible is left
         assertFalse(Project.isValidProjectName("\u200B \uFEFF"));
+        // EP: visible portion is within the length limit
         assertTrue(Project.isValidProjectName("a".repeat(40) + "\u200B")); // limit counts visible characters
     }
 
     @Test
     public void isValidProjectName() {
+        // EP: blank, control-character-containing, or overlong project name
         assertFalse(Project.isValidProjectName(""));
         assertFalse(Project.isValidProjectName("   "));
         assertFalse(Project.isValidProjectName("\u00A0"));
@@ -175,6 +181,7 @@ public class ProjectTest {
         assertFalse(Project.isValidProjectName("CS2103T\u0085Project"));
         assertFalse(Project.isValidProjectName("a".repeat(41)));
 
+        // EP: non-blank project name within the length limit
         assertTrue(Project.isValidProjectName("A"));
         assertTrue(Project.isValidProjectName("a".repeat(40)));
         assertTrue(Project.isValidProjectName("CS2103T-W14-2"));

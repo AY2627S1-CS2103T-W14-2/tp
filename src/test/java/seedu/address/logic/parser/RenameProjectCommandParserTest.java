@@ -59,6 +59,7 @@ public class RenameProjectCommandParserTest {
 
     @Test
     public void parse_invalidSyntax_rejectsWithoutGuessing() {
+        // EPs: missing, repeated, malformed, or empty prefixes and unexpected preamble.
         for (String input : List.of("", " old/A", " new/B", " preamble old/A new/B",
                 " old/A old/B new/C", " old/A new/B new/C", " old/ new/B", " old/A new/",
                 " old/\"A\"new/B", " OLD/A new/B",
@@ -69,6 +70,7 @@ public class RenameProjectCommandParserTest {
 
     @Test
     public void parse_lengthBoundary_countsLiteralQuotesAndUnicodeCodePoints() throws Exception {
+        // Boundary values: 40 and 41 code points; literal quotes also count towards the limit.
         String limit = "😀".repeat(40);
         String quotedLimit = "\"" + "😀".repeat(38) + "\"";
         assertEquals(command(limit, "B"), parser.parse(" old/" + limit + " new/B"));

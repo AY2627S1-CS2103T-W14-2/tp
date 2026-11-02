@@ -24,17 +24,20 @@ public class ListProjectsCommandParserTest {
 
     @Test
     public void parse_noArguments_success() {
+        // EP: empty argument string.
         assertParseSuccess(parser, "", new ListProjectsCommand());
     }
 
     @Test
     public void parse_whitespaceOnly_success() {
+        // EP: arguments contain only whitespace.
         assertParseSuccess(parser, "   ", new ListProjectsCommand());
         assertParseSuccess(parser, " \t\n ", new ListProjectsCommand());
     }
 
     @Test
     public void parse_anyArgument_throwsParseException() {
+        // EP: arguments contain non-whitespace text.
         assertParseFailure(parser, " 2 pr/Hackathon", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " abc", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " 0", MESSAGE_INVALID_FORMAT);

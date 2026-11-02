@@ -32,19 +32,19 @@ public class EmailTest {
 
     @Test
     public void isValidEmail() {
-        // null email
+        // EP: null email
         assertThrows(NullPointerException.class, () -> Email.isValidEmail(null));
 
-        // blank email
+        // EP: blank email
         assertFalse(Email.isValidEmail("")); // empty string
         assertFalse(Email.isValidEmail(" ")); // spaces only
 
-        // missing parts
+        // EP: email with a missing required part
         assertFalse(Email.isValidEmail("@example.com")); // missing local part
         assertFalse(Email.isValidEmail("peterjackexample.com")); // missing '@' symbol
         assertFalse(Email.isValidEmail("peterjack@")); // missing domain name
 
-        // invalid parts
+        // EP: email with an invalid local or domain part
         assertFalse(Email.isValidEmail("peterjack@example")); // domain needs a dot
         assertFalse(Email.isValidEmail("peter jack@example.com")); // spaces in local part
         assertFalse(Email.isValidEmail("peterjack@exam ple.com")); // spaces in domain name
@@ -70,7 +70,7 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("alex.@example.com")); // trailing local-part dot
         assertFalse(Email.isValidEmail("al..ex@example.com")); // repeated local-part dot
 
-        // valid email
+        // EP: valid email
         assertTrue(Email.isValidEmail("PeterJack_1190@example.com")); // underscore in local part
         assertTrue(Email.isValidEmail("PeterJack.1190@example.com")); // period in local part
         assertTrue(Email.isValidEmail("PeterJack+1190@example.com")); // '+' symbol in local part
@@ -87,12 +87,16 @@ public class EmailTest {
 
     @Test
     public void isValidEmail_lengthLimits() {
+        // EP: local part within its length limit
         assertTrue(Email.isValidEmail(LOCAL_PART_64 + "@example.com")); // local part at its limit
+        // EP: local part exceeding its length limit
         assertFalse(Email.isValidEmail(LOCAL_PART_64 + "a@example.com")); // local part one over
 
         assertEquals(Email.MAX_LENGTH, TOTAL_254.length());
         assertEquals(Email.MAX_LENGTH + 1, TOTAL_255.length());
+        // EP: complete address within its length limit
         assertTrue(Email.isValidEmail(TOTAL_254)); // whole address at its limit
+        // EP: complete address exceeding its length limit
         assertFalse(Email.isValidEmail(TOTAL_255)); // one over
         assertTrue(Email.isValidStoredEmail(TOTAL_254));
         assertFalse(Email.isValidStoredEmail(TOTAL_255));
@@ -103,9 +107,11 @@ public class EmailTest {
         String atLimit = "a".repeat(Email.MAX_DOMAIN_LABEL_LENGTH);
         String overLimit = atLimit + "a";
 
+        // EP: every domain label is within its length limit
         assertTrue(Email.isValidEmail("a@" + atLimit + ".com"));
         assertTrue(Email.isValidEmail("a@sub." + atLimit + ".com"));
         assertTrue(Email.isValidEmail("a@example." + atLimit));
+        // EP: a domain label exceeds its length limit
         assertFalse(Email.isValidEmail("a@" + overLimit + ".com")); // first label
         assertFalse(Email.isValidEmail("a@sub." + overLimit + ".com")); // middle label
         assertFalse(Email.isValidEmail("a@example." + overLimit)); // last label
