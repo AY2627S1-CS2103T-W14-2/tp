@@ -79,16 +79,18 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Items in square brackets are optional.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]` accepts both `find Alice Bob` and `find Alice`.
 
-* Parameters can be in any order.<br>
+* Prefixed parameters can be in any order, but `INDEX` must come first, straight after the command word.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Command words ignore case, so `FIND alex` and `Find alex` work like `find alex`, but they cannot be shortened:
   use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
-  Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
+  Separate each prefix from the preceding value with a space. Supply each supported prefix only once,
+  unless a command says otherwise.
 
 * `INDEX` always refers to the numbered main person list, including search results. The **Recent search**
-  section does not provide command indices. Check the index again after
-  adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
+  section does not provide command indices. Check the index again after any command that changes or reorders
+  the list, such as `add`, `edit`, `delete`, `sort`, `undo` or a search. A project command can also remove a contact
+  from the current search results, moving later contacts up. Contacts with the same name still have separate indices.
 
 * `help`, `list`, `sort`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
   `clear` and `projects` reject extra parameters.<br>
@@ -126,7 +128,7 @@ Hover over this text to see the full search if it is too long to fit. Before you
 
 For example, run `find Alex` and then `list`. The main list shows all contacts, while the smaller section still
 shows contacts matching Alex and the label `Latest search: Name: Alex`. Use the indices in the main list for
-`edit`, `delete`, and `project`.
+`edit`, `delete`, `project`, `replaceproject`, and `deleteproject`.
 
 ### Viewing help: `help`
 

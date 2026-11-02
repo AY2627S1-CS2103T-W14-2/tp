@@ -401,8 +401,10 @@ The `findproject KEYWORD` command implements UC02 using the existing filtered co
    collapsing internal whitespace. Length is measured in Unicode code points, consistent with the project model.
    The surrounding-whitespace rule also trims U+001C–U+001F, which `Project.normalize()` keeps so that `Project`
    rejects them as control characters; a search phrase is never stored, so this only widens what a search ignores.
-3. `ProjectContainsKeywordPredicate` uses `Project.normalize()` and `Locale.ROOT` to normalise the search phrase
-   once. It checks whether any project returned by `Person.getProjects()` contains that whole phrase, ignoring case.
+3. `ProjectContainsKeywordPredicate` normalises the phrase once with `Project.normalize()` and matches it with a
+   case-insensitive, Unicode-aware `Pattern`. `Locale.ROOT` is used only for the lowercase key in `equals` and
+   `hashCode`. It checks whether any project returned by `Person.getProjects()` contains that whole phrase,
+   ignoring case.
 4. `FindProjectCommand` passes the predicate to `Model.updateFilteredPersonList(...)` and returns the result count
    or a specific no-matches message. The UI observes this list and displays the existing contact cards and indices.
 
