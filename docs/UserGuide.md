@@ -618,6 +618,12 @@ or are rejected during parsing or validation, do not save either. There is no se
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
 
+Contact saves write a complete temporary file beside the data file before replacing the previous file in
+one operation. If writing or replacement fails, the previous data file stays intact. The data folder must
+allow creating and replacing files, and the data file must be writable. If another program has the file open
+(particularly on Windows), close that program and retry. If the location does not support atomic replacement,
+LinkUp reports a save error; use a data location that supports it. LinkUp does not fall back to overwriting the
+original file directly.
 **Only one active session per launch folder is supported.** Close LinkUp before starting another instance
 from the same folder. Never run multiple instances that use the same data file, even if launched from different
 folders. Each instance keeps its own contact list in memory and saves the complete list; it does not detect or
@@ -626,10 +632,14 @@ even when both commands report success. The other window may still display conta
 saved file.
 
 If a save error appears after a command that changes contacts, LinkUp restores the contacts, current search,
-and undo history to their state before that command. Fix the storage or permission problem, then retry the
+and undo history to their state before that command. Fix the storage, permission or file-access problem, then retry the
 original command. Do not run `undo` to recover from that failed command: `undo` would reverse an earlier
 successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
 retry `undo`.
+
+Existing symbolic links to data files remain links; saves update the file they point to. A link whose target
+does not exist produces a save error. Do not edit the data file externally or run two LinkUp instances using
+the same data file while LinkUp is saving.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
