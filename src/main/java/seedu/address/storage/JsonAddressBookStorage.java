@@ -97,7 +97,7 @@ public class JsonAddressBookStorage {
         requireNonNull(filePath);
 
         String content = JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook));
-        backupLegacyData(filePath);
+        backupBeforeReplacing(filePath);
         fileWriter.write(filePath, content);
     }
 
@@ -125,7 +125,7 @@ public class JsonAddressBookStorage {
      * prevents overwriting earlier backups. Any backup failure propagates to the caller before the original
      * file is modified.
      */
-    void backupLegacyData(Path filePath) throws IOException {
+    void backupBeforeReplacing(Path filePath) throws IOException {
         byte[] original;
         try {
             original = Files.readAllBytes(filePath);

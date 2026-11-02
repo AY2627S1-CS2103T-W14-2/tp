@@ -129,15 +129,16 @@ public class HelpWindow extends UiPart<Stage> {
      */
     private TextFlow createHelpSection(String section) {
         TextFlow flow = new TextFlow();
+        String sectionText = section;
         if (section.startsWith("COMMAND:")) {
             Text commandLabel = new Text("COMMAND:");
             commandLabel.setFont(Font.font(helpMessage.getFont().getFamily(), FontWeight.BOLD,
                     helpMessage.getFont().getSize()));
             commandLabel.setFill(Color.WHITE);
             flow.getChildren().add(commandLabel);
-            section = section.substring("COMMAND:".length());
+            sectionText = section.substring("COMMAND:".length());
         }
-        Text text = new Text(section);
+        Text text = new Text(sectionText);
         text.setFont(helpMessage.getFont());
         text.setFill(Color.WHITE);
         flow.getChildren().add(text);

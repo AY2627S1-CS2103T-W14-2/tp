@@ -1,9 +1,15 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -23,6 +29,8 @@ public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
 
+    private static final Logger logger = LogsCenter.getLogger(ParserUtil.class);
+
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
      * trimmed.
@@ -34,6 +42,35 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses whitespace-separated one-based indices for a command that acts on several contacts.
+     *
+     * @param oneBasedIndices The indices typed by the user.
+     * @param commandUsage The usage message shown when an index is invalid.
+     * @param duplicateIndexMessage The format of the message shown when an index is repeated.
+     * @return The indices in the order given.
+     * @throws ParseException If an index is invalid or repeated.
+     */
+    public static List<Index> parseDistinctIndices(String oneBasedIndices, String commandUsage,
+            String duplicateIndexMessage) throws ParseException {
+        List<Index> indices = new ArrayList<>();
+        for (String token : oneBasedIndices.strip().split("\\s+")) {
+            Index index;
+            try {
+                index = parseIndex(token);
+            } catch (ParseException e) {
+                logger.fine("Project parsing rejected: invalid contact index");
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, commandUsage), e);
+            }
+            if (indices.contains(index)) {
+                logger.fine("Project parsing rejected: repeated contact index " + index.getOneBased());
+                throw new ParseException(String.format(duplicateIndexMessage, index.getOneBased()));
+            }
+            indices.add(index);
+        }
+        return indices;
     }
 
     /**

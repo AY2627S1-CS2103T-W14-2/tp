@@ -16,6 +16,7 @@ public class Name {
                     + "Only English letters, digits, spaces, apostrophes, hyphens, and periods are allowed.";
     private static final String VALIDATION_REGEX = "[A-Za-z0-9 .'-]{1,60}";
     private static final String LEGACY_VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    private static final String CONTAINS_LETTER_REGEX = ".*[A-Za-z].*";
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("[\\s\\p{Z}]+");
 
     public final String fullName;
@@ -71,9 +72,8 @@ public class Name {
     }
 
     private static boolean isValidNormalizedName(String name) {
-        return name.matches(VALIDATION_REGEX) && name.matches(".*[A-Za-z].*");
+        return name.matches(VALIDATION_REGEX) && name.matches(CONTAINS_LETTER_REGEX);
     }
-
 
     @Override
     public String toString() {

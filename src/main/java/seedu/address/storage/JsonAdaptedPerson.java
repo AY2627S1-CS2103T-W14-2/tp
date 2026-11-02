@@ -63,6 +63,15 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        final List<Project> personProjects = toModelProjects();
+        final Name modelName = toModelName();
+        final Phone modelPhone = toModelPhone();
+        final Email modelEmail = toModelEmail();
+        final TelegramUsername modelTelegramUsername = toModelTelegramUsername();
+        return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, personProjects);
+    }
+
+    private List<Project> toModelProjects() throws IllegalValueException {
         final List<Project> personProjects = new ArrayList<>();
         for (JsonAdaptedProject project : projects) {
             if (project == null) {
@@ -75,42 +84,47 @@ class JsonAdaptedPerson {
                 personProjects.add(modelProject);
             }
         }
+        return personProjects;
+    }
 
+    private Name toModelName() throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
         if (!Name.isValidStoredName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = Name.fromStoredValue(name);
+        return Name.fromStoredValue(name);
+    }
 
+    private Phone toModelPhone() throws IllegalValueException {
         if (phone == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
         }
         if (!Phone.isValidStoredPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = Phone.fromStoredValue(phone);
+        return Phone.fromStoredValue(phone);
+    }
 
+    private Email toModelEmail() throws IllegalValueException {
         if (email == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
         }
         if (!Email.isValidStoredEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = Email.fromStoredValue(email);
+        return Email.fromStoredValue(email);
+    }
 
-        final TelegramUsername modelTelegramUsername;
+    private TelegramUsername toModelTelegramUsername() throws IllegalValueException {
         if (telegramUsername == null || telegramUsername.isEmpty()) {
-            modelTelegramUsername = TelegramUsername.EMPTY;
-        } else {
-            if (!TelegramUsername.isValidStoredTelegramUsername(telegramUsername)) {
-                throw new IllegalValueException(TelegramUsername.MESSAGE_CONSTRAINTS);
-            }
-            modelTelegramUsername = TelegramUsername.fromStoredValue(telegramUsername);
+            return TelegramUsername.EMPTY;
         }
-
-        return new Person(modelName, modelPhone, modelEmail, modelTelegramUsername, personProjects);
+        if (!TelegramUsername.isValidStoredTelegramUsername(telegramUsername)) {
+            throw new IllegalValueException(TelegramUsername.MESSAGE_CONSTRAINTS);
+        }
+        return TelegramUsername.fromStoredValue(telegramUsername);
     }
 
 }
