@@ -2,22 +2,27 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
-box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
-participant ":VersionedAddressBook" as VersionedAddressBook MODEL_COLOR
-end box
+participant ":ModelManager" as Model MODEL_COLOR
+participant "undoHistory:Deque<AddressBook>" as History MODEL_COLOR
+participant "addressBook:AddressBook" as AddressBook MODEL_COLOR
 
-[-> Model : undoAddressBook()
-activate Model
-
-Model -> VersionedAddressBook : undo()
-activate VersionedAddressBook
-
-VersionedAddressBook -> VersionedAddressBook :resetData(ReadOnlyAddressBook)
-VersionedAddressBook --> Model :
-deactivate VersionedAddressBook
-
-[<-- Model
-deactivate Model
-
+[-> Model : undo()
+Model -> Model : canUndo()
+Model -> History : isEmpty()
+History --> Model : empty
+alt empty
+    [<-- Model : IllegalStateException
+else snapshot available
+    Model -> History : pop()
+    History --> Model : latest snapshot
+    Model -> AddressBook : resetData(snapshot)
+    AddressBook --> Model
+    Model -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+    note over Model, AddressBook
+        Main list shows all contacts; recent-search predicate is retained.
+        Observable-list listeners refresh both views and SearchHistory.
+        No search-history snapshot is restored by undo.
+    end note
+    [<-- Model : restored (one snapshot removed)
+end
 @enduml

@@ -59,6 +59,11 @@ activate Before
 Before --> LogicManager
 deactivate Before
 
+note over LogicManager, Model
+    Filter predicate and search-history snapshots are also captured.
+    See the shared persistence diagram.
+end note
+
 LogicManager -> ProjectCommand : execute(m)
 activate ProjectCommand
 
@@ -85,7 +90,7 @@ loop for each selected contact
     deactivate Model
 end
 
-ProjectCommand -> ProjectCommand : createSuccessResult(originals)
+ProjectCommand -> ProjectCommand : createSuccessResult(replacements)
 activate ProjectCommand
 create CommandResult
 ProjectCommand -> CommandResult
@@ -97,6 +102,11 @@ deactivate ProjectCommand
 
 ProjectCommand --> LogicManager : r
 deactivate ProjectCommand
+
+note over LogicManager, Storage
+    Successful save shown.
+    Failed-save rollback: see the shared persistence diagram.
+end note
 
 LogicManager -> Model : getAddressBook()
 activate Model

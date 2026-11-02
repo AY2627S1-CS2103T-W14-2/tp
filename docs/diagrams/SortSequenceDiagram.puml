@@ -6,6 +6,7 @@ box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant "s:SortCommand" as SortCommand LOGIC_COLOR
+participant "CommandResult\n<<class>>" as CommandResultClass LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -44,6 +45,11 @@ activate Before
 Before --> LogicManager
 deactivate Before
 
+note over LogicManager, Model
+    Filter predicate and search-history snapshots are also captured.
+    See the shared persistence diagram.
+end note
+
 LogicManager -> SortCommand : execute(m)
 activate SortCommand
 
@@ -52,28 +58,44 @@ activate Model
 Model --> SortCommand : addressBook
 deactivate Model
 
-SortCommand -> SortCommand : isSorted(contacts)
-activate SortCommand
-SortCommand --> SortCommand : sorted
-deactivate SortCommand
-
-alt no contacts or already sorted
+alt no contacts
+    SortCommand -> CommandResultClass : withoutDataChange(ListCommand.MESSAGE_NO_CONTACTS)
+    activate CommandResultClass
     create CommandResult
-    SortCommand -> CommandResult : withoutDataChange(message)
+    CommandResultClass -> CommandResult : CommandResult(feedbackToUser, false, false, false)
     activate CommandResult
-    CommandResult --> SortCommand : r
+    CommandResult --> CommandResultClass
     deactivate CommandResult
-else otherwise
-    SortCommand -> Model : sortPersons(nameComparator)
-    activate Model
-    Model --> SortCommand
-    deactivate Model
+    CommandResultClass --> SortCommand : r
+    deactivate CommandResultClass
+else contacts available
+    SortCommand -> SortCommand : isSorted(contacts)
+    activate SortCommand
+    SortCommand --> SortCommand : sorted
+    deactivate SortCommand
 
-    create CommandResult
-    SortCommand -> CommandResult
-    activate CommandResult
-    CommandResult --> SortCommand : r
-    deactivate CommandResult
+    alt already sorted
+        SortCommand -> CommandResultClass : withoutDataChange(MESSAGE_ALREADY_SORTED)
+        activate CommandResultClass
+        create CommandResult
+        CommandResultClass -> CommandResult : CommandResult(feedbackToUser, false, false, false)
+        activate CommandResult
+        CommandResult --> CommandResultClass
+        deactivate CommandResult
+        CommandResultClass --> SortCommand : r
+        deactivate CommandResultClass
+    else otherwise
+        SortCommand -> Model : sortPersons(nameComparator)
+        activate Model
+        Model --> SortCommand
+        deactivate Model
+
+        create CommandResult
+        SortCommand -> CommandResult
+        activate CommandResult
+        CommandResult --> SortCommand : r
+        deactivate CommandResult
+    end
 end
 SortCommand --> LogicManager : r
 deactivate SortCommand
@@ -84,6 +106,11 @@ CommandResult --> LogicManager : changed
 deactivate CommandResult
 
 opt changed
+    note over LogicManager, Storage
+        Successful save shown.
+        Failed-save rollback: see the shared persistence diagram.
+    end note
+
     LogicManager -> Model : getAddressBook()
     activate Model
     Model --> LogicManager : addressBook
