@@ -57,6 +57,14 @@ public class ProjectCommandTest {
     }
 
     @Test
+    public void execute_duplicateGreekCaseVariant_failureWithoutMutation() {
+        model.addPerson(new PersonBuilder().withProjects("ΟΣ").build());
+        assertCommandFailure(new ProjectCommand(Index.fromOneBased(1), new Project("οσ")),
+                model, String.format(ProjectCommand.MESSAGE_CONFLICTING_CONTACTS, "ΟΣ",
+                        "1: " + model.getFilteredPersonList().get(0).getName()));
+    }
+
+    @Test
     public void execute_invalidDisplayedIndex_failureWithoutMutation() {
         assertCommandFailure(new ProjectCommand(Index.fromOneBased(1), project), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
