@@ -46,7 +46,7 @@ public class RenameProjectCommand extends Command {
         requireNonNull(model);
         List<Person> contacts = model.getAddressBook().getPersonList();
         if (contacts.stream().noneMatch(person -> person.getProjects().contains(oldProject))) {
-            throw new CommandException(String.format(MESSAGE_NOT_FOUND, oldProject));
+            throw new CommandException(String.format(MESSAGE_NOT_FOUND, escapedName(oldProject)));
         }
         Project savedOldProject = contacts.stream().flatMap(person -> person.getProjects().stream())
                 .filter(oldProject::equals).findFirst().orElseThrow();

@@ -54,6 +54,11 @@ public class JsonUserPrefsStorageTest {
         }
     }
 
+    @Test
+    public void readUserPrefs_nullGuiSettings_exceptionThrown() {
+        assertThrows(DataLoadingException.class, () -> readUserPrefs("NullGuiSettingsUserPrefs.json"));
+    }
+
     private Path addToTestDataPathIfNotNull(String userPrefsFileInTestDataFolder) {
         return userPrefsFileInTestDataFolder != null
                 ? TEST_DATA_FOLDER.resolve(userPrefsFileInTestDataFolder)
