@@ -1,0 +1,37 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+skinparam DefaultTextAlignment left
+
+start
+:Read the data file;
+
+if () then ([file is missing])
+    :Use the sample contacts;
+else ([else])
+    if () then ([data loads successfully])
+        :Use the saved contacts;
+    else ([else])
+        :Back up the file if it still exists;
+
+        if () then ([backup failed])
+            :Show an error dialog;
+            note right
+                Logic and UI are never created,
+                so nothing can save over the file.
+            end note
+            stop
+        else ([else])
+            :Use an empty contact list;
+            :Record a startup warning, naming
+            the backup if created;
+        endif
+    endif
+endif
+
+:Open the main window and show
+any startup message;
+stop
+@enduml
