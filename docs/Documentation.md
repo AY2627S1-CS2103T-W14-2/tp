@@ -66,4 +66,4 @@ Use British English consistently in explanatory prose. Keep command output, code
 
 ## Converting to PDF
 
-* See the guide [guide to saving web documents as PDF files](https://se-education.org/guides/tutorials/savingPdf.html).
+* See the [guide to saving web documents as PDF files](https://se-education.org/guides/tutorials/savingPdf.html).

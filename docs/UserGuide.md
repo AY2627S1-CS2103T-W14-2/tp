@@ -280,7 +280,7 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 * Both names must contain 1–40 characters. Line breaks and other control characters are not allowed.
   Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
-  association on that contact. Capitalization corrections
+  association on that contact. Capitalisation corrections
   are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalised
   spelling exactly matches the stored spelling, regardless of how the old name was typed.
 * Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or

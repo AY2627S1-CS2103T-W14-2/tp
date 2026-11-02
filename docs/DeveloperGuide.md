@@ -706,10 +706,6 @@ commands available in this release. No archiving design has been implemented yet
 
 ### Product scope
 
-**Release boundary:** All ten commands listed in the current command model were in the MVP release. `edit` was
-excluded from MVP acceptance and has since been extended as post-MVP work. Other future user stories below are
-not commitments.
-
 **Target user profile**:
 
 * is a student who works on multiple courses or projects and needs to manage
@@ -856,7 +852,7 @@ Use case ends.
 
 * 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
 
-  * 3a1. LinkUp displays an index error without changing saved contacts.
+  * 3a1. LinkUp displays the relevant input error without changing saved contacts.
 
   Use case resumes at step 3.
 
@@ -893,7 +889,7 @@ Use case ends.
 
 * 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
 
-  * 3a1. LinkUp displays an index error without deleting any contact.
+  * 3a1. LinkUp displays the relevant input error without deleting any contact.
 
   Use case resumes at step 3.
 
@@ -924,16 +920,15 @@ Use case ends.
 
 ### Non-functional requirements
 
-These are design targets, not a claim that performance or usability benchmarks have been completed.
-CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
+The following requirements specify LinkUp's supported environment and quality criteria.
 
 1.  **Environment:** The supported release setup is Windows, macOS or Linux with Java `25` installed.
 2.  **Capacity:** The system shall support at least 1000 saved contacts without noticeable sluggishness during typical usage.
 3.  **Performance:** The system shall return results within 2 seconds when searching using name or project for a contact list of up to 1000 contacts.
-4.  **Usability:** The system shall display a clear success message or a specific error message after every command.
+4.  **Usability:** Command feedback shall use plain language and identify the affected contact, project or input where relevant, so users can understand the outcome without consulting the code.
 5.  **Interaction efficiency:** A user with above-average typing speed for regular English text should be able to complete most tasks faster using commands than using mouse interactions.
-6.  **Data integrity:** If a command fails because of invalid input, an invalid index, or a duplicate, the system shall leave the contact list unchanged.
-7.  **Data consistency:** The system shall validate and normalise contact and project data consistently before storing or searching it.
+6.  **Data integrity:** Rejected commands shall cause no loss or partial modification of contact data, including when a command targets multiple contacts.
+7.  **Maintainability:** Commands shall share the model's validation and normalisation rules rather than duplicate them, so changes to input rules remain consistent across features.
 8.  **Persistence and reliability:** Contacts should survive restart after a successful save. An unreadable data
     file is backed up before starting empty; if backup fails, startup stops with an error dialog. Ordinary save
     failures preserve the previously saved file, report an error and restore the previous in-memory state,
@@ -1021,7 +1016,8 @@ Run the following in order after preparing the contacts:
 | `findproject Alpha Team` | No matches: project search uses a whole phrase, not OR keywords. |
 | `find` | Format error; previous results remain unchanged. |
 | `list` | All three contacts return in saved order. |
-| `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
+| `delete 0` | `Invalid command format!` with the `delete` usage; all contacts remain. |
+| `delete 4` | Invalid-index error; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
 | `FIND lee` then `List` | Only David Lee, then all three contacts: command words ignore case. |
@@ -1100,6 +1096,50 @@ With 997 spaces, it should instead report
 On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
 the command box and execute. Verify that the same command-length error appears within two seconds
 and that the displayed contacts, recent search and saved data remain unchanged.
+
+### Replacing a project association
+
+Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `findproject Orbital` then `replaceproject 1 old/Orbital new/Team Gamma` | Only the second Alex's association changes. The Orbital results become empty because that contact no longer matches. |
+| `list` | All three contacts remain; the second Alex has Team Gamma and unchanged contact details. |
+| `undo` | The second Alex's Orbital association returns. |
+| `replaceproject 2 old/Missing new/Team Gamma` | Old-project-not-found error; no changes. |
+| `replaceproject 2 old/Orbital new/Orbital` | Unchanged-spelling error; no changes. |
+| `replaceproject 0 old/Orbital new/Team Gamma` | Format error with usage; no changes. |
+| `replaceproject 4 old/Orbital new/Team Gamma` | Invalid-index error; no changes. |
+| `project 2 pr/Team Alpha` then `replaceproject 2 old/Orbital new/Team Alpha` | Adding succeeds, but replacement is rejected because that contact already has Team Alpha. Both associations remain. |
+| `undo` | Removes the added Team Alpha association: the failed replacement did not add an undo entry. |
+
+### Removing project associations
+
+Prepare the three-contact fixture again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `deleteproject 1 2 pr/Team Alpha` | Error identifies the second Alex as lacking Team Alpha. Neither contact changes. |
+| `project 2 pr/Team Alpha` then `findproject Team Alpha` | Both Alex contacts appear at displayed indices 1 and 2. |
+| `deleteproject 1 2 pr/Team Alpha` | Removes Team Alpha from both selected contacts despite the filter changing during removal. The displayed list becomes empty. |
+| `list` | All three contacts remain. The first Alex has no projects; the second retains Orbital; David retains Team Beta. |
+| `undo` | Restores both removed associations in one step. |
+| `deleteproject 1 1 pr/Team Alpha` | Repeated-index error; no changes. |
+| `deleteproject 0 pr/Team Alpha` | Format error with usage; no changes. |
+| `deleteproject 1 4 pr/Team Alpha` | Invalid-index error; even the first contact remains unchanged. |
+
+### Listing projects
+
+Prepare the three-contact fixture again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `find David` then `projects` | Lists Orbital, Team Alpha and Team Beta in that order, each with one contact. Only David remains displayed: counts include hidden contacts. |
+| `projects extra` | Format error with usage; contacts and filter remain unchanged. |
+| `list` then `project 2 pr/team alpha` then `projects` | Lists three distinct projects. Team Alpha has two contacts, combining case variants; Orbital and Team Beta still have one each. |
+| `undo` then `projects` | Team Alpha returns to one contact; listing projects did not add an undo entry. |
+| `clear` then `projects` | `No projects saved yet.` |
+| `undo` | Restores all three contacts; listing the empty projects did not consume the undo entry. |
 
 ### Renaming projects
 
