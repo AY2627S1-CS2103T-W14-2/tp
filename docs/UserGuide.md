@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# LinkUp user guide
+# LinkUp User Guide
 
 LinkUp is a **desktop contact manager for students working across projects and teams**. Type commands to save
 contact details, associate project mates with projects, and find the right person by name or project. The contact
@@ -84,16 +84,18 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * Items in square brackets are optional.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]` accepts both `find Alice Bob` and `find Alice`.
 
-* Parameters can be in any order.<br>
+* Prefixed parameters can be in any order, but `INDEX` must come first, straight after the command word.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Command words ignore case, so `FIND alex` and `Find alex` work like `find alex`, but they cannot be shortened:
   use `findproject`, not `findp`. Prefixes are case-sensitive: use `n/`, not `N/`.
-  Separate each prefix from the preceding value with a space. Supply each supported prefix only once.
+  Separate each prefix from the preceding value with a space. Supply each supported prefix only once,
+  unless a command says otherwise.
 
 * `INDEX` always refers to the numbered main contact list, including search results. The **Recent search**
-  section does not provide command indices. Check the index again after
-  adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
+  section does not provide command indices. Check the index again after any command that changes or reorders
+  the list, such as `add`, `edit`, `delete`, `sort`, `undo` or a search. A project command can also remove a contact
+  from the current search results, moving later contacts up. Contacts with the same name still have separate indices.
 
 * `help`, `list`, `sort`, `undo`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
   `clear` and `projects` reject extra parameters.<br>
@@ -101,17 +103,45 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
+### Viewing the most searched contact
+
+The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
+shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
+The **Current contact list** below provides the numbered contacts for commands.
+
+* Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
+  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
+  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
+  if both matched the same search, the contact first in the contact list wins. For example, with the original
+  sample contacts in a fresh session, `find Alex` followed by `find Bernice` gives Alex Yeoh and Bernice Yu
+  one search each, so Bernice wins. Another `find Alex` puts Alex ahead with two.
+* **Latest search** shows the latest executed search with its type: `Name: Alex` for `find Alex` or
+  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
+  no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
+  `list` and other commands do not add search counts.
+* Editing a contact or changing their projects with `project`, `replaceproject`, `deleteproject` or `renameproject`
+  preserves their count and search recency. Their displayed details update immediately. Undoing any of these
+  changes also preserves these statistics. Deleting a contact removes their count; `clear` removes all counts.
+  Undoing deletion or clearing restores contacts without their old counts.
+  These commands leave the recent search text unchanged.
+* Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
+  section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
+  to read the full text. Project tags wrap below the contact header. A project tag too long for its panel ends
+  in an ellipsis and shows the full project name in a tooltip. Only one most searched contact is shown,
+  and its details scroll when needed.
+
 ### Viewing recent search results
 
 The **Recent search** section sits above the **Current contact list**, beside **Most searched**.
 It shows contacts matching the latest name or project search and scrolls independently. Each result shows a matching contact's name and Telegram handle, with project tags
 underneath. Contacts without a Telegram username show `No Telegram Username` beside their name.
-For example, a result header reads `Alex Tan | @alex_tan` or `Alex Tan | No Telegram Username`.
+For example, a result header reads `Alex Tan  |  @alex_tan` or `Alex Tan  |  No Telegram Username`.
 Hover over the header to see the full name and handle if the text is too long to fit.
 
 Project tags appear below the header as purple labels such as `Project: Orbital`, using the same styling as
-the main contact cards. Tags wrap onto additional lines when needed, and results scroll independently to show
-all details. Contacts without projects have no project tags. Use the main contact list to view phone numbers and emails.
+the main contact cards. Tags wrap onto additional lines when needed. A project tag too long for its panel ends
+in an ellipsis and shows the full project name in a tooltip. Results scroll independently to show all details.
+Contacts without projects have no project tags. Use the main contact list to view phone numbers and emails.
 
 The shared search label appears once above the rows, for example `Latest search: Name: Alex` or
 `Latest search: Project: Team Alpha`.
@@ -120,6 +150,8 @@ Hover over this text to see the full search if it is too long to fit. Before you
 
 * Running `find` or `findproject` replaces this section with the latest search results.
   The search text updates automatically and includes `Name:` or `Project:` so you can distinguish search types.
+* Results follow the saved contact order, rather than search frequency or recency. Running `sort` also
+  reorders the matching contacts in this section.
 * Running `list` shows all contacts in the main list while keeping the latest results and search text in this section.
 * Results stay in sync with contact changes: editing, deleting, adding, clearing, or undoing can change which
   contacts match the latest search and the details displayed.
@@ -131,7 +163,7 @@ Hover over this text to see the full search if it is too long to fit. Before you
 
 For example, run `find Alex` and then `list`. The main list shows all contacts, while the smaller section still
 shows contacts matching Alex and the label `Latest search: Name: Alex`. Use the indices in the main list for
-`edit`, `delete`, and `project`.
+`edit`, `delete`, `project`, `replaceproject`, and `deleteproject`.
 
 ### Viewing help: `help`
 
@@ -451,7 +483,6 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   contacts again, clearing the previous search filter.
 
 Examples:
-
 *  `edit 1 p/+6591234567 e/johndoe@example.com` changes the phone number and email of the 1st contact to
    `+6591234567` and `johndoe@example.com`.
 *  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
@@ -475,38 +506,17 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   (for example, `find n/alex`) produce an error explaining the correct format.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
-* A search with no matches produces an empty list and the message `0 contact(s) listed!`.
+* No matches produces an empty list and the message `0 contact(s) listed!`.
 * Successful searches report `N contact(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
 * Blank, overlong, or slash-containing input produces an error without changing the current results or saved contacts.
-* The two search sections sit side by side above the **Current contact list**. **Most searched** on the left
-  shows the **Top contact this session**. **Recent search** on the right shows the latest query and its matches.
-  The **Current contact list** below provides the numbered contacts for commands.
-  Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
-  or projects match that contact. The displayed contact details include their name, projects and Telegram username.
-  The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
-  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
-  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
-* **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
-  `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
-  no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
-  `list` and other commands do not add search counts.
-* Editing a contact or adding a project preserves their count and search recency; their displayed details update
-  immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
-  their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
-  These commands leave the recent search text unchanged.
-* Both search sections reset when you restart LinkUp. Before any contact earns a search count, the most searched
-  section shows `No contacts searched yet.`. Long contact headers and queries use an ellipsis; hover over them
-  to read the full text. Project tags wrap below the contact header. Only one most searched contact is shown,
-  and its details scroll when needed.
 
 Examples:
-
 * `find John` returns `john` and `John Doe`
 * `find ale` returns contacts such as `Alex Tan` and `Alexander Lee`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![Contacts matching the name search find alex david](images/findAlexDavidResult.png)
+  ![result for 'find alex david'](images/findAlexDavidResult.png)
 
 ### Finding contacts by project: `findproject`
 
@@ -596,7 +606,6 @@ Format: `delete INDEX`
   so contacts with the same name can be told apart.
 
 Examples:
-
 * `list` followed by `delete 2` deletes the 2nd contact in LinkUp.
 * `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
 
@@ -617,8 +626,7 @@ The command takes no parameters. Extra text is rejected without changing any con
 
 ### Undo a command: `undo`
 
-Reverses the last supported command. The supported commands are:
-
+Undo the last supported command. The supported commands are:
 * `add`
 * `delete`
 * `edit`
@@ -633,7 +641,7 @@ Each `undo` reverses the most recent successful supported command that has not a
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
 `No changes made.` Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
-A successful undo displays all contacts again.
+A successful undo reports `Last command undone.` and displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
 If there are no commands left to undo, the application reports `No command to undo.`
@@ -722,7 +730,7 @@ Changes must satisfy the [duplicate-contact rule](#adding-a-contact-add) and the
 * **Project:** Optional. Each name follows the `add` rules, and repeats on one contact are dropped.
 
 In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
-hyphens. The command input `p/+65 9123-4567` is normalised before saving; that formatted string is not accepted
+hyphens. The command input `p/+65 9123-4567` is normalized before saving; that formatted string is not accepted
 directly in JSON. Older digit-only numbers such as `"91234567"` remain loadable and are preserved exactly.
 LinkUp does not infer a country code, so `91234567` and `+6591234567` are different stored phone values.
 
@@ -770,7 +778,7 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
+2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -792,16 +800,16 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
-**Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
-**Help**   | `help`
 **List**   | `list`
-**List projects** | `projects`
-**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
+**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
+**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
+**List projects** | `projects`
+**Help**   | `help`
 **Undo**   | `undo`
+**Exit**   | `exit`
