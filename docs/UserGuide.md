@@ -12,9 +12,9 @@ list shows phone numbers, emails, Telegram usernames, and projects so you can di
 
 LinkUp supports adding, listing, finding, editing, sorting and deleting contacts, with checks for duplicate
 contact details and automatic saving. Contacts may share a name. Use `project` to add project associations,
-`deleteproject` to remove them, `replaceproject` to replace one association, and `renameproject` to rename
-or merge a project across contacts. Use `undo` to reverse supported changes, `help` for command guidance,
-and `exit` to close LinkUp.
+`deleteproject` to remove them, `replaceproject` to replace one association, `renameproject` to rename
+or merge a project across contacts, and `projects` to list every saved project. Use `undo` to reverse
+supported changes, `help` for command guidance, and `exit` to close LinkUp.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -153,6 +153,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 
 **Tip:** Every new contact must have one initial project. Contacts can have no projects after `deleteproject` or when loaded from older files;
 use `project` to associate them with one later.
+</box>
 
 **Phone number requirements**
 
@@ -184,19 +185,20 @@ in lowercase. An email can have at most 254 characters, with at most 64 before t
 
 **Telegram username requirements**
 
-The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
+The Telegram username is required. It must contain 5–32 English letters, digits, or underscores, start with a
 letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
 
 **Project requirements**
 
 The project is required. A project name must contain 1–40 characters and cannot contain control characters; the
 command box removes pasted line breaks and tabs. Surrounding whitespace is removed, repeated internal whitespace is
-collapsed, and project names are compared case-insensitively. Invisible formatting characters, such as a zero-width
-space copied from a chat app, are removed, so a pasted name matches the same name typed by hand. Joiners that
-combine emoji (for example 👨‍💻) or shape letters in scripts such as Persian or Hindi are kept; a joiner next to an
-English letter, a digit, a space or punctuation is removed. A few rare blank characters, such as the blank Hangul filler used in Korean text, are not removed. Supply exactly one non-empty
-`pr/PROJECT`. If `pr/` is missing, the
-command reports `Project is required. Use pr/PROJECT.`
+collapsed, and project names are compared case-insensitively. Common invisible formatting characters copied from
+other apps, such as zero-width spaces, are removed. Most emoji and non-English letters are supported, but some flags
+may be simplified and some unusual blank characters remain. Supply exactly one non-empty `pr/PROJECT`.
+
+For an otherwise complete `add` command, omitting `pr/` reports `Project is required. Use pr/PROJECT.` Missing another
+required prefix or including unexpected text before the first prefix produces `Invalid command format!` with the
+command's usage. An empty `pr/` value produces a project-name validation error.
 
 In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
 `t/`) starts a new field, even within a project name. For example, `pr/Team n/Beta` is rejected because `n/` is
@@ -204,7 +206,6 @@ repeated, and `pr/Team a/b` is rejected because `a/` is retired. Prefixes withou
 `Team-n/Beta`, and other punctuation and symbols such as `*()!%$#&` are accepted. To give a contact a project
 name like `Team n/Beta`, add the contact with another project first, then use `project INDEX pr/Team n/Beta`,
 which only treats `pr/` as a prefix.
-</box>
 
 Examples:
 
@@ -240,6 +241,7 @@ same person. For example, an older saved number `91234567` and `+6591234567` cou
 </box>
 
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
+These prefixes are reserved only in `add` and `edit`: `project 1 pr/Team a/b` saves the project name `Team a/b`.
 
 ### Associating an existing contact with a project: `project`
 
@@ -697,7 +699,22 @@ want to retain address/tag values: the updated app no longer displays or edits t
 ### Editing the data file
 
 Advanced users can edit `data/addressbook.json` in the launch folder. Close LinkUp first and make a copy of the
-file before editing. Changes must satisfy the saved-data validation and duplicate-contact rules.
+file before editing.
+
+Changes must satisfy the [duplicate-contact rule](#adding-a-contact-add) and these rules for saved values:
+
+* **Name:** Saved names keep their spacing, and internal spaces are not collapsed during validation. After trimming
+  the ends, a name may contain 1–60 English letters, digits, spaces, apostrophes, hyphens and periods, with at least
+  one English letter. Older names containing only English letters, digits and spaces may have any length but must
+  start with a letter or digit. Digit-only names such as `12345` also load.
+* **Phone:** Either `+` followed by 3–15 digits, with a non-zero first digit and no spaces or hyphens, or digits
+  only, at least 3.
+* **Email:** At most 254 characters, with at most 64 before the `@`. It follows the `add` rules or an older form
+  such as `amy@example`. Its case is kept, and domain labels over 63 characters load.
+* **Telegram username:** May be missing or empty. Non-empty values must contain 5–32 English letters, digits or
+  underscores after removing surrounding whitespace and an optional leading `@`. Letters are lowercased. Older
+  usernames may start with a digit or underscore, or end with an underscore.
+* **Project:** Optional. Each name follows the `add` rules, and repeats on one contact are dropped.
 
 In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
 hyphens. The command input `p/+65 9123-4567` is normalised before saving; that formatted string is not accepted
@@ -719,6 +736,7 @@ storage or permission problem, then start LinkUp again. Still, we recommend back
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
 [duplicate-contact rule](#adding-a-contact-add) and is also rejected on load.<br>
+Repeated keys, text after the closing `}` and comments also make the file invalid.<br>
 Unrecognised keys inside a contact are ignored without warning. If you misspell the optional `telegramUsername` or
 `projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
 the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
@@ -748,6 +766,17 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
+
+--------------------------------------------------------------------------------------------------------------------
+
+## Known limitations
+
+The following are not supported in this version:
+
+* Names with accents, non-English letters, `/` or commas, such as `José Tan`, `陈大文`, `Ali s/o Abu` or `Tan, Mei`.
+  Use an English spelling with the supported punctuation.
+* Adding a contact without all five details, clearing a Telegram username, or storing more than one phone number,
+  email or Telegram username for a contact.
 
 --------------------------------------------------------------------------------------------------------------------
 
