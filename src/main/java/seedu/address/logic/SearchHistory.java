@@ -28,23 +28,29 @@ public class SearchHistory {
         this.persons = persons;
         persons.addListener((ListChangeListener<Person>) change -> {
             while (change.next()) {
-                if (change.wasReplaced() && change.getRemovedSize() == change.getAddedSize()) {
-                    // Undo restores a full snapshot, while ordinary edits replace one list element.
-                    List<? extends Person> removed = change.getRemoved();
-                    List<? extends Person> added = change.getAddedSubList();
-                    for (int i = 0; i < removed.size(); i++) {
-                        if (!added.contains(removed.get(i)) && !removed.contains(added.get(i))) {
-                            SearchCount count = counts.remove(removed.get(i));
-                            if (count != null) {
-                                counts.put(added.get(i), count);
-                            }
-                        }
-                    }
-                }
+                transferSearchCounts(change);
             }
             counts.keySet().retainAll(persons);
             updateMostSearchedPerson();
         });
+    }
+
+    private void transferSearchCounts(ListChangeListener.Change<? extends Person> change) {
+        if (!change.wasReplaced() || change.getRemovedSize() != change.getAddedSize()) {
+            return;
+        }
+        // Undo restores a full snapshot, while ordinary edits replace one list element.
+        List<? extends Person> removed = change.getRemoved();
+        List<? extends Person> added = change.getAddedSubList();
+        for (int i = 0; i < removed.size(); i++) {
+            if (added.contains(removed.get(i)) || removed.contains(added.get(i))) {
+                continue;
+            }
+            SearchCount count = counts.remove(removed.get(i));
+            if (count != null) {
+                counts.put(added.get(i), count);
+            }
+        }
     }
 
     /**
