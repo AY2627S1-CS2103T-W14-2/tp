@@ -3,11 +3,14 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.Test;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import seedu.address.model.person.Person;
@@ -17,6 +20,7 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonCardTest {
     private static final double NARROW_CARD_WIDTH = 300;
     private static final double CARD_HEIGHT = 400;
+    private static final int PROJECT_COUNT = 12;
 
     @Test
     public void longNameAndEmail_narrowCard_wrapWithoutTruncation() throws Exception {
@@ -32,6 +36,23 @@ public class PersonCardTest {
             Label index = (Label) card.lookup("#id");
             assertEquals("1. ", displayedText(index));
             assertTrue(name.getHeight() > index.getHeight());
+        });
+    }
+
+    @Test
+    public void manyProjects_beforeFirstLayout_measuredHeightFitsEveryRow() throws Exception {
+        String[] projectNames = IntStream.rangeClosed(1, PROJECT_COUNT).mapToObj(i -> "Tag " + i)
+                .toArray(String[]::new);
+        Person person = new PersonBuilder().withProjects(projectNames).build();
+        FxTestUtil.run(() -> {
+            Region card = new PersonCard(person, 1).getRoot();
+            StackPane root = new StackPane(card);
+            new Scene(root, NARROW_CARD_WIDTH, CARD_HEIGHT);
+            root.applyCss();
+            // List cells size themselves from this first measurement, before the card has a width
+            double firstMeasuredHeight = card.prefHeight(NARROW_CARD_WIDTH);
+            root.layout();
+            assertEquals(card.prefHeight(NARROW_CARD_WIDTH), firstMeasuredHeight);
         });
     }
 

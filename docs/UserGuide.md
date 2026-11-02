@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# LinkUp User Guide
+# LinkUp user guide
 
 LinkUp is a **desktop contact manager for students working across projects and teams**. Type commands to save
 contact details, associate project mates with projects, and find the right person by name or project. The contact
@@ -24,23 +24,28 @@ merged across contacts with `renameproject`.
 ## Quick start
 
 1. Install Java `25` and check that `java -version` reports version 25 in your terminal.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+   **Mac users:** Ensure you have the precise JDK version specified in the [Java installation guide for macOS](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download `LinkUp.jar` from the assets of the [LinkUp release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases).
    Download the JAR, not the source-code ZIP or TAR archive.
 
 1. Place the JAR in a folder where you have permission to create and update files.
 
+1. Keep **only one active LinkUp session per launch folder**. Close the existing LinkUp window before
+   launching another instance from that folder. Multiple instances sharing the same data file are unsupported
+   and can silently overwrite each other's changes, causing contact data loss.
+
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar LinkUp.jar`.<br>
    Always start from this folder: LinkUp stores data relative to the terminal's current folder. On first launch,
    if no data file exists, LinkUp supplies sample contacts.<br>
-   ![Ui](images/Ui.png)<br>
+   ![LinkUp window showing the command box, search summaries and contact list](images/Ui.png)<br>
    Below the command box are three sections: the result box, the **Most searched** and **Recent search**
    sections, and the **Current contact list**. Drag the bar between two sections to give either one more space,
    for example to read a long `projects` list in the result box.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.
-   If you click a contact or the result box, just keep typing: your input goes to the command box.<br>
+   If you click a contact or the result box, typing a character moves focus to the command box and appends it to your input.
+   Backspace and Enter do not move focus; click the command box before using them.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -149,6 +154,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT`
 **Tip:** Every new contact must have one initial project. Contacts can have no projects after `deleteproject` or when loaded from older files;
 use `project` to associate them with one later.
 
+**Phone number requirements**
+
 For a new phone number, enter `+` followed by a country calling code and a national number. The `+` must be
 immediately followed by a digit, and the number must end in a digit after surrounding whitespace is trimmed.
 You may include spaces or hyphens between digits for readability; LinkUp removes them and stores the number
@@ -157,11 +164,15 @@ The first digit after `+` cannot be `0`. For example, `p/+65 9123-4567` is store
 numbers are rejected. LinkUp checks the format only; it does not verify the country calling code or whether the
 number is assigned or callable.
 
+**Name requirements**
+
 Names must contain 1–60 characters after surrounding spaces are removed and repeated spaces are reduced to one.
 For example, `n/Emma   First` is saved as `Emma First`, and pasted spacing such as a non-breaking space also
 counts as a space. A pasted tab is different: the command box removes it, so `Emma<tab>First` is saved as
 `EmmaFirst`. English letters, digits, spaces, apostrophes, hyphens, and periods are accepted; at least one
-English letter is required. The name keeps its capitalization for display.
+English letter is required. The name keeps its capitalisation for display.
+
+**Email requirements**
 
 Emails need exactly one `@` and at least two dot-separated domain labels. The local part accepts English letters,
 digits, and the unquoted symbols ``!#$%&'*+/=?^_`{|}~-``; periods must separate non-empty parts.
@@ -171,8 +182,12 @@ punctuation such as a copied comma, and prefixes such as `mailto:` are rejected.
 in lowercase. An email can have at most 254 characters, with at most 64 before the `@`. These are the standard
 size limits for email addresses (RFC 5321), and mail servers may reject longer addresses.
 
+**Telegram username requirements**
+
 The Telegram username is required. It must contain 5–32 Latin letters, digits, or underscores, start with a
 letter, and not end with an underscore, as Telegram requires. A leading `@` is optional, and uppercase letters are accepted. The username is stored in lowercase and displayed with a leading `@`.
+
+**Project requirements**
 
 The project is required. A project name must contain 1–40 characters and cannot contain control characters; the
 command box removes pasted line breaks and tabs. Surrounding whitespace is removed, repeated internal whitespace is
@@ -193,6 +208,7 @@ which only treats `pr/` as a prefix.
 </box>
 
 Examples:
+
 * `add n/John Doe p/+6598765432 e/johnd@example.com tele/@john_doe pr/CS2103T`
 * `add n/Betsy Crowe e/betsycrowe@example.com tele/betsy_crowe p/+60123457878 pr/Orbital`
 
@@ -209,6 +225,7 @@ the same email. Contacts may share a name or a project. To tell contacts with th
 phone numbers, emails, Telegram usernames and projects in the contact list.
 
 If a detail is already used, LinkUp rejects the command, saves nothing, and names the clashing detail and contact:
+
 * `Phone number +6587438807 is already used by Alex Yeoh. Please enter a different phone number.`
 * `Email alexyeoh@example.com is already used by Alex Yeoh. Please enter a different email.`
 * `Telegram username @alex_yeoh is already used by Alex Yeoh. Please enter a different Telegram username.`
@@ -247,9 +264,10 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
   Other contacts are unchanged. One `undo` reverses the entire operation.
 
 Examples:
+
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
-* `project 1 3 5 pr/CS2103T` adds CS2103T to displayed contacts 1, 3 and 5 as one undoable operation.
+* `project 1 3 5 pr/Orbital` adds Orbital to contacts 1, 3 and 5 in the original sample list as one undoable operation.
 
 ### Replacing a contact's project association: `replaceproject`
 
@@ -263,7 +281,7 @@ Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
   Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
   association on that contact. Capitalization corrections
-  are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalized
+  are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalised
   spelling exactly matches the stored spelling, regardless of how the old name was typed.
 * Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or
   invalid names and invalid indices produce an error without changing the contact.
@@ -302,7 +320,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 * Successful removal is saved and can be reversed with `undo`.
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
-Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
+With the original sample list displayed, use `deleteproject 1 2 pr/CS2103T` to remove the association from Alex and Bernice.
 The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
 ### Listing all persons: `list`
@@ -337,6 +355,7 @@ Format: `sort`
 * `undo` restores the previous order.
 
 Examples:
+
 * `sort` puts the whole contact list in name order.
 * `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
 
@@ -379,7 +398,7 @@ source. Each changed contact is counted once. The success message reminds you to
 Examples:
 
 * `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
-* `renameproject old/orbital new/Orbital` standardises display capitalisation.
+* `renameproject old/orbital new/ORBITAL` changes the sample project's display capitalisation to `ORBITAL`.
 * If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
 
 Like other commands that change contacts, rename updates the current session before saving. If saving fails,
@@ -418,6 +437,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]
   contacts again, clearing the previous search filter.
 
 Examples:
+
 *  `edit 1 p/+6591234567 e/johndoe@example.com` changes the phone number and email of the 1st contact to
    `+6591234567` and `johndoe@example.com`.
 *  `edit 2 n/Betsy Crower tele/@betsy_crower` changes the name and Telegram username of the 2nd contact.
@@ -440,7 +460,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   (for example, `find n/alex`) produce an error explaining the correct format.
 * Every search checks all saved contacts and replaces the previous results. Each matching contact appears once,
   in the existing contact order, with its contact details and projects. Use `list` to show all contacts again.
-* No matches produces an empty list and the message `0 contact(s) listed!`.
+* A search with no matches produces an empty list and the message `0 contact(s) listed!`.
 * Successful searches report `N contact(s) listed!`, where N is the number of matching contacts.
 * The [Recent search results](#viewing-recent-search-results) section also shows matching contacts and their details
   and keeps them visible after `list`.
@@ -456,8 +476,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
   no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
-  If saving reports an error, the latest search label follows the results already displayed, but search counts
-  do not increase. `list` and other commands do not add search counts.
+  `list` and other commands do not add search counts.
 * Editing a contact or adding a project preserves their count and search recency; their displayed details update
   immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
   their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
@@ -468,10 +487,11 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   and its details scroll when needed.
 
 Examples:
+
 * `find John` returns `john` and `John Doe`
 * `find ale` returns contacts such as `Alex Tan` and `Alexander Lee`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+  ![Contacts matching the name search find alex david](images/findAlexDavidResult.png)
 
 ### Finding contacts by project: `findproject`
 
@@ -481,6 +501,8 @@ Format: `findproject KEYWORD`
 
 * Matching is case-insensitive and partial: `cs2103` matches `CS2103T`.
   Unicode case variants are supported too: `Σ`, `σ` and `ς` all match a project named `ΟΣ`.
+* The single letter `ß` does not find a project containing capital `ẞ`. Search for more of the name instead, such as
+  `ße` for `Straẞe`.
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
@@ -588,7 +610,7 @@ Undo the last supported command. The supported commands are:
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
-`No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
+`No changes made.` Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
 A successful undo displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.
@@ -612,11 +634,28 @@ or are rejected during parsing or validation, do not save either. There is no se
 The data file is `data/addressbook.json` relative to the folder from which you launch LinkUp. The status bar shows
 the data location. Window settings are saved separately in `preferences.json` in the launch folder.
 
+Contact saves write a complete temporary file beside the data file before replacing the previous file in
+one operation. If writing or replacement fails, the previous data file stays intact. The data folder must
+allow creating and replacing files, and the data file must be writable. If another program has the file open
+(particularly on Windows), close that program and retry. If the location does not support atomic replacement,
+LinkUp reports a save error; use a data location that supports it. LinkUp does not fall back to overwriting the
+original file directly.
+**Only one active session per launch folder is supported.** Close LinkUp before starting another instance
+from the same folder. Never run multiple instances that use the same data file, even if launched from different
+folders. Each instance keeps its own contact list in memory and saves the complete list; it does not detect or
+warn about changes saved by another instance. A later save can therefore overwrite previously saved changes,
+even when both commands report success. The other window may still display contacts that are no longer in the
+saved file.
+
 If a save error appears after a command that changes contacts, LinkUp restores the contacts, current search,
-and undo history to their state before that command. Fix the storage or permission problem, then retry the
+and undo history to their state before that command. Fix the storage, permission or file-access problem, then retry the
 original command. Do not run `undo` to recover from that failed command: `undo` would reverse an earlier
 successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
 retry `undo`.
+
+Existing symbolic links to data files remain links; saves update the file they point to. A link whose target
+does not exist produces a save error. Do not edit the data file externally or run two LinkUp instances using
+the same data file while LinkUp is saving.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
@@ -643,7 +682,7 @@ Advanced users can edit `data/addressbook.json` in the launch folder. Close Link
 file before editing. Changes must satisfy the saved-data validation and duplicate-contact rules.
 
 In JSON, write international phone numbers in the saved format, such as `"+6591234567"`, without spaces or
-hyphens. The command input `p/+65 9123-4567` is normalized before saving; that formatted string is not accepted
+hyphens. The command input `p/+65 9123-4567` is normalised before saving; that formatted string is not accepted
 directly in JSON. Older digit-only numbers such as `"91234567"` remain loadable and are preserved exactly.
 LinkUp does not infer a country code, so `91234567` and `+6591234567` are different stored phone values.
 
@@ -690,7 +729,7 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -698,7 +737,7 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
