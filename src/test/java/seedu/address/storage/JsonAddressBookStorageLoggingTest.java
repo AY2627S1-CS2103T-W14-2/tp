@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -62,6 +63,24 @@ public class JsonAddressBookStorageLoggingTest {
         String logs = getLogOutput();
         assertTrue(logs.contains(file.toString()));
         assertTrue(logs.contains(exception.getCause().getClass().getSimpleName()));
+        assertFalse(logs.contains("Private Person"));
+        assertFalse(logs.contains("94351253"));
+        assertFalse(logs.contains("private@example.com"));
+    }
+
+    @Test
+    public void read_trailingContentOrRepeatedKey_doesNotLogFileContent() throws Exception {
+        String person = "{\"name\":\"Private Person\",\"phone\":\"94351253\",\"email\":\"private@example.com\"}";
+        Path file = testFolder.resolve("rejected.json");
+        for (String content : List.of("{\"persons\":[]} {\"persons\":[" + person + "]}",
+                "{\"persons\":[" + person + "],\"persons\":[" + person + "]}")) {
+            Files.writeString(file, content);
+            assertThrows(DataLoadingException.class, () ->
+                    JsonUtil.readJsonFile(file, JsonSerializableAddressBook.class));
+        }
+
+        String logs = getLogOutput();
+        assertTrue(logs.contains(file.toString()));
         assertFalse(logs.contains("Private Person"));
         assertFalse(logs.contains("94351253"));
         assertFalse(logs.contains("private@example.com"));
