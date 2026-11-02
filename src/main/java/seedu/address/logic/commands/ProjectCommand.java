@@ -48,16 +48,7 @@ public class ProjectCommand extends Command {
      * Creates a command for a non-empty list of distinct displayed contact indices.
      */
     public ProjectCommand(List<Index> indices, Project project) {
-        this.indices = List.copyOf(indices);
-        if (indices.isEmpty()) {
-            throw new IllegalArgumentException("At least one contact index is required.");
-        }
-        for (int i = 0; i < indices.size(); i++) {
-            if (indices.subList(0, i).contains(indices.get(i))) {
-                throw new IllegalArgumentException(String.format(MESSAGE_DUPLICATE_INDEX,
-                        indices.get(i).getOneBased()));
-            }
-        }
+        this.indices = ProjectContactSelection.validateIndices(indices, MESSAGE_DUPLICATE_INDEX);
         this.project = requireNonNull(project);
     }
 
@@ -65,30 +56,23 @@ public class ProjectCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> originals = getValidatedContacts(model);
-        List<Person> replacements = originals.stream().map(this::createUpdatedContact).toList();
-        for (int i = 0; i < originals.size(); i++) {
-            model.setPerson(originals.get(i), replacements.get(i));
-        }
+        List<Person> replacements = ProjectContactSelection.updateContacts(model, originals,
+                this::createUpdatedContact);
         logger.fine("Added project association to " + originals.size() + " contact(s)");
         return createSuccessResult(replacements);
     }
 
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
     private List<Person> getValidatedContacts(Model model) throws CommandException {
-        List<Person> displayedContacts = new ArrayList<>(model.getFilteredPersonList());
-        List<Person> selectedContacts = new ArrayList<>();
+        List<Person> selectedContacts = ProjectContactSelection.selectContacts(model, indices);
         List<String> conflicts = new ArrayList<>();
-        for (Index index : indices) {
-            if (index.getZeroBased() >= displayedContacts.size()) {
-                logger.fine("Project association rejected: invalid displayed index " + index.getOneBased());
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            Person contact = displayedContacts.get(index.getZeroBased());
+        for (int i = 0; i < indices.size(); i++) {
+            Index index = indices.get(i);
+            Person contact = selectedContacts.get(i);
             if (contact.getProjects().contains(project)) {
                 logger.fine("Project association rejected: duplicate project at index " + index.getOneBased());
                 conflicts.add(index.getOneBased() + ": " + contact.getName());
             }
-            selectedContacts.add(contact);
         }
         if (!conflicts.isEmpty()) {
             Project savedProject = model.getAddressBook().getPersonList().stream().filter(selectedContacts::contains)
