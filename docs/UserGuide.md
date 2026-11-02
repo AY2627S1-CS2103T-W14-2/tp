@@ -109,9 +109,10 @@ The **Current contact list** below provides the numbered contacts for commands.
 * Each successful `find` or `findproject` adds one search to every matching contact, even if several keywords
   or projects match that contact. The displayed contact details include their name, projects and Telegram username.
   The contact with the highest count is displayed. In a draw, the contact matched by the more recent search wins;
-  if both matched the same search, the contact first in the contact list wins. For example, `find Alice` followed
-  by `find Benson` gives both one search, so Benson wins. Another `find Alice` puts Alice ahead with two.
-* **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
+  if both matched the same search, the contact first in the contact list wins. For example, with the original
+  sample contacts in a fresh session, `find Alex` followed by `find Bernice` gives Alex Yeoh and Bernice Yu
+  one search each, so Bernice wins. Another `find Alex` puts Alex ahead with two.
+* **Latest search** shows the latest executed search with its type: `Name: Alex` for `find Alex` or
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
   no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
   `list` and other commands do not add search counts.
@@ -146,6 +147,8 @@ Hover over this text to see the full search if it is too long to fit. Before you
 
 * Running `find` or `findproject` replaces this section with the latest search results.
   The search text updates automatically and includes `Name:` or `Project:` so you can distinguish search types.
+* Results follow the saved contact order, rather than search frequency or recency. Running `sort` also
+  reorders the matching contacts in this section.
 * Running `list` shows all contacts in the main list while keeping the latest results and search text in this section.
 * Results stay in sync with contact changes: editing, deleting, adding, clearing, or undoing can change which
   contacts match the latest search and the details displayed.
@@ -742,15 +745,10 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Delete project** | `deleteproject INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `deleteproject 1 pr/CS2103T`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
-**Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **Find by project** | `findproject KEYWORD`<br> e.g., `findproject team alpha`
-**Help**   | `help`
 **List**   | `list`
-**List projects** | `projects`
-**Project** | `project INDEX [MORE_INDICES] pr/PROJECT`<br> e.g., `project 1 pr/Orbital`
 **Rename project** | `renameproject old/OLD_NAME new/NEW_NAME`<br> e.g., `renameproject old/CS2103T new/Orbital`
 **Replace project** | `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`<br> e.g., `replaceproject 1 old/CS2103T new/Orbital`
 **Sort**   | `sort`
