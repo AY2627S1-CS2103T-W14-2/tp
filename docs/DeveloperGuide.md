@@ -18,6 +18,12 @@ The layered architecture, command infrastructure, and parts of this documentatio
 The application uses JavaFX for its interface and Jackson for JSON storage; dependencies and versions are
 declared in `build.gradle`. Documentation is built with MarkBind.
 
+Notable uses of AI:
+
+* ChatGPT, Codex and Claude were used for preliminary code and PR reviews.
+* Codex and Claude assisted with feature implementation, bug investigation and fixes, and writing and running tests.
+* Codex and Claude assisted with documentation updates; Codex also helped check and update UML diagrams.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
