@@ -47,7 +47,7 @@ public class HelpWindow extends UiPart<Stage> {
             + "All selections must be valid; one undo reverses the batch.\n\n"
             + "COMMAND: replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT\n"
             + "Replace one project association on the selected contact, preserving its position. "
-            + "Capitalization corrections are allowed; "
+            + "Capitalisation corrections are allowed; "
             + "unchanged or duplicate replacements are rejected. Undo restores the association.\n\n"
             + "COMMAND: renameproject old/OLD_NAME new/NEW_NAME\n"
             + "Rename across all contacts, including hidden ones, while keeping the current search. "

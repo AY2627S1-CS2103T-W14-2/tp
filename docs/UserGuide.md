@@ -249,7 +249,7 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive integer referring to the currently displayed contact list, including search results.
 * Supply exactly one `pr/PROJECT`. Project names contain 1–40 characters after surrounding whitespace is removed
-  and repeated whitespace is collapsed. Line breaks and other control characters are rejected.
+  and repeated whitespace is collapsed. The command box removes pasted tabs and line breaks, joining the text around them, so `Team` and `Alpha` on two lines become `TeamAlpha`. Other separators that survive pasting, such as U+0085 and U+2028, produce the general `Invalid command format!` help message.
 * Project comparison ignores capitalisation and normalises whitespace. For example, `Team Alpha` and
   `team   alpha` refer to the same project. Adding an existing association reports an error.
 * The new project is appended after existing projects. The current search filter is preserved.
@@ -281,10 +281,11 @@ Other contacts associated with the old project remain unchanged.
 Format: `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* Both names must contain 1–40 characters. Line breaks and other control characters are not allowed.
+* Both names must contain 1–40 characters. The command box removes pasted tabs and line breaks, joining the text around them, so `Team` and `Alpha` on two lines become `TeamAlpha`. Other separators that survive pasting, such as U+0085 and U+2028, produce the general `Invalid command format!` help message.
+* A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
   Surrounding whitespace is removed, repeated whitespace is collapsed, and matching ignores case.
 * The old project must belong to the selected contact. The new project must not duplicate another
-  association on that contact. Capitalization corrections
+  association on that contact. Capitalisation corrections
   are allowed, such as `old/orbital new/Orbital`. A replacement is unchanged only when its normalised
   spelling exactly matches the stored spelling, regardless of how the old name was typed.
 * Both prefixes are required exactly once; either prefix order is accepted. Missing, blank or
@@ -306,7 +307,7 @@ remain saved, and the remaining projects retain their order.
 Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 
 * `INDEX` is a positive index in the currently displayed list, including search results.
-* The name must contain 1–40 characters. Line breaks and other control characters are not allowed.
+* The name must contain 1–40 characters. The command box removes pasted tabs and line breaks, joining the text around them, so `Team` and `Alpha` on two lines become `TeamAlpha`. Other separators that survive pasting, such as U+0085 and U+2028, produce the general `Invalid command format!` help message.
   Matching ignores case, removes surrounding whitespace, and collapses repeated whitespace.
 * Everything after the first `pr/` is the project name, including any further literal `pr/` text.
   For example, `deleteproject 1 pr/Team pr/X` removes the project named `Team pr/X`.
@@ -369,6 +370,8 @@ Renames a project across **all saved contacts**, including contacts hidden by a 
 unrelated projects are preserved. Use `replaceproject` to change an association on just one contact.
 
 Format: `renameproject old/OLD_NAME new/NEW_NAME`
+
+A project whose name contains ` old/` or ` new/`, which `project` can create, cannot be replaced or renamed. Use `deleteproject` to remove it.
 
 * Supply each prefix exactly once, in either order, with a non-empty value and no index or other preamble.
 * Project names must contain 1–40 characters after surrounding and repeated whitespace is cleaned up.
@@ -599,6 +602,7 @@ On success, LinkUp shows `Cleared all contacts and project associations from Lin
 This removes **all contacts**, including those hidden by a search filter, without a confirmation prompt.
 Use `undo` before closing the application if you need to restore them.
 If no contacts are saved, it reports `No contacts to clear.` without saving or adding an undo entry.
+`No contacts to clear.` is shown as an error and keeps your typed command in the command box.
 
 Format: `clear`
 
