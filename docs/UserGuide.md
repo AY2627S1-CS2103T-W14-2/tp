@@ -598,7 +598,7 @@ Undo the last supported command. The supported commands are:
 Each `undo` reverses the most recent successful supported command that has not already been undone.
 Enter `undo` repeatedly to reverse multiple commands in reverse execution order. Commands rejected for invalid
 input or duplicate details do not affect the undo history, and neither does an `edit` that reports
-`No changes made.`. Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
+`No changes made.` Commands such as `find`, `findproject`, `projects`, `list`, and `help` do not add undo entries.
 A successful undo reports `Last command undone.` and displays all contacts again.
 
 Undo history is available only during the current application session and is cleared on restart.

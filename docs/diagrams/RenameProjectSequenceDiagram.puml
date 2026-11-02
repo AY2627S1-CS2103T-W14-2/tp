@@ -14,48 +14,35 @@ activate Logic
 Logic -> Parser : parseCommand(input)
 Parser --> Logic : command
 Logic -> Model : getAddressBook()
-Model --> Logic : addressBook
-note over Logic
-    Copy the address book and capture
-    the filter and search statistics.
-end note
+Model --> Logic : before snapshot
 Logic -> Command : execute(model)
 activate Command
 Command -> Model : getAddressBook()
 Model --> Command : all contacts
 Command -> Command : validate and build replacement
 alt invalid source or no changes
-    note right of Command
-        Reject with CommandException.
-        Leave the model unchanged.
-    end note
+    Command --> Logic : CommandException
+    [<-- Logic : error (no save or undo entry)
 else rename or merge
     Command -> Model : setAddressBook(replacement)
     note right of Model
         Keep the current filter.
         Re-evaluate matching contacts.
     end note
-end
-Command --> Logic : result or CommandException
-deactivate Command
-
-alt command rejected
-    note over Logic
-        Report the command error.
-        Do not save or record an undo entry.
-    end note
-else command succeeded
+    Command --> Logic : result (includes undo reminder)
     Logic -> Storage : saveAddressBook(current data)
     alt save fails
         Storage --> Logic : IOException
         Logic -> Model : setAddressBook(before)
         Logic -> Model : restore previous filter
         Logic -> SearchHistory : restore(previous counts)
+        [<-- Logic : save error (no undo entry)
     else save succeeds
         Storage --> Logic
         Logic -> Model : saveUndoState(before)
+        [<-- Logic : success
     end
 end
-[<-- Logic : feedback or error
+deactivate Command
 deactivate Logic
 @enduml
