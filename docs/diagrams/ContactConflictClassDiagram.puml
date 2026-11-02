@@ -1,0 +1,43 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeIconSize 0
+skinparam classAttributeFontColor #FFFFFF
+
+'style.puml hides members; this diagram needs them, so override that here only.
+show members
+hide empty members
+
+Class UniquePersonList {
+    +findConflict(candidate: Person): Optional<ContactConflict>
+    +findConflict(candidate: Person, excluded: Person): Optional<ContactConflict>
+}
+
+Class Person {
+    +findConflictWith(existingPerson: Person): Optional<ContactConflict>
+    +conflictsWith(otherPerson: Person): boolean
+}
+
+Class ContactConflict {
+    -value: String
+    +getMessage(): String
+}
+
+Class "<<enumeration>>\nField" as Field {
+    PHONE
+    EMAIL
+    TELEGRAM_USERNAME
+}
+
+Class DuplicatePersonException
+
+UniquePersonList --> "*" Person
+ContactConflict --> "1" Person : existingPerson
+ContactConflict --> "1" Field : field
+Person ..> ContactConflict : creates
+UniquePersonList ..> ContactConflict : returns
+UniquePersonList ..> DuplicatePersonException : throws
+DuplicatePersonException ..> ContactConflict : uses message of
+@enduml
