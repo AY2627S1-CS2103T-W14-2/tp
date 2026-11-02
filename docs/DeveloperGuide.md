@@ -918,8 +918,8 @@ Use case ends.
 * 1b. The phone number, email or Telegram username is already used by another contact. Emails and Telegram
   usernames are compared ignoring case; names and projects are not compared.
 
-  * 1b1. LinkUp names the first clashing detail, in the order phone number, email, Telegram username, and the
-    contact that uses it, without changing saved contacts.
+  * 1b1. LinkUp selects the first conflicting contact in saved list order. Within that contact, it reports the
+    first clashing detail in the order phone number, email, then Telegram username, without changing saved contacts.
 
   Use case resumes at step 1.
 
