@@ -391,14 +391,19 @@ retired properties and create no further backup. Backup files are not part of co
 A file that is well-formed but cannot be loaded, for example because two contacts conflict, may have no retired
 fields and therefore may not qualify for the migration backup. When `MainApp.initModelManager` catches the
 `DataLoadingException` and starts with an empty address book, it calls `Storage#backupAddressBook()`, which copies
-the file to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can replace it. If the
-backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating `Logic` or the UI,
-so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
-somewhere safe and fix the problem, and exits. LinkUp starts with an empty address book only after a successful
-backup. In that case `initModelManager` also records a startup message naming the backup, which `MainApp` passes
-to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box, so the
-user knows the empty list is recoverable before running a command that saves over the original file. `MainAppTest` covers both outcomes. The backup is made only at startup, not on every read, so tests
+the file, if it still exists, to a unique sibling `.unreadable-<unique suffix>.bak` file before the first save can
+replace it. If the backup fails, `initModelManager` rethrows the `IOException` and `init()` stops before creating
+`Logic` or the UI, so no save can replace the only copy; `start()` then shows an error dialog asking the user to copy the file
+somewhere safe and fix the problem, and exits. Otherwise, LinkUp starts with an empty address book and
+`initModelManager` records a startup message, naming the backup if one was created, which `MainApp` passes
+to `UiManager`; once the main window opens, `MainWindow#showStartupMessage` shows it in the result box. If a backup
+exists, the user therefore knows the original data has been preserved before running a command that saves over the data file. `MainAppTest` and `JsonAddressBookStorageTest` cover these outcomes. The backup is made only at startup, not on every read, so tests
 and other callers of `readAddressBook` do not create backup files.
+
+The activity diagram below summarises how startup treats the data file. The branch for data that does not load
+covers read, parsing and validation failures.
+
+<puml src="diagrams/StartupDataFileActivityDiagram.puml" alt="Activity diagram of how LinkUp handles a missing, valid or unloadable data file at startup" />
 
 Regression tests cover legacy loading, the save/load round trip, exact backup contents, repeated saves,
 backup failure, and former-prefix rejection. Existing edit, project, search, and undo tests exercise the updated
@@ -411,6 +416,11 @@ never compared, so contacts may share a name. The rule lives in one place, `Pers
 checks phone, email and Telegram username in that order and returns the first clash as a `ContactConflict`
 (the clashing field, the value and the existing contact). `ContactConflict#getMessage()` builds the only
 user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean form.
+
+The class diagram below shows the classes involved. `Field` is nested in `ContactConflict`, and the order of its
+values is the order in which clashing details are reported.
+
+<puml src="diagrams/ContactConflictClassDiagram.puml" alt="Class diagram of UniquePersonList, Person, ContactConflict, Field and DuplicatePersonException" />
 
 * Newly entered emails are stored in lower case, but emails saved by older versions keep their case. `Email#equals`
   and `Email#hashCode` therefore compare the lower-cased (`Locale.ROOT`) text, so a saved `Bob@Example.com` still
@@ -431,14 +441,31 @@ user-facing duplicate message. `Person#conflictsWith(Person)` is the boolean for
   not conflict. It is therefore not an equality. `Person#equals` remains the all-fields check used to find and
   remove a contact, which keeps lookup working for contacts with the same name.
 
-**Alternatives considered:**
+**Design considerations:**
 
-* *Keep `isSamePerson`, redefined as "all fields equal".* This would still let two contacts share a phone or email
-  under different names, and it would duplicate `equals`. It was removed instead.
-* *Lower-case every saved email when loading.* This would make a case-sensitive comparison enough, but it would
-  silently rewrite emails saved by older versions. Comparing case-insensitively handles both old and new emails.
-* *Warn about, rather than reject, a contact with the same name.* Names do not identify people, and a warning on
-  every same-name contact would add noise without preventing real duplicates.
+**Aspect: What counts as a duplicate contact**
+
+* **Alternative 1 (current choice):** Two contacts clash if they share a phone number, email or Telegram username.
+  * Pros: Rejects contacts sharing a stored phone number, email or non-empty Telegram username, and still allows
+    contacts with the same name.
+  * Cons: Two people who really share a detail, such as a family phone number, cannot both be saved. Different details
+    belonging to one person are not detected.
+* **Alternative 2:** Keep `isSamePerson`, redefined as "all fields equal".
+  * Pros: Needs no new rule.
+  * Cons: Lets two contacts share a phone number or email under different names, and repeats `equals`. It was removed.
+* **Alternative 3:** Warn about, rather than reject, a contact with the same name.
+  * Pros: Could flag a repeated entry even when its details differ.
+  * Cons: Names do not identify people, so a warning on every same-name contact adds noise without preventing real
+    duplicates.
+
+**Aspect: How to compare emails saved by older versions**
+
+* **Alternative 1 (current choice):** Compare lower-cased text in `Email#equals`, and keep the saved text unchanged.
+  * Pros: Handles old and new emails without rewriting anything the user saved.
+  * Cons: `EditCommand` must compare saved strings to notice a case-only change, because `Email#equals` ignores case.
+* **Alternative 2:** Lower-case every saved email when loading.
+  * Pros: A case-sensitive comparison would be enough.
+  * Cons: Silently rewrites emails saved by older versions.
 
 Tests build clashes with `ConflictTestUtil#clashesWith`. `EditCommandTest#UNIQUE_FIELD_EDITS` lists the editable
 unique fields (phone, email and Telegram username); when another unique field becomes editable, adding one entry
@@ -706,13 +733,27 @@ The filtered list keeps its predicate, so any search results stay displayed in t
 undoable: after a successful save, `LogicManager` stores the previous address book, and `undo` restores the
 previous order.
 
-**Design choices:**
+**Design considerations:**
 
-* *Reorder and save the list, rather than show a sorted view (e.g. a JavaFX `SortedList`).* Indices then match
-  what is displayed and saved, the order survives a restart, and undo works through the existing snapshot
-  mechanism. The cost is that contacts added later appear at the end until the next `sort`.
-* *Break ties by exact name, then phone, rather than keeping the existing order.* The result depends only on
-  the contacts, not on their history, which keeps the behaviour predictable and easy to test.
+**Aspect: How to apply the sorted order**
+
+* **Alternative 1 (current choice):** Reorder and save the contact list.
+  * Pros: Indices match what is displayed and saved, the order survives a restart, and undo works through the existing
+    snapshot mechanism.
+  * Cons: Contacts added later appear at the end until the next `sort`.
+* **Alternative 2:** Show a sorted view, such as a JavaFX `SortedList`.
+  * Pros: Saved data is unchanged, and later contacts stay in order.
+  * Cons: Displayed and saved order differ, so the order would need separate storage to survive a restart, and it would
+    not fit the existing undo snapshots.
+
+**Aspect: How to order contacts with equal names**
+
+* **Alternative 1 (current choice):** Break ties by exact name, then by phone number.
+  * Pros: The result depends only on the contacts, not on their history, so it is predictable and easy to test.
+  * Cons: Needs extra comparison steps in `PersonNameComparator`.
+* **Alternative 2:** Keep the existing relative order.
+  * Pros: Needs no extra comparison.
+  * Cons: The same contacts can sort differently depending on the order in which they were added.
 
 ### Undo command implementation
 
