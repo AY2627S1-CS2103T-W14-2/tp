@@ -637,7 +637,7 @@ so the order of any contact list is fully determined.
 When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
 by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
 message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
-commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise `SortCommand#execute` calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: after a successful save, `LogicManager` stores the previous address book, and `undo` restores the
@@ -928,6 +928,72 @@ Use case ends.
     first clashing detail in the order phone number, email, then Telegram username, without changing saved contacts.
 
   Use case resumes at step 1.
+
+#### UC06: Edit a contact
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student requests to change one or more details of a contact at a displayed index, supplying the new values.
+4. LinkUp updates only the supplied details, keeps the contact's projects, displays all contacts, and displays a success message with the contact's updated details.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3b. No detail is supplied, a detail is invalid or repeated, or a project is supplied.
+
+  * 3b1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3c. The new phone number, email or Telegram username is already used by another contact, including one hidden by a search.
+
+  * 3c1. LinkUp names the clashing detail and contact without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3d. The supplied details match the contact's saved details.
+
+  * 3d1. LinkUp displays a message indicating that no changes were made.
+
+  Use case ends.
+
+#### UC07: Sort contacts by name
+
+**MSS**
+
+1. Student requests to sort the contacts.
+2. LinkUp orders all saved contacts by name, ignoring case, saves the new order, preserves any active search filter, and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 2b. The contacts are already in name order.
+
+  * 2b1. LinkUp displays a message indicating that the contacts are already sorted, without changing them.
+
+  Use case ends.
 
 ### Non-functional requirements
 
