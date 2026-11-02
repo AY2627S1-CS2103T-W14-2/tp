@@ -581,8 +581,9 @@ is omitted; a successful batch creates one undo entry.
 
 `deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
 including their last project.
-`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
-and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
+`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires a `pr/` prefix, splits at the first
+` pr/` delimiter and treats everything after it as the project name, including further literal `pr/` text.
+It uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
 
 `DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
 It locates the project using `Project.equals`,
