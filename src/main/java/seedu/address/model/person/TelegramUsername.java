@@ -38,9 +38,9 @@ public class TelegramUsername {
         this(username, false);
     }
 
-    private TelegramUsername(String username, boolean fromStorage) {
+    private TelegramUsername(String username, boolean isFromStorage) {
         requireNonNull(username);
-        checkArgument(fromStorage ? isValidStoredTelegramUsername(username) : isValidTelegramUsername(username),
+        checkArgument(isFromStorage ? isValidStoredTelegramUsername(username) : isValidTelegramUsername(username),
                 MESSAGE_CONSTRAINTS);
         value = normalize(username);
     }

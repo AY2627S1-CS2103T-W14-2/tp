@@ -30,10 +30,10 @@ public class Name {
         this(name, false);
     }
 
-    private Name(String name, boolean fromStorage) {
+    private Name(String name, boolean isFromStorage) {
         requireNonNull(name);
-        checkArgument(fromStorage ? isValidStoredName(name) : isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = fromStorage ? name : normalize(name);
+        checkArgument(isFromStorage ? isValidStoredName(name) : isValidName(name), MESSAGE_CONSTRAINTS);
+        fullName = isFromStorage ? name : normalize(name);
     }
 
     /**
