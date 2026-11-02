@@ -40,7 +40,8 @@ merged across contacts with `renameproject`.
    for example to read a long `projects` list in the result box.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.
-   If you click a contact or the result box, just keep typing: your input goes to the command box.<br>
+   If you click a contact or the result box, typing a character moves focus to the command box and appends it to your input.
+   Backspace and Enter do not move focus; click the command box before using them.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -249,7 +250,7 @@ Format: `project INDEX [MORE_INDICES] pr/PROJECT`
 Examples:
 * With the original sample list displayed, `project 4 pr/Orbital` associates David Li with Orbital.
 * `find David` followed by `project 1 pr/CS2103T` adds CS2103T to the first search result.
-* `project 1 3 5 pr/CS2103T` adds CS2103T to displayed contacts 1, 3 and 5 as one undoable operation.
+* `project 1 3 5 pr/Orbital` adds Orbital to contacts 1, 3 and 5 in the original sample list as one undoable operation.
 
 ### Replacing a contact's project association: `replaceproject`
 
@@ -302,7 +303,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 * Successful removal is saved and can be reversed with `undo`.
 
 Example: `deleteproject 1 pr/CS2103T` removes CS2103T from the first displayed contact.
-Use `deleteproject 1 3 5 pr/CS2103T` to remove the association from three displayed contacts.
+With the original sample list displayed, use `deleteproject 1 2 pr/CS2103T` to remove the association from Alex and Bernice.
 The success message identifies the project and selected contacts. For one contact, it shows that contact's updated details.
 
 ### Listing all persons: `list`
@@ -379,7 +380,7 @@ source. Each changed contact is counted once. The success message reminds you to
 Examples:
 
 * `renameproject old/CS2103T new/CS2103T Team 2` renames to a new project name.
-* `renameproject old/orbital new/Orbital` standardises display capitalisation.
+* `renameproject old/orbital new/ORBITAL` changes the sample project's display capitalisation to `ORBITAL`.
 * If `orbital` already exists, `renameproject old/CS2103T new/Orbital` merges both projects in one submission.
 
 Like other commands that change contacts, rename updates the current session before saving. If saving fails,
@@ -456,8 +457,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * **Latest search** shows the latest executed search with its type: `Name: Alice` for `find Alice` or
   `Project: Orbital` for `findproject Orbital`, including searches with no matches. A search with
   no matches does not change anyone's count or tie priority. Invalid searches leave the sections unchanged.
-  If saving reports an error, the latest search label follows the results already displayed, but search counts
-  do not increase. `list` and other commands do not add search counts.
+  `list` and other commands do not add search counts.
 * Editing a contact or adding a project preserves their count and search recency; their displayed details update
   immediately. Undoing an edit or project change also preserves these statistics. Deleting a contact removes
   their count; `clear` removes all counts. Undoing deletion or clearing restores contacts without their old counts.
@@ -696,7 +696,7 @@ For example, enter `p/+6591234567` rather than `p/91234567`.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT ` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL tele/TELEGRAM_USERNAME pr/PROJECT` <br> e.g., `add n/James Ho p/+6522224444 e/jamesho@example.com tele/james_ho pr/CS2103T`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [tele/TELEGRAM_USERNAME]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com tele/@james_lee`
