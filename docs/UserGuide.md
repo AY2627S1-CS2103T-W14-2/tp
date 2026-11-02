@@ -350,7 +350,8 @@ Format: `sort`
   re-sort.
 * All contacts are sorted, even those hidden by a search. If search results are showing, they stay on screen,
   now in sorted order.
-* Indices follow the new order, so check them again before using `edit`, `delete` or `project`.
+* Indices follow the new order, so check them again before using `edit`, `delete`, `project`, `replaceproject` or
+  `deleteproject`.
 * On success, LinkUp shows `Sorted N contact(s) by name.`, where N is the number of saved contacts.
 * If the contacts are already in order, LinkUp shows `Contacts are already sorted by name.`. If there are no
   contacts, it shows `No contacts saved yet.`. These are normal messages, not errors: the command box clears as
@@ -359,8 +360,10 @@ Format: `sort`
 
 Examples:
 
-* `sort` puts the whole contact list in name order.
-* `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex, now in name order.
+* Starting with the six unmodified sample contacts, run
+  `add n/Aaron Lim p/+6581110000 e/aaron@example.com tele/aaron_lim pr/CS2103T`,
+  then `sort`. Aaron moves to the top, and LinkUp shows `Sorted 7 contact(s) by name.`
+* With an unsorted list, `find alex` followed by `sort` sorts all contacts and keeps showing the contacts named Alex.
 
 ### Renaming or merging a project: `renameproject`
 
