@@ -581,8 +581,9 @@ is omitted; a successful batch creates one undo entry.
 
 `deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
 including their last project.
-`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires exactly one `pr/` prefix
-and uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
+`AddressBookParser` dispatches to `DeleteProjectCommandParser`, which requires a `pr/` prefix, splits at the first
+` pr/` delimiter and treats everything after it as the project name, including further literal `pr/` text.
+It uses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for existing validation rules.
 
 `DeleteProjectCommand` snapshots the displayed list and resolves every index before mutation.
 It locates the project using `Project.equals`,
@@ -1269,8 +1270,6 @@ Continue with Telegram usernames and projects:
 | `edit 3 n/David pr/Team Beta` | `Projects cannot be edited with edit. Use project INDEX pr/PROJECT to add an association.`; nothing changes. |
 | `undo` | David Lee's name and Telegram username return, restoring the fixture for the next section. |
 
-Use `project` to append a project.
-
 ### Validation and duplicate rejection
 
 Start with `list` after the preceding sequence. Each rejected command below must leave the contacts unchanged:
@@ -1310,7 +1309,7 @@ Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run
 | `undo` | Both associations are removed in one step; all three contacts are displayed. |
 | `project 1 9 pr/X` | Invalid-index error; no contact changes. |
 
-### Replacing a project association
+### Replacing project associations
 
 Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run these steps in order:
 
