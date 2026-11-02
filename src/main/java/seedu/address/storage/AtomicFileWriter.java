@@ -28,15 +28,15 @@ class AtomicFileWriter {
         Path target = resolveTarget(file);
         Files.createDirectories(target.getParent());
         Path temporary = Files.createTempFile(target.getParent(), "linkup-", ".tmp");
-        boolean committed = false;
+        boolean isCommitted = false;
         try {
             writeTemporaryFile(temporary, content);
             copyPermissions(target, temporary);
             replaceFile(temporary, target);
-            committed = true;
+            isCommitted = true;
         } finally {
             // A successful move consumes the temporary file. Nothing fallible may follow the commit.
-            if (!committed) {
+            if (!isCommitted) {
                 try {
                     deleteTemporaryFile(temporary);
                 } catch (IOException e) {

@@ -28,10 +28,10 @@ public class Phone {
         this(phone, false);
     }
 
-    private Phone(String phone, boolean fromStorage) {
+    private Phone(String phone, boolean isFromStorage) {
         requireNonNull(phone);
-        checkArgument(fromStorage ? isValidStoredPhone(phone) : isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = fromStorage ? phone : normalize(phone);
+        checkArgument(isFromStorage ? isValidStoredPhone(phone) : isValidPhone(phone), MESSAGE_CONSTRAINTS);
+        value = isFromStorage ? phone : normalize(phone);
     }
 
     /**

@@ -14,10 +14,10 @@ public class CommandResult {
     private final String feedbackToUser;
 
     /** Help information should be shown to the user. */
-    private final boolean showHelp;
+    private final boolean shouldShowHelp;
 
     /** The application should exit. */
-    private final boolean exit;
+    private final boolean shouldExit;
 
     /**
      * False only for an undoable command that succeeded without changing contact data, so that no undo entry is
@@ -28,14 +28,14 @@ public class CommandResult {
     /**
      * Constructs a {@code CommandResult} with the specified fields, for a command that may have changed contact data.
      */
-    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, true);
+    public CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit) {
+        this(feedbackToUser, shouldShowHelp, shouldExit, true);
     }
 
-    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, boolean isDataChanged) {
+    private CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit, boolean isDataChanged) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
-        this.showHelp = showHelp;
-        this.exit = exit;
+        this.shouldShowHelp = shouldShowHelp;
+        this.shouldExit = shouldExit;
         this.isDataChanged = isDataChanged;
     }
 
@@ -60,11 +60,11 @@ public class CommandResult {
     }
 
     public boolean isShowHelp() {
-        return showHelp;
+        return shouldShowHelp;
     }
 
     public boolean isExit() {
-        return exit;
+        return shouldExit;
     }
 
     /**
@@ -86,22 +86,22 @@ public class CommandResult {
         }
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
-                && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit
+                && shouldShowHelp == otherCommandResult.shouldShowHelp
+                && shouldExit == otherCommandResult.shouldExit
                 && isDataChanged == otherCommandResult.isDataChanged;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, isDataChanged);
+        return Objects.hash(feedbackToUser, shouldShowHelp, shouldExit, isDataChanged);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
-                .add("showHelp", showHelp)
-                .add("exit", exit)
+                .add("showHelp", shouldShowHelp)
+                .add("exit", shouldExit)
                 .add("isDataChanged", isDataChanged)
                 .toString();
     }
