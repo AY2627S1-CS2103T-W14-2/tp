@@ -15,8 +15,14 @@
 
 LinkUp builds on [se-edu AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
 The layered architecture, command infrastructure, and parts of this documentation originate from that project.
-The application uses JavaFX for its interface and Jackson for JSON storage; dependencies and versions are
+The application uses JavaFX for its interface, Jackson for JSON storage and JUnit for testing; dependencies and versions are
 declared in `build.gradle`. Documentation is built with MarkBind.
+
+Notable uses of AI:
+
+* ChatGPT, Codex and Claude were used for preliminary code and PR reviews.
+* Codex and Claude assisted with feature implementation, bug investigation and fixes, and writing and running tests.
+* Codex and Claude assisted with documentation updates; Codex also helped check and update UML diagrams.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -197,10 +203,9 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Current command and contact model
 
-The MVP includes `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and `exit`,
-with same-name support, duplicate-detail validation and persistence. `edit` was outside the MVP release and now
-goes beyond it, covering name, phone, email and Telegram username; see
-[Edit command implementation](#edit-command-implementation).
+The core commands are `add`, `list`, `find`, `findproject`, `project`, `delete`, `clear`, `undo`, `help`, and
+`exit`, with same-name support, duplicate-detail validation and persistence. `edit` covers name, phone, email and
+Telegram username; see [Edit command implementation](#edit-command-implementation).
 
 The Java package remains `seedu.address`, and internal names such as `AddressBook` are retained from AB-3.
 `AddressBookParser` dispatches `add`, `edit`, `delete`, `clear`, `find`, `findproject`, `list`, `project`,
@@ -233,7 +238,7 @@ field's value, so callers must use the documented grammar.
 | --- | --- |
 | `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
-| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
+| `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). New input also limits each domain label to 63 characters; saved emails do not, so older data files still load. Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
 | `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case letter by letter, as `String#equalsIgnoreCase` does, so `ΟΣ` and `οσ` are the same project (issue #241). `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), except the zero-width non-joiner and joiner (U+200C/U+200D). It then removes those joiners too when they join nothing visible: next to a Latin letter, a digit, punctuation or whitespace, or at either end of the name; a run of joiners is removed as a whole. Joiners between emoji (e.g. 👨‍💻) or between letters of scripts such as Persian or Hindi are kept. Together these stop pasted names from creating look-alike duplicates (issue #177). It then collapses whitespace and removes only spaces at either end (not `String#strip`, which would also drop U+001C–U+001F); tabs and line breaks become spaces, so `normalize` alone does not validate a name. Before any cleaning, `isValidProjectName` rejects malformed text (an unpaired surrogate, since removing a character between two unpaired surrogates could join them into a new character) and any control character, including tabs and line breaks (issue #202). Known limits: a joiner between letters of other non-Latin scripts (e.g. Cyrillic) is kept, tag characters in subdivision flag emoji are removed, and invisible characters outside category Cf (e.g. U+3164 Hangul filler) are not handled. Saved names are normalised the same way when loaded. |
 
@@ -246,14 +251,14 @@ list two names that are now equal. These compatibility rules do not make those f
 ### Name search and displayed indices
 
 `FindCommandParser` trims surrounding whitespace and rejects blank input or more than 60 Unicode code points
-before splitting keywords on whitespace. `NameContainsKeywordsPredicate` compares lowercase text using
+before splitting keywords on whitespace. It also rejects `/`: for example, `find n/alex` gives the slash error. `NameContainsKeywordsPredicate` compares lowercase text using
 `Locale.ROOT` and matches any keyword as a substring (OR semantics), including partial words.
 For example, `find lex vid` can match Alex and David. Each contact appears once in saved order.
 
 Both search commands replace the predicate on the full address book rather than searching only the previous
-results. `delete`, `edit`, and `project` resolve one-based indices against the displayed list.
-`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, and a failed or
-unchanged `edit` retain the active filter.
+results. `delete`, `edit`, `project`, `replaceproject` and `deleteproject` resolve one-based indices against the displayed list.
+`add`, a successful `edit`, `list`, and successful `undo` show all contacts; `delete`, `project`, `replaceproject`,
+`deleteproject`, `renameproject`, `sort`, and a failed or unchanged `edit` retain the active filter.
 After a mutation, indices can change, so callers must read the current list before using another index.
 
 ### Recent search results
@@ -351,7 +356,8 @@ bytes to a unique sibling `.pre-v1.3-<unique suffix>.bak` file. Malformed JSON i
 up as `.unreadable-<unique suffix>.bak` instead, unless `backupAddressBook()` already backed up those exact bytes
 at startup (see below), which the storage remembers for the current run. One broken file therefore gets exactly one
 backup, while a file broken after startup, for example by editing it while LinkUp is open, is still preserved
-before the next save replaces it.
+before the next save replaces it. `JsonUtil.fromJsonString` also rejects content after the first JSON value and
+repeated keys, so such a file takes the same backup path as other malformed JSON.
 A backup I/O failure propagates before any overwrite. After a successful migration, subsequent saves find no
 retired properties and create no further backup. Backup files are not part of command undo history.
 
@@ -654,7 +660,7 @@ so the order of any contact list is fully determined.
 When there are no contacts (`No contacts saved yet.`) or they are already in order (`Contacts are already sorted
 by name.`), `SortCommand#execute` succeeds with `CommandResult#withoutDataChange`. The input is valid, so the
 message is shown as normal feedback rather than an error. `LogicManager` records an undo state only for undoable
-commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise it calls `Model#sortPersons`, which reaches
+commands whose result reports `isDataChanged()`, so these cases add no undo entry. Otherwise `SortCommand#execute` calls `Model#sortPersons`, which reaches
 `UniquePersonList#sortPersons`. That uses `FXCollections.sort`, so the UI receives a single reordering change.
 The filtered list keeps its predicate, so any search results stay displayed in the new order. `sort` is
 undoable: after a successful save, `LogicManager` stores the previous address book, and `undo` restores the
@@ -728,6 +734,7 @@ commands available in this release. No archiving design has been implemented yet
 
 ## **Documentation, logging, testing, dev-ops**
 
+* [Configuration guide](Configuration.md)
 * [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
 * [Logging guide](Logging.md)
@@ -738,10 +745,6 @@ commands available in this release. No archiving design has been implemented yet
 ## **Appendix: Requirements**
 
 ### Product scope
-
-**Release boundary:** All ten commands listed in the current command model were in the MVP release. `edit` was
-excluded from MVP acceptance and has since been extended as post-MVP work. Other future user stories below are
-not commitments.
 
 **Target user profile**:
 
@@ -764,12 +767,12 @@ not commitments.
 
 This table records both current capabilities and future ideas. The current release supports adding, listing,
 deleting, partial name search, project association and search, same-name contacts, duplicate detection, undo,
-recent search results, and a session-only most searched contact.
+recent search results, a session-only most searched contact, `clear` and `help`.
 Editing covers name, phone, email and Telegram username. Project associations can be replaced with
 `replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
 New contacts require all five add fields; optional missing Telegram/project data is supported only when
 loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
-multi-criteria search, and highlighting which project matched remain backlog items.
+multi-criteria search, viewing recently added contacts, and highlighting which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -813,7 +816,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-The following use cases describe the currently implemented workflows of LinkUp.
+The following use cases describe the main workflows of LinkUp.
 For all use cases, the **System** is `LinkUp` and the **Actor** is a student managing project contacts.
 The application is running. **MSS** stands for Main Success Scenario.
 
@@ -831,7 +834,7 @@ Use case ends.
 
 **Extensions**
 
-* 1a. The search input is empty or exceeds 60 Unicode code points after trimming surrounding whitespace.
+* 1a. The search input is empty, exceeds 60 Unicode code points after trimming surrounding whitespace, or contains `/`.
   Internal whitespace counts towards the limit before splitting the input into keywords.
 
   * 1a1. LinkUp displays an error message without changing saved contacts or the displayed results.
@@ -874,8 +877,8 @@ Use case ends.
 
 1. Student requests to list contacts.
 2. LinkUp displays the saved contacts with their indices, contact details, and projects.
-3. Student requests to associate a contact at a displayed index with a project, supplying the project name.
-4. LinkUp adds the project association to that contact, preserves its existing project associations, and displays a success message.
+3. Student requests to associate one or more contacts at displayed indices with a project.
+4. LinkUp adds the project to every selected contact, keeps their existing projects, and displays a success message.
 
 Use case ends.
 
@@ -887,9 +890,9 @@ Use case ends.
 
   Use case ends.
 
-* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+* 3a. An index is missing, repeated, is not a positive integer, or does not refer to a contact in the displayed list.
 
-  * 3a1. LinkUp displays an index error without changing saved contacts.
+  * 3a1. LinkUp displays the relevant input error without changing saved contacts.
 
   Use case resumes at step 3.
 
@@ -899,9 +902,9 @@ Use case ends.
 
   Use case resumes at step 3.
 
-* 3c. The contact is already associated with the same normalised project.
+* 3c. A selected contact already has the project.
 
-  * 3c1. LinkUp displays a message indicating that the association already exists, without changing saved contacts.
+  * 3c1. LinkUp lists every such contact and changes none.
 
   Use case resumes at step 3.
 
@@ -926,7 +929,7 @@ Use case ends.
 
 * 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
 
-  * 3a1. LinkUp displays an index error without deleting any contact.
+  * 3a1. LinkUp displays the relevant input error without deleting any contact.
 
   Use case resumes at step 3.
 
@@ -950,12 +953,78 @@ Use case ends.
 * 1b. The phone number, email or Telegram username is already used by another contact. Emails and Telegram
   usernames are compared ignoring case; names and projects are not compared.
 
-  * 1b1. LinkUp names the first clashing detail, in the order phone number, email, Telegram username, and the
-    contact that uses it, without changing saved contacts.
+  * 1b1. LinkUp selects the first conflicting contact in saved list order. Within that contact, it reports the
+    first clashing detail in the order phone number, email, then Telegram username, without changing saved contacts.
 
   Use case resumes at step 1.
 
-### Non-Functional Requirements
+#### UC06: Edit a contact
+
+**MSS**
+
+1. Student requests to list contacts.
+2. LinkUp displays the saved contacts with their indices, contact details, and projects.
+3. Student requests to change one or more details of a contact at a displayed index, supplying the new values.
+4. LinkUp updates only the supplied details, keeps the contact's projects, displays all contacts, and displays a success message with the contact's updated details.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 3a. The index is missing, is not a positive integer, or does not refer to a contact in the displayed list.
+
+  * 3a1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3b. No detail is supplied, a detail is invalid or repeated, or a project is supplied.
+
+  * 3b1. LinkUp displays the relevant input error without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3c. The new phone number, email or Telegram username is already used by another contact, including one hidden by a search.
+
+  * 3c1. LinkUp names the clashing detail and contact without changing saved contacts.
+
+  Use case resumes at step 3.
+
+* 3d. The supplied details match the contact's saved details.
+
+  * 3d1. LinkUp displays a message indicating that no changes were made.
+
+  Use case ends.
+
+#### UC07: Sort contacts by name
+
+**MSS**
+
+1. Student requests to sort the contacts.
+2. LinkUp orders all saved contacts by name, ignoring case, saves the new order, preserves any active search filter, and displays a success message.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. There are no saved contacts.
+
+  * 2a1. LinkUp displays a message indicating that no contacts have been saved.
+
+  Use case ends.
+
+* 2b. The contacts are already in name order.
+
+  * 2b1. LinkUp displays a message indicating that the contacts are already sorted, without changing them.
+
+  Use case ends.
+
+### Non-functional requirements
 
 These are design targets, not a claim that performance or usability benchmarks have been completed.
 CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations are not verified by that matrix.
@@ -976,7 +1045,7 @@ CI exercises Windows, macOS and Linux with Java 25; other OS/JDK combinations ar
 * **Contact**: A saved record for a project mate, containing their name, contact details, and associated projects.
 * **Project**: A module project or team that a contact belongs to, such as CS2103T or Orbital.
 * **Project association**: A link between a contact and a project. A contact can be associated with more than one project.
-* **Displayed contact list**: The numbered main person list, including results of a search; command indices refer to this list.
+* **Displayed contact list**: The numbered main contact list, including results of a search; command indices refer to this list.
 * **Recent search results**: A smaller, unnumbered view of contacts matching the latest name or project search in the session.
 * **Index**: A one-based number identifying a contact in the currently displayed contact list.
 
@@ -1053,7 +1122,8 @@ Run the following in order after preparing the contacts:
 | `findproject Alpha Team` | No matches: project search uses a whole phrase, not OR keywords. |
 | `find` | Format error; previous results remain unchanged. |
 | `list` | All three contacts return in saved order. |
-| `delete 0` then `delete 4` | Invalid-index errors; all contacts remain. |
+| `delete 0` | `Invalid command format!` with the `delete` usage; all contacts remain. |
+| `delete 4` | Invalid-index error; all contacts remain. |
 | `findproject Orbital` then `delete 1` | Only the second Alex is deleted. |
 | `undo` | The deleted Alex returns, in original order; all contacts are shown. |
 | `FIND lee` then `List` | Only David Lee, then all three contacts: command words ignore case. |
@@ -1073,7 +1143,7 @@ After the preceding sequence, the contacts are Alex Tan, Alex Tan and David Lee.
 | `undo` | All three contacts return to the main list; the Orbital contact returns to recent results. |
 | `find Nobody` then `list` | Recent results remain empty while the main list shows all three contacts. |
 | `find LEX vid` | Three recent results can be scrolled independently of the main list. |
-| Resize the window | Most searched stays left of Recent search in equal-width columns above the main person list; project tags wrap as needed. |
+| Resize the window | Most searched stays left of Recent search in equal-width columns above the main contact list; project tags wrap as needed. |
 | Hover over a recent-result header | The tooltip shows the full name and Telegram handle. |
 | `exit`, then relaunch | Contacts persist; recent results start empty. |
 
@@ -1132,6 +1202,60 @@ With 997 spaces, it should instead report
 On Windows PowerShell, use `Set-Clipboard ('findproject a' + (' ' * 40000) + 'b')`, paste into
 the command box and execute. Verify that the same command-length error appears within two seconds
 and that the displayed contacts, recent search and saved data remain unchanged.
+
+### Associating multiple contacts with a project
+
+Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `findproject Team` then `project 1 2 pr/Orbital` | `Added project Orbital to contacts 1: Alex Tan, 2: David Lim.` |
+| `undo` | Both associations are removed in one step; all three contacts are displayed. |
+| `project 1 9 pr/X` | Invalid-index error; no contact changes. |
+
+### Replacing a project association
+
+Prepare the three-contact fixture in "Prepare deterministic contacts" again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `findproject Orbital` then `replaceproject 1 old/Orbital new/Team Gamma` | Only the second Alex's association changes. The Orbital results become empty because that contact no longer matches. |
+| `list` | All three contacts remain; the second Alex has Team Gamma and unchanged contact details. |
+| `undo` | The second Alex's Orbital association returns. |
+| `replaceproject 2 old/Missing new/Team Gamma` | Old-project-not-found error; no changes. |
+| `replaceproject 2 old/Orbital new/Orbital` | Unchanged-spelling error; no changes. |
+| `replaceproject 0 old/Orbital new/Team Gamma` | Format error with usage; no changes. |
+| `replaceproject 4 old/Orbital new/Team Gamma` | Invalid-index error; no changes. |
+| `project 2 pr/Team Alpha` then `replaceproject 2 old/Orbital new/Team Alpha` | Adding succeeds, but replacement is rejected because that contact already has Team Alpha. Both associations remain. |
+| `undo` | Removes the added Team Alpha association: the failed replacement did not add an undo entry. |
+
+### Removing project associations
+
+Prepare the three-contact fixture again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `deleteproject 1 2 pr/Team Alpha` | Error identifies the second Alex as lacking Team Alpha. Neither contact changes. |
+| `project 2 pr/Team Alpha` then `findproject Team Alpha` | Both Alex contacts appear at displayed indices 1 and 2. |
+| `deleteproject 1 2 pr/Team Alpha` | Removes Team Alpha from both selected contacts despite the filter changing during removal. The displayed list becomes empty. |
+| `list` | All three contacts remain. The first Alex has no projects; the second retains Orbital; David retains Team Beta. |
+| `undo` | Restores both removed associations in one step. |
+| `deleteproject 1 1 pr/Team Alpha` | Repeated-index error; no changes. |
+| `deleteproject 0 pr/Team Alpha` | Format error with usage; no changes. |
+| `deleteproject 1 4 pr/Team Alpha` | Invalid-index error; even the first contact remains unchanged. |
+
+### Listing projects
+
+Prepare the three-contact fixture again. Run these steps in order:
+
+| Input | Expected result |
+| --- | --- |
+| `find David` then `projects` | Lists Orbital, Team Alpha and Team Beta in that order, each with one contact. Only David remains displayed: counts include hidden contacts. |
+| `projects extra` | Format error with usage; contacts and filter remain unchanged. |
+| `list` then `project 2 pr/team alpha` then `projects` | Lists three distinct projects. Team Alpha has two contacts, combining case variants; Orbital and Team Beta still have one each. |
+| `undo` then `projects` | Team Alpha returns to one contact; listing projects did not add an undo entry. |
+| `clear` then `projects` | `No projects saved yet.` |
+| `undo` | Restores all three contacts; listing the empty projects did not consume the undo entry. |
 
 ### Renaming projects
 

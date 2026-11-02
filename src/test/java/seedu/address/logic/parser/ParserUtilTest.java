@@ -118,6 +118,8 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseEmail(INVALID_EMAIL));
         assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example"));
         assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseEmail("alex@example..com"));
+        assertThrows(ParseException.class, Email.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseEmail("a@" + "b".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1) + ".com"));
     }
 
     @Test
