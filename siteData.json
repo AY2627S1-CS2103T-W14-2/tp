@@ -7,7 +7,7 @@
       "headings": {
         "about-us": "About Us",
         "project-team": "Project team",
-        "ng-wei-jien": "NG WEI JIEN",
+        "ng-wei-jien": "Ng Wei Jien",
         "teoh-yi-le": "Teoh Yi Le",
         "tan-teck-heang": "Tan Teck Heang",
         "teng-ywee-see": "Teng Ywee See",
@@ -64,6 +64,7 @@
         "removing-a-project-association": "Removing a project association",
         "edit-command-implementation": "Edit command implementation",
         "project-renaming-and-merging": "Project renaming and merging",
+        "projects-command-implementation": "Projects command implementation",
         "sort-command-implementation": "Sort command implementation",
         "undo-command-implementation": "Undo command implementation",
         "persistence-and-save-failures": "Persistence and save failures",
@@ -175,6 +176,7 @@
         "editing-the-data-file": "Editing the data file",
         "faq": "FAQ",
         "known-issues": "Known issues",
+        "known-limitations": "Known limitations",
         "command-summary": "Command summary"
       },
       "headingKeywords": {}
