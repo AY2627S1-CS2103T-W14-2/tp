@@ -226,7 +226,7 @@ field's value, so callers must use the documented grammar.
 | `Name` | 1–60 characters after whitespace normalisation, at least one English letter; English letters, digits, spaces, apostrophes, hyphens and periods. `Name.normalize` collapses each run of spaces, tabs, line breaks or Unicode space separators (e.g. non-breaking spaces) to one space and trims the ends; other characters such as U+0085 are not treated as spaces and are rejected. Saved names keep their stored spacing. |
 | `Phone` | Leading `+`, 3–15 digits with a non-zero first digit; accepted internal spaces and hyphens are removed. No country code is inferred. |
 | `Email` | One `@`, non-empty dot-separated local parts, and at least two valid domain labels; no whitespace. At most 254 characters, with at most 64 before the `@` (RFC 5321 limits). New input also limits each domain label to 63 characters; saved emails do not, so older data files still load. Stored in lowercase. `Email.isTooLong` runs before any pattern, on both the input and saved-file paths, because the local-part pattern recurses once per dot and very long values would overflow the stack (issue #196). |
-| `TelegramUsername` | 5–32 Latin letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
+| `TelegramUsername` | 5–32 English letters, digits or underscores, starting with a letter and not ending with an underscore (Telegram's own rules); optional leading `@` is removed and letters are lowercased. Saved values only need the pre-v1.5 rule (5–32 of those characters), so older data files still load. |
 | `Project` | 1–40 Unicode code points after normalisation; no ISO control characters. Equality ignores case letter by letter, as `String#equalsIgnoreCase` does, so `ΟΣ` and `οσ` are the same project (issue #241). `Project.normalize` first removes invisible format characters (Unicode category Cf, e.g. zero-width space, byte order mark, direction marks), except the zero-width non-joiner and joiner (U+200C/U+200D). It then removes those joiners too when they join nothing visible: next to a Latin letter, a digit, punctuation or whitespace, or at either end of the name; a run of joiners is removed as a whole. Joiners between emoji (e.g. 👨‍💻) or between letters of scripts such as Persian or Hindi are kept. Together these stop pasted names from creating look-alike duplicates (issue #177). It then collapses whitespace and removes only spaces at either end (not `String#strip`, which would also drop U+001C–U+001F); tabs and line breaks become spaces, so `normalize` alone does not validate a name. Before any cleaning, `isValidProjectName` rejects malformed text (an unpaired surrogate, since removing a character between two unpaired surrogates could join them into a new character) and any control character, including tabs and line breaks (issue #202). Known limits: a joiner between letters of other non-Latin scripts (e.g. Cyrillic) is kept, tag characters in subdivision flag emoji are removed, and invisible characters outside category Cf (e.g. U+3164 Hangul filler) are not handled. Saved names are normalised the same way when loaded. |
 
 `JsonAdaptedPerson` restores names, phones, emails and Telegram usernames through their stored-value validation
@@ -356,7 +356,7 @@ establish power-loss durability or coordinate concurrent external edits to the s
 
 `Person` contains name, phone, email, Telegram username, and an ordered list of projects. Address and tags
 have been removed from the model, contact cards, and JSON output. `AddCommandParser` and
-`EditCommandParser` recognize the old `a/` and `t/` delimiters only to reject them with
+`EditCommandParser` recognise the old `a/` and `t/` delimiters only to reject them with
 `ParserUtil.MESSAGE_REMOVED_CONTACT_FIELDS`; this prevents old arguments from becoming another field's value.
 These delimiter sequences following a space remain reserved in add/edit input.
 
@@ -619,6 +619,20 @@ Tests cover literal quotes and backslashes, Unicode length boundaries, mixed dis
 merge overlap/order, filter re-evaluation, locale-independent counts, failed saves, restart, and one undo
 restoring exact strings. `RenameProjectUiTest` verifies visible project labels after case-only renaming and undo.
 
+### Listing projects
+
+`projects` lists every saved project with its contact count. `ListProjectsCommandParser` rejects any argument,
+unlike `list`, so a mistyped `project 2 pr/Orbital` cannot pass as a listing. `ListProjectsCommand#execute` reads
+`Model#getAddressBook()` rather than the filtered list, so hidden contacts are counted and the filter is unchanged.
+It fills a `LinkedHashMap<Project, Integer>`. Because `Project#equals` ignores case, case variants share one key and
+the first saved spelling is shown. Lines are sorted by `Locale.ROOT` lowercase text. The command is not undoable,
+so it adds no save or undo entry.
+
+**Design trade-off:** Deriving the list takes one pass over the contacts each time. A separate project list in the
+model would avoid that pass, but it would have to stay in sync with every contact change.
+
+`ListProjectsCommandTest` and `ListProjectsCommandParserTest` cover this behaviour.
+
 ### Sort command implementation
 
 `sort` puts every saved contact in name order and saves that order. `AddressBookParser` creates a `SortCommand`
@@ -742,8 +756,9 @@ recent search results, and a session-only most searched contact.
 Editing covers name, phone, email and Telegram username. Project associations can be replaced with
 `replaceproject`, removed with `deleteproject`, or renamed and merged globally with `renameproject`.
 New contacts require all five add fields; optional missing Telegram/project data is supported only when
-loading legacy files. Contacts can be sorted by name. Notes, roles, sorting by project, archiving,
-multi-criteria search, and highlighting which project matched remain backlog items.
+loading legacy files. Contacts can be sorted by name, and `projects` lists saved projects. Notes, roles,
+sorting by project, archiving, multi-criteria search, adding contacts with missing details, and highlighting
+which project matched remain backlog items.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -770,7 +785,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | student | search for contacts by their role                                      | find the person responsible for a particular task                 |
 | `* *`    | student | see a contact's complete information                                   | verify that I have found the correct person                       |
 | `* *`    | student | detect duplicate contact information                                   | avoid accidentally saving the same person multiple times         |
-| `* *`    | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 | `* *`    | student | find a contact without remembering the exact capitalisation of their name | search conveniently                                             |
 | `* *`    | student | see which project caused a search result to match                      | understand why a contact was returned                            |
 | `* *`    | student | keep the latest search results visible after listing all contacts      | refer back to the people I just found                            |
@@ -784,6 +798,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `*`      | student | archive contacts from completed projects                               | prevent old contacts from cluttering my active contact list      |
 | `*`      | student | restore archived contacts                                              | reuse their information if I work with them again                |
 | `*`      | student | remove a project                                                       | prevent completed or incorrectly created projects from cluttering my records |
+| `*`      | student | store contacts when some optional information is unavailable           | save a person without knowing every detail                        |
 
 ### Use cases
 
