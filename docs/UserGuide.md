@@ -95,7 +95,7 @@ that are not already saved. Repeating an `add` example produces a duplicate-cont
   section does not provide command indices. Check the index again after
   adding, editing, deleting, searching, or undoing. Contacts with the same name still have separate indices.
 
-* `help`, `list`, `sort`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
+* `help`, `list`, `sort`, `undo`, and `exit` ignore extra parameters. For example, `help 123` is interpreted as `help`.
   `clear` and `projects` reject extra parameters.<br>
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -514,9 +514,8 @@ Finds contacts associated with projects whose names contain the given phrase.
 Format: `findproject KEYWORD`
 
 * Matching is case-insensitive and partial: `cs2103` matches `CS2103T`.
-  Unicode case variants are supported too: `Σ`, `σ` and `ς` all match a project named `ΟΣ`.
-* The single letter `ß` does not find a project containing capital `ẞ`. Search for more of the name instead, such as
-  `ße` for `Straẞe`.
+  For names containing non-English letters, try a longer part of the project name if a single-letter search
+  does not find it.
 * The entire keyword is one phrase. `team alpha` matches `CS2103T Team Alpha`, but does not match
   `Team Beta`, `Alpha Team`, or separate projects named `Team` and `Alpha`.
 * Surrounding whitespace is ignored and repeated internal whitespace is treated as a single space when matching.
@@ -659,9 +658,10 @@ the data location. Window settings are saved separately in `preferences.json` in
 Contact saves write a complete temporary file beside the data file before replacing the previous file in
 one operation. If writing or replacement fails, the previous data file stays intact. The data folder must
 allow creating and replacing files, and the data file must be writable. If another program has the file open
-(particularly on Windows), close that program and retry. If the location does not support atomic replacement,
-LinkUp reports a save error; use a data location that supports it. LinkUp does not fall back to overwriting the
-original file directly.
+(particularly on Windows), close that program and retry. If the storage location cannot replace the file in
+one operation, LinkUp reports a save error and keeps the previous file unchanged. Use a different storage
+location that allows this safe saving method.
+
 **Only one active session per launch folder is supported.** Close LinkUp before starting another instance
 from the same folder. Never run multiple instances that use the same data file, even if launched from different
 folders. Each instance keeps its own contact list in memory and saves the complete list; it does not detect or
@@ -675,9 +675,9 @@ original command. Do not run `undo` to recover from that failed command: `undo` 
 successful change. If saving an `undo` fails, the contacts and undo history stay unchanged; fix storage and
 retry `undo`.
 
-Existing symbolic links to data files remain links; saves update the file they point to. A link whose target
-does not exist produces a save error. Do not edit the data file externally or run two LinkUp instances using
-the same data file while LinkUp is saving.
+If your data file is a link to a file stored elsewhere, LinkUp keeps the link and saves changes to the linked
+file. If the linked file is missing, saving fails. Close LinkUp before editing the data file in another program.
+Never run two LinkUp instances using the same data file.
 
 When loading an older data file, LinkUp ignores the retired address and tag fields. Contacts without a
 Telegram username or project still load. Previously saved names and emails also retain their original spelling and
