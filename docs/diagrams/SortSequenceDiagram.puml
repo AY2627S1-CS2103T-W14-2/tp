@@ -6,7 +6,6 @@ box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant "s:SortCommand" as SortCommand LOGIC_COLOR
-participant "CommandResult\n<<class>>" as CommandResultClass LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -58,45 +57,30 @@ activate Model
 Model --> SortCommand : addressBook
 deactivate Model
 
-alt no contacts
-    SortCommand -> CommandResultClass : withoutDataChange(ListCommand.MESSAGE_NO_CONTACTS)
-    activate CommandResultClass
-    create CommandResult
-    CommandResultClass -> CommandResult : CommandResult(feedbackToUser, false, false, false)
-    activate CommandResult
-    CommandResult --> CommandResultClass
-    deactivate CommandResult
-    CommandResultClass --> SortCommand : r
-    deactivate CommandResultClass
-else contacts available
-    SortCommand -> SortCommand : isSorted(contacts)
-    activate SortCommand
-    SortCommand --> SortCommand : sorted
-    deactivate SortCommand
-
-    alt already sorted
-        SortCommand -> CommandResultClass : withoutDataChange(MESSAGE_ALREADY_SORTED)
-        activate CommandResultClass
-        create CommandResult
-        CommandResultClass -> CommandResult : CommandResult(feedbackToUser, false, false, false)
-        activate CommandResult
-        CommandResult --> CommandResultClass
-        deactivate CommandResult
-        CommandResultClass --> SortCommand : r
-        deactivate CommandResultClass
-    else otherwise
-        SortCommand -> Model : sortPersons(nameComparator)
-        activate Model
-        Model --> SortCommand
-        deactivate Model
-
-        create CommandResult
-        SortCommand -> CommandResult
-        activate CommandResult
-        CommandResult --> SortCommand : r
-        deactivate CommandResult
-    end
+alt no contacts or already sorted
+    note right of SortCommand
+        Feedback: no contacts or already sorted.
+        Result has isDataChanged() = false.
+    end note
+else contacts need sorting
+    SortCommand -> Model : sortPersons(nameComparator)
+    activate Model
+    Model --> SortCommand
+    deactivate Model
+    note right of SortCommand
+        Feedback: sorted contact count.
+        Result has isDataChanged() = true.
+    end note
 end
+
+create CommandResult
+SortCommand -> CommandResult : create result
+activate CommandResult
+CommandResult --> SortCommand : r
+deactivate CommandResult
+note over SortCommand, CommandResult
+    Result creation is abstracted; factory details are omitted.
+end note
 SortCommand --> LogicManager : r
 deactivate SortCommand
 

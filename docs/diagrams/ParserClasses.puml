@@ -25,6 +25,11 @@ AddressBookParser .down.> XYZCommandParser: <<create>>
 
 XYZCommandParser ..> XYZCommand : <<create>>
 AddressBookParser ..> Command : <<use>>
+note right of AddressBookParser
+    Direct creation of no-argument commands is omitted:
+    ClearCommand, ListCommand, SortCommand,
+    ExitCommand, HelpCommand and UndoCommand.
+end note
 XYZCommandParser .up.|> Parser
 XYZCommandParser ..> ArgumentMultimap
 XYZCommandParser ..> ArgumentTokenizer

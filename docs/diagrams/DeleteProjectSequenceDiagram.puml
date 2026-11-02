@@ -7,27 +7,48 @@ participant ":DeleteProjectCommand" as Command LOGIC_COLOR
 participant ":Model" as Model MODEL_COLOR
 
 [-> Logic : execute(input)
+activate Logic
 ref over Logic, Command
     Parse removal arguments
     AddressBookParser / DeleteProjectCommandParser
 end ref
 ref over Logic, Model : Capture rollback state (shared diagram)
 Logic -> Command : execute(model)
+activate Command
 Command -> Model : getFilteredPersonList()
+activate Model
 Model --> Command : displayedContacts
+deactivate Model
 Command -> Command : copy list; resolve indices; validate all selections
+activate Command
+Command --> Command : validated selections
+deactivate Command
 alt invalid index or any missing association
     Command --> Logic : CommandException
-    [<-- Logic : error
 else all selections valid
     Command -> Model : getAddressBook()
+    activate Model
     Model --> Command : contacts (for stored project spelling)
+    deactivate Model
     Command -> Command : build all replacements before mutation
+    activate Command
+    Command --> Command : replacements
+    deactivate Command
     loop each captured original and replacement
         Command -> Model : setPerson(original, replacement)
+        activate Model
+        Model --> Command
+        deactivate Model
     end
     Command --> Logic : result
+end
+deactivate Command
+
+alt command failed
+    [<-- Logic : error
+else command succeeded
     ref over Logic, Model : Persist and record undo (shared diagram)
     [<-- Logic : result or save error
 end
+deactivate Logic
 @enduml

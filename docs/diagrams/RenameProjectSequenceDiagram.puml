@@ -2,17 +2,37 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
+box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as Logic LOGIC_COLOR
 participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":RenameProjectCommandParser" as CommandParser LOGIC_COLOR
 participant "command:RenameProjectCommand" as Command LOGIC_COLOR
-participant ":Model" as Model MODEL_COLOR
 participant ":SearchHistory" as SearchHistory LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant ":Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
 participant ":Storage" as Storage STORAGE_COLOR
+end box
 
 [-> Logic : execute(input)
 activate Logic
 Logic -> Parser : parseCommand(input)
+activate Parser
+Parser -> CommandParser : parse(arguments)
+activate CommandParser
+create Command
+CommandParser -> Command : RenameProjectCommand(oldProject, newProject)
+activate Command
+Command --> CommandParser
+deactivate Command
+CommandParser --> Parser : command
+deactivate CommandParser
 Parser --> Logic : command
+deactivate Parser
 Logic -> Model : getAddressBook()
 Model --> Logic : addressBook
 Logic -> Logic : before = new AddressBook(addressBook)
