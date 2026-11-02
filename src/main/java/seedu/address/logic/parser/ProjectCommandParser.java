@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PROJECT;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -24,22 +23,9 @@ public class ProjectCommandParser implements Parser<ProjectCommand> {
     public ProjectCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_PROJECT);
-        List<Index> indices = new ArrayList<>();
-        for (String token : arguments.getPreamble().strip().split("\\s+")) {
-            Index index;
-            try {
-                index = ParserUtil.parseIndex(token);
-            } catch (ParseException e) {
-                logger.fine("Project parsing rejected: invalid contact index");
-                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                        ProjectCommand.MESSAGE_USAGE), e);
-            }
-            if (indices.contains(index)) {
-                logger.fine("Project parsing rejected: repeated contact index " + index.getOneBased());
-                throw new ParseException(String.format(ProjectCommand.MESSAGE_DUPLICATE_INDEX, index.getOneBased()));
-            }
-            indices.add(index);
-        }
+        List<Index> indices = ParserUtil.parseDistinctIndices(arguments.getPreamble(),
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE),
+                ProjectCommand.MESSAGE_DUPLICATE_INDEX, logger);
         if (arguments.getValue(PREFIX_PROJECT).isEmpty()) {
             logger.fine("Project parsing rejected: missing project prefix");
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE));

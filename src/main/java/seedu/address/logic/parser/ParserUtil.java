@@ -4,6 +4,10 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -22,6 +26,32 @@ public class ParserUtil {
             "Address and tags are no longer supported. Remove a/ and t/ from your command.";
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    /**
+     * Parses a non-empty sequence of distinct positive indices in input order.
+     * Reports invalid tokens using the caller's usage message and duplicates using its index message.
+     *
+     * @throws ParseException if an index is invalid or repeated.
+     */
+    static List<Index> parseDistinctIndices(String input, String invalidFormatMessage,
+            String duplicateIndexMessage, Logger logger) throws ParseException {
+        List<Index> indices = new ArrayList<>();
+        for (String token : input.strip().split("\\s+")) {
+            Index index;
+            try {
+                index = parseIndex(token);
+            } catch (ParseException e) {
+                logger.fine("Project parsing rejected: invalid contact index");
+                throw new ParseException(invalidFormatMessage, e);
+            }
+            if (indices.contains(index)) {
+                logger.fine("Project parsing rejected: repeated contact index " + index.getOneBased());
+                throw new ParseException(String.format(duplicateIndexMessage, index.getOneBased()));
+            }
+            indices.add(index);
+        }
+        return indices;
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
