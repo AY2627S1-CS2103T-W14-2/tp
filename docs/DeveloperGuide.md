@@ -64,6 +64,15 @@ The sequence diagram below shows how the components interact with each other for
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
+This component-level diagram shows a successful deletion. The UI calls only `Logic.execute(...)`;
+the arrow to `Model.deletePerson(p)` originates from `Logic` and represents the command's call.
+Inside `Logic`, `LogicManager` parses the input
+through `AddressBookParser` and `DeleteCommandParser`, then executes `DeleteCommand`, which resolves the
+displayed index and calls `Model.deletePerson(p)`. These internal parsing and command execution steps,
+snapshots, rollback and undo bookkeeping are excluded here. The Logic component diagram below expands
+the parser and command interactions in [the Logic section](#logic-component).
+Persistence and undo details are covered in the [undo implementation section](#undo-command-implementation).
+
 Each of the four main components (also shown in the diagram above):
 
 * defines its API in an `interface` with the same name as the component.
@@ -176,6 +185,10 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+
+`JsonAdaptedPerson` holds an ordered list of `JsonAdaptedProject` objects. Each adapter converts between
+the stored project name and a model `Project` through its constructor and `toModelType()`; an empty list
+represents a contact without project associations.
 
 ### Common classes
 
@@ -290,6 +303,9 @@ with a `PersonCard` for background, text color, padding, font, border, and spaci
 ### Most searched contact and shared latest search
 
 `LogicManager` owns one session-only `SearchHistory`, constructed with the unfiltered observable contact list.
+
+<puml src="diagrams/SearchHistoryClassDiagram.puml" width="760" alt="SearchHistory ownership, per-contact counts, observed contacts and rollback snapshots" />
+
 After either `FindCommand` or `FindProjectCommand` executes, it records the filtered results without saving the
 address book. Parse failures and command failures do not increment frequencies. The shared latest search property
 updates after a successful search, independently of frequency counts.
@@ -472,6 +488,9 @@ command validates the complete batch before changing either contact.
 
 <puml src="diagrams/ProjectCommandSequenceDiagram.puml" width="760" alt="Interactions inside the Logic and Model components for a multi-contact project command" />
 
+Filter and search-history snapshot capture and failed-save rollback are abstracted in this diagram;
+see [Shared project persistence and undo handling](#shared-project-persistence-and-undo-handling).
+
 `ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
 A duplicate association or invalid index rejects the whole command, so earlier valid selections are
@@ -495,6 +514,12 @@ out-of-range index and verify neither contacts nor undo history change.
 
 ### Replacing a project association
 
+<puml src="diagrams/ReplaceProjectSequenceDiagram.puml" width="760" alt="Project replacement validation and model update, with references to parsing and shared persistence" />
+
+The diagram focuses on displayed-index resolution, validation and the model update. Reference frames abstract
+parser dispatch and argument validation; a parse failure stops before snapshot capture or command execution.
+The shared persistence diagram below expands rollback state capture, saving and undo recording.
+
 `replaceproject INDEX old/OLD_PROJECT new/NEW_PROJECT` changes one association on one contact.
 `AddressBookParser` dispatches to `ReplaceProjectCommandParser`, which requires one of each prefix
 and reuses `ParserUtil.parseIndex` and `ParserUtil.parseProject` for validation.
@@ -512,6 +537,14 @@ Parser and command tests cover normalisation, boundaries, invalid inputs, duplic
 The integration test verifies dispatch, filter re-evaluation, JSON persistence and undo after rejected commands.
 
 ### Removing a project association
+
+<puml src="diagrams/DeleteProjectSequenceDiagram.puml" width="760" alt="Batch project removal validation and model updates, with references to parsing and shared persistence" />
+
+The diagram shows validation of the entire selection and construction of every replacement before any
+model update. Capturing the displayed contacts first prevents a changing filtered list from redirecting
+later indices. Parser dispatch and argument validation are abstracted in a reference frame; parse failures
+stop before snapshot capture or command execution. Shared persistence is expanded below. Result formatting
+is omitted; a successful batch creates one undo entry.
 
 `deleteproject INDEX [MORE_INDICES] pr/PROJECT` removes one association from each selected contact,
 including their last project.
@@ -537,6 +570,18 @@ An integration test covers filtered selection, disappearance from results, persi
 
 Manual check: run `findproject CS2103T`, then `deleteproject 1 pr/cs2103t`. Confirm the selected
 contact leaves the results. Run `list` to verify the contact remains saved, then `undo` to restore its project.
+
+### Shared project persistence and undo handling
+
+The `Capture rollback state` and `Persist and record undo` reference frames in the replacement and removal
+diagrams refer to the corresponding groups below. Both commands are undoable and change data on success.
+The project association and sort diagrams also refer here for omitted snapshot and rollback details;
+sort enters the persistence group only when its result reports a data change.
+A command validation failure skips persistence and leaves undo history unchanged. After successful execution,
+`LogicManager` saves the current data before recording one undo snapshot. A save failure restores the
+address book, main-list predicate and search statistics, then reports an error without adding an undo entry.
+
+<puml src="diagrams/ProjectPersistenceSequenceDiagram.puml" width="760" alt="Shared rollback snapshots, persistence, save failure recovery and undo recording for project commands" />
 
 ### Edit command implementation
 
@@ -639,6 +684,10 @@ directly, since the command takes no arguments; extra text is ignored, as for `l
 
 <puml src="diagrams/SortSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `sort` command" />
 
+The diagram shows no-change results and successful persistence. Filter and search-history snapshot capture
+and failed-save rollback are abstracted; see
+[Shared project persistence and undo handling](#shared-project-persistence-and-undo-handling).
+
 The order is defined once, in `PersonNameComparator`: names are compared in lower case (`Locale.ROOT`) with
 natural ordering, so each run of digits is compared by numeric value (`Alex 2` before `Alex 10`). Digit runs are
 compared as text after removing leading zeros, longer runs being larger, so names with more digits than a `long`
@@ -665,6 +714,15 @@ previous order.
   the contacts, not on their history, which keeps the behaviour predictable and easy to test.
 
 ### Undo command implementation
+
+The Logic sequence below shows the special undo persistence path. Parser dispatch is abstracted in a
+reference frame; `AddressBookParser` constructs `UndoCommand` directly. The Model reference frame is
+expanded in the second diagram. Undo creates no additional undo snapshot and does not use the project
+commands' save-after-execution flow.
+
+<puml src="diagrams/UndoSequenceDiagram-Logic.puml" width="760" alt="Undo dispatch, empty-history rejection and persistence before in-memory restoration, including save failure" />
+
+<puml src="diagrams/UndoSequenceDiagram-Model.puml" width="640" alt="ModelManager undo checks, snapshot pop, AddressBook restoration and filter update" />
 
 The `undo` command restores the address book to the state before the most recent successful command that
 supports undo and has not already been undone. It supports `add`, `edit`, `delete`, `clear`, `project`,

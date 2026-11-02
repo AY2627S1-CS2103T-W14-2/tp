@@ -2,45 +2,42 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
-box Logic LOGIC_COLOR_T1
-participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant "u:UndoCommand" as UndoCommand LOGIC_COLOR
-end box
-
-box Model MODEL_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":UndoCommand" as Command LOGIC_COLOR
 participant ":Model" as Model MODEL_COLOR
-end box
-[-> LogicManager : execute(undo)
-activate LogicManager
+participant ":Storage" as Storage STORAGE_COLOR
 
-LogicManager -> AddressBookParser : parseCommand(undo)
-activate AddressBookParser
-
-create UndoCommand
-AddressBookParser -> UndoCommand
-activate UndoCommand
-
-UndoCommand --> AddressBookParser
-deactivate UndoCommand
-
-AddressBookParser --> LogicManager : u
-deactivate AddressBookParser
-
-LogicManager -> UndoCommand : execute()
-activate UndoCommand
-
-UndoCommand -> Model : undoAddressBook()
-activate Model
-
-Model --> UndoCommand
-deactivate Model
-
-UndoCommand --> LogicManager : result
-deactivate UndoCommand
-UndoCommand -[hidden]-> LogicManager : result
-destroy UndoCommand
-
-[<--LogicManager
-deactivate LogicManager
+[-> Logic : execute("undo")
+ref over Logic, Command
+    AddressBookParser.parseCommand("undo")
+    creates UndoCommand directly (no command parser)
+end ref
+Logic -> Model : canUndo()
+Model --> Logic : available
+alt no undo state
+    Logic -> Command : execute(model)
+    Command -> Model : canUndo()
+    Model --> Command : false
+    Command --> Logic : CommandException
+    [<-- Logic : "No command to undo."
+else undo state available
+    Logic -> Model : getUndoState()
+    Model --> Logic : copy of latest snapshot
+    Logic -> Storage : saveAddressBook(snapshot)
+    alt save fails
+        Storage --> Logic : IOException
+        [<-- Logic : CommandException
+        note over Logic, Model : Contacts, filters and undo history remain unchanged.
+    else save succeeds
+        Storage --> Logic
+        Logic -> Command : execute(model)
+        Command -> Model : canUndo()
+        Model --> Command : true
+        Command -> Model : undo()
+        ref over Model : Restore latest snapshot (model diagram)
+        Model --> Command
+        Command --> Logic : result
+        [<-- Logic : "Last command undone."
+    end
+end
 @enduml

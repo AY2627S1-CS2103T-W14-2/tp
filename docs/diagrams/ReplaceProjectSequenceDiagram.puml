@@ -1,0 +1,48 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":ReplaceProjectCommand" as Command LOGIC_COLOR
+participant ":Model" as Model MODEL_COLOR
+
+[-> Logic : execute(input)
+activate Logic
+ref over Logic, Command
+    Parse replacement arguments
+    AddressBookParser / ReplaceProjectCommandParser
+end ref
+ref over Logic, Model : Capture rollback state (shared diagram)
+Logic -> Command : execute(model)
+activate Command
+Command -> Model : getFilteredPersonList()
+activate Model
+Model --> Command : displayedContacts
+deactivate Model
+Command -> Command : resolve index; validateReplacement(original)
+activate Command
+Command --> Command : validated selection
+deactivate Command
+alt invalid index, missing old project, unchanged spelling or duplicate
+    Command --> Logic : CommandException
+else valid replacement
+    Command -> Command : createUpdatedContact(original, projectIndex)
+    activate Command
+    Command --> Command : updated
+    deactivate Command
+    Command -> Model : setPerson(original, updated)
+    activate Model
+    Model --> Command
+    deactivate Model
+    Command --> Logic : result
+end
+deactivate Command
+
+alt command failed
+    [<-- Logic : error
+else command succeeded
+    ref over Logic, Model : Persist and record undo (shared diagram)
+    [<-- Logic : result or save error
+end
+deactivate Logic
+@enduml

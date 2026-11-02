@@ -2,19 +2,44 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
+box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as Logic LOGIC_COLOR
 participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":RenameProjectCommandParser" as CommandParser LOGIC_COLOR
 participant "command:RenameProjectCommand" as Command LOGIC_COLOR
-participant ":Model" as Model MODEL_COLOR
 participant ":SearchHistory" as SearchHistory LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant ":Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
 participant ":Storage" as Storage STORAGE_COLOR
+end box
 
 [-> Logic : execute(input)
 activate Logic
 Logic -> Parser : parseCommand(input)
+activate Parser
+Parser -> CommandParser : parse(arguments)
+activate CommandParser
+create Command
+CommandParser -> Command : RenameProjectCommand(oldProject, newProject)
+activate Command
+Command --> CommandParser
+deactivate Command
+CommandParser --> Parser : command
+deactivate CommandParser
 Parser --> Logic : command
+deactivate Parser
 Logic -> Model : getAddressBook()
-Model --> Logic : before snapshot
+Model --> Logic : addressBook
+Logic -> Logic : before = new AddressBook(addressBook)
+Logic -> Model : getFilteredPersonPredicate()
+Model --> Logic : previousPredicate
+Logic -> SearchHistory : snapshot()
+SearchHistory --> Logic : historyBefore
 Logic -> Command : execute(model)
 activate Command
 Command -> Model : getAddressBook()
@@ -22,7 +47,6 @@ Model --> Command : all contacts
 Command -> Command : validate and build replacement
 alt invalid source or no changes
     Command --> Logic : CommandException
-    [<-- Logic : error (no save or undo entry)
 else rename or merge
     Command -> Model : setAddressBook(replacement)
     note right of Model
@@ -30,12 +54,20 @@ else rename or merge
         Re-evaluate matching contacts.
     end note
     Command --> Logic : result (includes undo reminder)
+end
+deactivate Command
+
+alt command failed
+    [<-- Logic : error (no save or undo entry)
+else command succeeded
+    Logic -> Model : getAddressBook()
+    Model --> Logic : current data
     Logic -> Storage : saveAddressBook(current data)
     alt save fails
         Storage --> Logic : IOException
         Logic -> Model : setAddressBook(before)
-        Logic -> Model : restore previous filter
-        Logic -> SearchHistory : restore(previous counts)
+        Logic -> Model : updateFilteredPersonList(previousPredicate)
+        Logic -> SearchHistory : restore(historyBefore)
         [<-- Logic : save error (no undo entry)
     else save succeeds
         Storage --> Logic
@@ -43,6 +75,5 @@ else rename or merge
         [<-- Logic : success
     end
 end
-deactivate Command
 deactivate Logic
 @enduml
