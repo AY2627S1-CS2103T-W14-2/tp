@@ -152,6 +152,8 @@ public class DeleteProjectCommandTest {
                 "No changes made. These contacts do not have project Orbital:\n3: Charlie\n2: Bob");
         assertCommandFailure(new DeleteProjectCommand(List.of(Index.fromOneBased(1), Index.fromOneBased(4)),
                 project), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(new DeleteProjectCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(4)),
+                project), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test

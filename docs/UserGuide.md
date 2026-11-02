@@ -232,6 +232,11 @@ If a detail is already used, LinkUp rejects the command, saves nothing, and name
 LinkUp reports the first conflicting contact in saved order. If several details conflict with that contact,
 it reports the phone number first, then email, then Telegram username. Correct the reported detail and try again;
 another conflict may then be reported. Empty Telegram usernames on legacy contacts do not conflict.
+
+**Limits of duplicate detection:** After applying the input formatting rules above, LinkUp compares stored values,
+ignoring case in emails and Telegram usernames. It cannot determine whether different contact details belong to the
+same person. For example, an older saved number `91234567` and `+6591234567` count as different, as do
+`ab@gmail.com` and `a.b@gmail.com`.
 </box>
 
 Address and tags are no longer contact fields. The `add` and `edit` commands reject `a/` and `t/`; remove those arguments and try again.
