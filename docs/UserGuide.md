@@ -701,6 +701,10 @@ storage or permission problem, then start LinkUp again. Still, we recommend back
 editing it.<br>
 A file in which two contacts share a phone number, email or Telegram username breaks the
 [duplicate-contact rule](#adding-a-contact-add) and is also rejected on load.<br>
+Unrecognised keys inside a contact are ignored without warning. If you misspell the optional `telegramUsername` or
+`projects` key in an otherwise valid file, that contact loads without the value. The next successful save removes
+the misspelled key and its value. A misspelled key alone does not trigger a backup, so after editing, check your
+contacts in LinkUp before running a command that changes them.<br>
 Use commands for ordinary changes; manual file editing is intended for users familiar with JSON and the validation rules.
 </box>
 
