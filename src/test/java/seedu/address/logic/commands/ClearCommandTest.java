@@ -15,6 +15,7 @@ public class ClearCommandTest {
 
     @Test
     public void execute_emptyAddressBook_failure() {
+        // EP: address book contains no contacts.
         Model model = new ModelManager();
 
         assertCommandFailure(new ClearCommand(), model, ClearCommand.MESSAGE_NO_CONTACTS);
@@ -22,6 +23,7 @@ public class ClearCommandTest {
 
     @Test
     public void execute_nonEmptyAddressBook_success() {
+        // EP: address book contains at least one contact.
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.setAddressBook(new AddressBook());
