@@ -11,7 +11,7 @@ For questions or bug reports, contact the LinkUp team through our [GitHub issue 
 
 ## Project team
 
-### NG WEI JIEN
+### Ng Wei Jien
 
 <img src="images/ngweijien35.png" width="200px">
 
