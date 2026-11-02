@@ -68,7 +68,7 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(BOB).withProjects(VALID_PROJECT_BOB)
                 .build();
 
-        // whitespace only preamble
+        // EP: whitespace only preamble
         assertParseSuccess(parser, PREAMBLE_WHITESPACE + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
                 new AddCommand(expectedPerson));
@@ -133,27 +133,27 @@ public class AddCommandParserTest {
         String validExpectedPersonString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB;
 
-        // multiple names
+        // EP: multiple names
         assertParseFailure(parser, NAME_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
 
-        // multiple phones
+        // EP: multiple phones
         assertParseFailure(parser, PHONE_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
 
-        // multiple emails
+        // EP: multiple emails
         assertParseFailure(parser, EMAIL_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
 
-        // multiple Telegram usernames
+        // EP: multiple Telegram usernames
         assertParseFailure(parser, TELEGRAM_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TELEGRAM));
 
-        // multiple projects
+        // EP: multiple projects
         assertParseFailure(parser, PROJECT_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PROJECT));
 
-        // multiple fields repeated
+        // EP: multiple fields repeated
         assertParseFailure(parser,
                 validExpectedPersonString + PHONE_DESC_AMY + EMAIL_DESC_AMY + NAME_DESC_AMY
                         + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY + validExpectedPersonString,
@@ -224,27 +224,27 @@ public class AddCommandParserTest {
     public void parse_compulsoryFieldMissing_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
 
-        // missing name prefix
+        // EP: missing name prefix
         assertParseFailure(parser, VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
                 + PROJECT_DESC_BOB,
                 expectedMessage);
 
-        // missing phone prefix
+        // EP: missing phone prefix
         assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + TELEGRAM_DESC_BOB
                 + PROJECT_DESC_BOB,
                 expectedMessage);
 
-        // missing email prefix
+        // EP: missing email prefix
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + TELEGRAM_DESC_BOB
                 + PROJECT_DESC_BOB,
                 expectedMessage);
 
-        // missing Telegram username prefix
+        // EP: missing Telegram username prefix
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + VALID_TELEGRAM_USERNAME_BOB
                 + PROJECT_DESC_BOB,
                 expectedMessage);
 
-        // all prefixes missing
+        // EP: all prefixes missing
         assertParseFailure(parser, VALID_NAME_BOB + VALID_PHONE_BOB + VALID_EMAIL_BOB,
                 expectedMessage);
     }
@@ -283,7 +283,7 @@ public class AddCommandParserTest {
                 + PROJECT_DESC_BOB,
                 Name.MESSAGE_CONSTRAINTS);
 
-        // non-empty preamble
+        // EP: non-empty preamble
         assertParseFailure(parser, PREAMBLE_NON_EMPTY + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));

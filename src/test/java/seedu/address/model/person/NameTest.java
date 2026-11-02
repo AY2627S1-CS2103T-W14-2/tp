@@ -22,10 +22,10 @@ public class NameTest {
 
     @Test
     public void isValidName() {
-        // null name
+        // EP: null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));
 
-        // invalid name
+        // EP: invalid name
         assertFalse(Name.isValidName("")); // empty string
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
@@ -35,7 +35,7 @@ public class NameTest {
         assertFalse(Name.isValidName("A".repeat(61))); // exceeds the 60-character limit
         assertFalse(Name.isValidName("A".repeat(30) + "  " + "B".repeat(30))); // 61 after collapsing spaces
 
-        // valid name
+        // EP: valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters

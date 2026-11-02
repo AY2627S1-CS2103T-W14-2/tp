@@ -35,6 +35,7 @@ public class DeleteProjectCommandParserTest {
 
     @Test
     public void parse_invalidProject_failure() {
+        // EPs: blank, overlong, and control-character-containing project names.
         assertParseFailure(parser, "1 pr/   ", Project.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 pr/" + "x".repeat(41), Project.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 pr/Team\u0000Alpha", Project.MESSAGE_CONSTRAINTS);
@@ -42,6 +43,7 @@ public class DeleteProjectCommandParserTest {
 
     @Test
     public void parse_projectContainsPrefix_preservesLiteralName() {
+        // EP: project name contains literal pr/ text after the first delimiter.
         for (String name : new String[] {"Team pr/X", "Orbital pr/CS2103T", "pr/X", "Team pr/", "A pr/B pr/C"}) {
             assertParseSuccess(parser, "1 pr/" + name,
                     new DeleteProjectCommand(Index.fromOneBased(1), new Project(name)));
@@ -67,6 +69,7 @@ public class DeleteProjectCommandParserTest {
 
     @Test
     public void parse_repeatedIndices_identifiesRepeatedIndex() {
+        // EP: selection contains duplicate indices.
         assertParseFailure(parser, "1 1 pr/Orbital", "Contact index 1 is repeated.");
         assertParseFailure(parser, "3 2 1 2 pr/Orbital", "Contact index 2 is repeated.");
     }

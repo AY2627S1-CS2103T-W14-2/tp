@@ -64,7 +64,6 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
         logger.info("----------------[USER COMMAND][" + command.getClass().getSimpleName() + "]");
         if (command instanceof UndoCommand && model.canUndo()) {
@@ -72,26 +71,19 @@ public class LogicManager implements Logic {
             saveAddressBook(model.getUndoState());
             return command.execute(model);
         }
-        AddressBook before = command.isUndoable()
-                ? new AddressBook(model.getAddressBook())
-                : null;
-        Predicate<Person> filteredPersonPredicate = command.isUndoable()
-                ? model.getFilteredPersonPredicate()
-                : null;
-        SearchHistory.Snapshot searchHistoryBefore = command.isUndoable()
-                ? searchHistory.snapshot()
-                : null;
-        commandResult = command.execute(model);
-        boolean isSearch = command instanceof FindCommand || command instanceof FindProjectCommand;
-        if (isSearch) {
-            String commandWord = command instanceof FindCommand
-                    ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
-            String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
-            recentSearch.set(searchType + FindCommandParser.trimSearchInput(
-                    commandText.trim().substring(commandWord.length())));
+        CommandResult commandResult = command.isUndoable() ? executeUndoableCommand(command) : command.execute(model);
+        if (command instanceof FindCommand || command instanceof FindProjectCommand) {
+            updateSearchHistory(command, commandText);
         }
+        return commandResult;
+    }
 
-        if (command.isUndoable() && commandResult.isDataChanged()) {
+    private CommandResult executeUndoableCommand(Command command) throws CommandException {
+        AddressBook before = new AddressBook(model.getAddressBook());
+        Predicate<Person> filteredPersonPredicate = model.getFilteredPersonPredicate();
+        SearchHistory.Snapshot searchHistoryBefore = searchHistory.snapshot();
+        CommandResult commandResult = command.execute(model);
+        if (commandResult.isDataChanged()) {
             try {
                 saveAddressBook(model.getAddressBook());
             } catch (CommandException e) {
@@ -103,10 +95,16 @@ public class LogicManager implements Logic {
             }
             model.saveUndoState(before);
         }
-        if (isSearch) {
-            searchHistory.record(model.getFilteredPersonList());
-        }
         return commandResult;
+    }
+
+    private void updateSearchHistory(Command command, String commandText) {
+        String commandWord = command instanceof FindCommand
+                ? FindCommand.COMMAND_WORD : FindProjectCommand.COMMAND_WORD;
+        String searchType = command instanceof FindCommand ? "Name: " : "Project: ";
+        recentSearch.set(searchType + FindCommandParser.trimSearchInput(
+                commandText.trim().substring(commandWord.length())));
+        searchHistory.record(model.getFilteredPersonList());
     }
 
     private void saveAddressBook(ReadOnlyAddressBook addressBook) throws CommandException {

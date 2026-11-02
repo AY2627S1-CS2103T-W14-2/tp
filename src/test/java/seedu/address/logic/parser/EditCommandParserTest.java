@@ -81,14 +81,14 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_missingParts_failure() {
-        // no index specified
+        // EP: no index specified
         assertParseFailure(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
 
-        // no field specified
+        // EP: no field specified
         assertEachFails(EditCommand.MESSAGE_NOT_EDITED, "1", "1   ");
 
-        // no index and no field specified
+        // EP: no index and no field specified
         assertParseFailure(parser, "", MESSAGE_INVALID_FORMAT);
     }
 
@@ -152,7 +152,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 e/a@" + "b".repeat(Email.MAX_DOMAIN_LABEL_LENGTH + 1) + ".com",
                 Email.MESSAGE_CONSTRAINTS); // domain label over the limit
 
-        // invalid phone followed by valid email
+        // EP: invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
 
         // multiple invalid values, but only the first invalid value is captured
@@ -268,25 +268,25 @@ public class EditCommandParserTest {
         // More extensive testing of duplicate parameter detections is done in
         // AddCommandParserTest#parse_repeatedValue_failure()
 
-        // invalid followed by valid
+        // EP: invalid followed by valid
         Index targetIndex = INDEX_FIRST_PERSON;
         String userInput = targetIndex.getOneBased() + INVALID_PHONE_DESC + PHONE_DESC_BOB;
 
         assertParseFailure(parser, userInput, Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
 
-        // valid followed by invalid
+        // EP: valid followed by invalid
         userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + INVALID_PHONE_DESC;
 
         assertParseFailure(parser, userInput, Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
 
-        // multiple valid fields repeated
+        // EP: multiple valid fields repeated
         userInput = targetIndex.getOneBased() + PHONE_DESC_AMY + EMAIL_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY
                 + PHONE_DESC_BOB + EMAIL_DESC_BOB;
 
         assertParseFailure(parser, userInput,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE, PREFIX_EMAIL));
 
-        // multiple invalid values
+        // EP: multiple invalid values
         userInput = targetIndex.getOneBased() + INVALID_PHONE_DESC + INVALID_EMAIL_DESC
                 + INVALID_PHONE_DESC + INVALID_EMAIL_DESC;
 

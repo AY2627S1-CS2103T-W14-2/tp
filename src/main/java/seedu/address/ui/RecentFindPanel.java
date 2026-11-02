@@ -56,11 +56,11 @@ public class RecentFindPanel extends UiPart<Region> {
              * Displays the current person's details, clearing previous content when the cell becomes empty.
              */
             @Override
-            protected void updateItem(Person person, boolean empty) {
-                super.updateItem(person, empty);
+            protected void updateItem(Person person, boolean isEmpty) {
+                super.updateItem(person, isEmpty);
                 setText(null);
                 setGraphic(null);
-                if (!empty && person != null) {
+                if (!isEmpty && person != null) {
                     VBox details = new SearchContactDetails(person, "recentFindContact");
                     // Reserve the cell's horizontal padding so project tags wrap within the available width.
                     details.prefWidthProperty().bind(Bindings.max(0, widthProperty().subtract(20)));
