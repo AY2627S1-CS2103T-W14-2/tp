@@ -95,8 +95,7 @@ public class ReplaceProjectCommand extends Command {
     private Person createUpdatedContact(Person original, int projectIndex) {
         List<Project> projects = new ArrayList<>(original.getProjects());
         projects.set(projectIndex, newProject);
-        return new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getTelegramUsername(), projects);
+        return original.withProjects(projects);
     }
 
     @Override

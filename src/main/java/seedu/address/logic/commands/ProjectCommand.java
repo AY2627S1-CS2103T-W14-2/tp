@@ -65,16 +65,11 @@ public class ProjectCommand extends Command {
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
     private List<Person> getValidatedContacts(Model model) throws CommandException {
         List<Person> selectedContacts = ProjectContactSelection.selectContacts(model, indices);
-        List<String> conflicts = new ArrayList<>();
-        for (int i = 0; i < indices.size(); i++) {
-            Index index = indices.get(i);
-            Person contact = selectedContacts.get(i);
-            if (contact.getProjects().contains(project)) {
-                logger.fine("Project association rejected: duplicate project at index " + index.getOneBased());
-                conflicts.add(index.getOneBased() + ": " + contact.getName());
-            }
-        }
+        List<String> conflicts = ProjectContactSelection.describeContacts(indices, selectedContacts,
+                contact -> contact.getProjects().contains(project));
         if (!conflicts.isEmpty()) {
+            logger.fine("Project association rejected: duplicate project for contacts "
+                    + String.join(", ", conflicts));
             Project savedProject = model.getAddressBook().getPersonList().stream().filter(selectedContacts::contains)
                     .flatMap(person -> person.getProjects().stream()).filter(project::equals).findFirst().orElseThrow();
             throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, savedProject,
@@ -87,8 +82,7 @@ public class ProjectCommand extends Command {
     private Person createUpdatedContact(Person original) {
         List<Project> projects = new ArrayList<>(original.getProjects());
         projects.add(project);
-        return new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getTelegramUsername(), projects);
+        return original.withProjects(projects);
     }
 
     /** Formats the single-contact or batch success message for the updated contacts, using the original indices. */
@@ -96,10 +90,7 @@ public class ProjectCommand extends Command {
         if (contacts.size() == 1) {
             return new CommandResult(String.format(MESSAGE_SUCCESS, project, Messages.format(contacts.get(0))));
         }
-        List<String> selectedContacts = new ArrayList<>();
-        for (int i = 0; i < contacts.size(); i++) {
-            selectedContacts.add(indices.get(i).getOneBased() + ": " + contacts.get(i).getName());
-        }
+        List<String> selectedContacts = ProjectContactSelection.describeContacts(indices, contacts, contact -> true);
         return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, project,
                 String.join(", ", selectedContacts)));
     }

@@ -23,9 +23,13 @@ note over Command, Model
     ProjectContactSelection is omitted for simplicity.
     getValidatedContacts(model) delegates selection to
     ProjectContactSelection.selectContacts(model, indices).
+    describeContacts formats conflicts and batch success contacts
+    using the original displayed indices in selection order.
     ProjectContactSelection.updateContacts(...) invokes
     the command's createUpdatedContact(...) callback for each original,
     then calls Model.setPerson(...) for each replacement.
+    Each callback uses original.withProjects(projects)
+    to preserve contact details. The Person lifeline is omitted.
 end note
 Command -> Command : getValidatedContacts(model)
 alt invalid index or any missing association

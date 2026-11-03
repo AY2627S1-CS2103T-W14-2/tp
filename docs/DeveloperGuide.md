@@ -524,13 +524,20 @@ command validates the complete batch before changing either contact.
 Filter and search-history snapshot capture and failed-save rollback are abstracted in this diagram;
 see [Shared project persistence and undo handling](#shared-project-persistence-and-undo-handling).
 
-`ProjectCommand` copies the displayed contact list before resolving indices. It validates all selections
+`ProjectContactSelection.selectContacts` copies the displayed contact list before resolving indices.
+`project` and `deleteproject` use `ProjectContactSelection.describeContacts` to collect conflicts and format
+batch contact lists with the original displayed indices, in selection order. Each command supplies its own
+conflict condition; single-contact messages and saved project spelling remain command-specific.
+`ProjectCommand` validates all selections
 and prepares updated `Person` objects before applying any changes through `Model.setPerson`.
 A duplicate association or invalid index rejects the whole command, so earlier valid selections are
 not changed. Duplicate errors list all conflicting contacts by displayed index and name, in input order.
 Out-of-range indices take precedence over association conflicts; no updates occur in either case.
 
 Each replacement appends the project while preserving existing project order and all contact details.
+`project`, `deleteproject`, `replaceproject` and `renameproject` use `Person.withProjects` to construct
+replacement contacts. This method reuses the original contact fields, including legacy values, and the
+`Person` constructor validates and defensively copies the supplied project list.
 Selected contacts are captured before mutation, so changes to filtered results cannot redirect later
 updates. The active predicate is retained. Contacts outside the selection remain unchanged.
 

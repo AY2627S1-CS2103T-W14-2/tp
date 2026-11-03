@@ -67,16 +67,11 @@ public class DeleteProjectCommand extends Command {
     /** Resolves all selections from one snapshot and rejects conflicts before any mutation. */
     private List<Person> getValidatedContacts(Model model) throws CommandException {
         List<Person> selectedContacts = ProjectContactSelection.selectContacts(model, indices);
-        List<String> conflicts = new ArrayList<>();
-        for (int i = 0; i < indices.size(); i++) {
-            Index index = indices.get(i);
-            Person contact = selectedContacts.get(i);
-            if (!contact.getProjects().contains(project)) {
-                logger.fine("Project removal rejected: missing project at index " + index.getOneBased());
-                conflicts.add(index.getOneBased() + ": " + contact.getName());
-            }
-        }
+        List<String> conflicts = ProjectContactSelection.describeContacts(indices, selectedContacts,
+                contact -> !contact.getProjects().contains(project));
         if (!conflicts.isEmpty()) {
+            logger.fine("Project removal rejected: missing project for contacts "
+                    + String.join(", ", conflicts));
             throw new CommandException(String.format(MESSAGE_CONFLICTING_CONTACTS, project,
                     String.join("\n", conflicts)));
         }
@@ -87,8 +82,7 @@ public class DeleteProjectCommand extends Command {
     private Person createUpdatedContact(Person original) {
         List<Project> projects = new ArrayList<>(original.getProjects());
         projects.remove(project);
-        return new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getTelegramUsername(), projects);
+        return original.withProjects(projects);
     }
 
     /**
@@ -103,10 +97,7 @@ public class DeleteProjectCommand extends Command {
             return new CommandResult(String.format(MESSAGE_SUCCESS, removedProject,
                     Messages.format(updatedContacts.get(0))));
         }
-        List<String> selectedContacts = new ArrayList<>();
-        for (int i = 0; i < originals.size(); i++) {
-            selectedContacts.add(indices.get(i).getOneBased() + ": " + originals.get(i).getName());
-        }
+        List<String> selectedContacts = ProjectContactSelection.describeContacts(indices, originals, contact -> true);
         return new CommandResult(String.format(MESSAGE_MULTIPLE_SUCCESS, savedProject,
                 String.join(", ", selectedContacts)));
     }

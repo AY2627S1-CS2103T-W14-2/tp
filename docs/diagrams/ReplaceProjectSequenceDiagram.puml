@@ -26,6 +26,11 @@ else valid replacement
     Command --> Command : validated selection
     Command -> Command : createUpdatedContact(original, projectIndex)
     activate Command
+    note right of Command
+        Copies the ordered project list and replaces one entry.
+        original.withProjects(projects) creates the updated Person
+        preserving all other fields; Person lifelines are omitted.
+    end note
     Command --> Command : updated
     deactivate Command
     Command -> Model : setPerson(original, updated)

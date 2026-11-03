@@ -359,6 +359,7 @@ Format: `deleteproject INDEX [MORE_INDICES] pr/PROJECT`
 * One `undo` restores all associations removed by a successful batch.
 * Single-contact feedback shows that contact's saved project spelling. Batch feedback uses the first saved
   spelling among the selected contacts, regardless of the order in which you entered the indices.
+  Batch success and missing-association messages list contacts in the order you entered their indices.
 * Removing the last project is allowed and leaves the contact with no projects.
 * The current search filter is preserved. A contact may disappear from `findproject` results after removal.
 * Successful removal is saved and can be reversed with `undo`.

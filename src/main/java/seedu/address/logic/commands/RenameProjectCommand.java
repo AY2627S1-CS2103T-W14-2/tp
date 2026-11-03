@@ -69,8 +69,7 @@ public class RenameProjectCommand extends Command {
             if (displayNames(person.getProjects()).equals(displayNames(projects))) {
                 updatedContacts.add(person);
             } else {
-                updatedContacts.add(new Person(person.getName(), person.getPhone(), person.getEmail(),
-                        person.getTelegramUsername(), projects));
+                updatedContacts.add(person.withProjects(projects));
                 changedCount++;
             }
         }
