@@ -1,8 +1,12 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidLaterIndex;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidProject;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidSelection;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertNormalizedProject;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertRepeatedIndices;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertSelectionOrder;
 
 import java.util.List;
 
@@ -17,28 +21,17 @@ public class DeleteProjectCommandParserTest {
 
     @Test
     public void parse_validInput_normalizesProject() {
-        assertParseSuccess(parser, " 2 pr/ Team   Alpha ",
-                new DeleteProjectCommand(Index.fromOneBased(2), new Project("Team Alpha")));
-        assertParseSuccess(parser, " 1 pr/" + "x".repeat(40),
-                new DeleteProjectCommand(Index.fromOneBased(1), new Project("x".repeat(40))));
+        assertNormalizedProject(parser, DeleteProjectCommand::new);
     }
 
     @Test
     public void parse_missingOrInvalidIndexOrPrefix_failure() {
-        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteProjectCommand.MESSAGE_USAGE);
-        for (String input : new String[] {"", "1", "pr/Orbital", "0 pr/Orbital", "-1 pr/Orbital",
-            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital",
-            "pr/Orbital 1"}) {
-            assertParseFailure(parser, input, expected);
-        }
+        assertInvalidSelection(parser, DeleteProjectCommand.MESSAGE_USAGE);
     }
 
     @Test
     public void parse_invalidProject_failure() {
-        // EPs: blank, overlong, and control-character-containing project names.
-        assertParseFailure(parser, "1 pr/   ", Project.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 pr/" + "x".repeat(41), Project.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 pr/Team\u0000Alpha", Project.MESSAGE_CONSTRAINTS);
+        assertInvalidProject(parser);
     }
 
     @Test
@@ -52,26 +45,20 @@ public class DeleteProjectCommandParserTest {
                 new DeleteProjectCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(1)),
                         new Project("Team pr/X")));
     }
+
     @Test
     public void parse_multipleIndices_acceptsWhitespaceAndSelectionOrder() {
-        assertParseSuccess(parser, " 3  1\t2 pr/ Team   Alpha ",
-                new DeleteProjectCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(1), Index.fromOneBased(2)),
-                        new Project("Team Alpha")));
+        assertSelectionOrder(parser, DeleteProjectCommand::new);
     }
 
     @Test
     public void parse_invalidLaterIndex_rejected() {
-        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteProjectCommand.MESSAGE_USAGE);
-        for (String input : new String[] {"1 0", "1 -2", "1 word", "1 2.5", "1 2147483648"}) {
-            assertParseFailure(parser, input + " pr/Orbital", expected);
-        }
+        assertInvalidLaterIndex(parser, DeleteProjectCommand.MESSAGE_USAGE);
     }
 
     @Test
     public void parse_repeatedIndices_identifiesRepeatedIndex() {
-        // EP: selection contains duplicate indices.
-        assertParseFailure(parser, "1 1 pr/Orbital", "Contact index 1 is repeated.");
-        assertParseFailure(parser, "3 2 1 2 pr/Orbital", "Contact index 2 is repeated.");
+        assertRepeatedIndices(parser);
     }
 
 }

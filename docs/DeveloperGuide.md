@@ -829,6 +829,14 @@ commands available in this release. No archiving design has been implemented yet
 * [Logging guide](Logging.md)
 * [DevOps guide](DevOps.md)
 
+`ProjectCommandParserTest` and `DeleteProjectCommandParserTest` use `ProjectParserTestUtil` for shared
+normalisation, project-length boundaries, invalid selections, selection order and repeated-index assertions.
+Each test class supplies its own command factory and usage message. Prefix handling remains in separate tests:
+`project` rejects repeated `pr/` prefixes, while `deleteproject` preserves literal `pr/` text after the first delimiter.
+`AddCommandParserTest.assertRepeatedField` checks duplicate-prefix errors for each field with two valid values,
+an invalid value before a valid one, and a valid value before an invalid one. Shared-case comments describe
+equivalence partitions and boundary values beside the assertions in the helpers.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: requirements**

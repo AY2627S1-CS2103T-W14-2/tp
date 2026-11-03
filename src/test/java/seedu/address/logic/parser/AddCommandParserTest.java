@@ -133,25 +133,11 @@ public class AddCommandParserTest {
         String validExpectedPersonString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TELEGRAM_DESC_BOB + PROJECT_DESC_BOB;
 
-        // EP: multiple names
-        assertParseFailure(parser, NAME_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
-
-        // EP: multiple phones
-        assertParseFailure(parser, PHONE_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
-
-        // EP: multiple emails
-        assertParseFailure(parser, EMAIL_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
-
-        // EP: multiple Telegram usernames
-        assertParseFailure(parser, TELEGRAM_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TELEGRAM));
-
-        // EP: multiple projects
-        assertParseFailure(parser, PROJECT_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PROJECT));
+        assertRepeatedField(PREFIX_NAME, NAME_DESC_AMY, INVALID_NAME_DESC, validExpectedPersonString);
+        assertRepeatedField(PREFIX_PHONE, PHONE_DESC_AMY, INVALID_PHONE_DESC, validExpectedPersonString);
+        assertRepeatedField(PREFIX_EMAIL, EMAIL_DESC_AMY, INVALID_EMAIL_DESC, validExpectedPersonString);
+        assertRepeatedField(PREFIX_TELEGRAM, TELEGRAM_DESC_AMY, INVALID_TELEGRAM_DESC, validExpectedPersonString);
+        assertRepeatedField(PREFIX_PROJECT, PROJECT_DESC_AMY, INVALID_PROJECT_DESC, validExpectedPersonString);
 
         // EP: multiple fields repeated
         assertParseFailure(parser,
@@ -159,50 +145,16 @@ public class AddCommandParserTest {
                         + TELEGRAM_DESC_AMY + PROJECT_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_EMAIL, PREFIX_PHONE,
                         PREFIX_TELEGRAM, PREFIX_PROJECT));
+    }
 
-        // invalid value followed by valid value
-
-        // invalid name
-        assertParseFailure(parser, INVALID_NAME_DESC + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
-
-        // invalid email
-        assertParseFailure(parser, INVALID_EMAIL_DESC + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
-
-        // invalid phone
-        assertParseFailure(parser, INVALID_PHONE_DESC + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
-
-        // invalid Telegram username
-        assertParseFailure(parser, INVALID_TELEGRAM_DESC + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TELEGRAM));
-
-        // invalid project
-        assertParseFailure(parser, INVALID_PROJECT_DESC + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PROJECT));
-
-        // valid value followed by invalid value
-
-        // invalid name
-        assertParseFailure(parser, validExpectedPersonString + INVALID_NAME_DESC,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
-
-        // invalid email
-        assertParseFailure(parser, validExpectedPersonString + INVALID_EMAIL_DESC,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
-
-        // invalid phone
-        assertParseFailure(parser, validExpectedPersonString + INVALID_PHONE_DESC,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
-
-        // invalid Telegram username
-        assertParseFailure(parser, validExpectedPersonString + INVALID_TELEGRAM_DESC,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TELEGRAM));
-
-        // invalid project
-        assertParseFailure(parser, validExpectedPersonString + INVALID_PROJECT_DESC,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PROJECT));
+    /** Checks duplicate-prefix rejection takes precedence over value validation in either input order. */
+    private void assertRepeatedField(Prefix prefix, String validField, String invalidField, String validInput) {
+        String expectedMessage = Messages.getErrorMessageForDuplicatePrefixes(prefix);
+        // EP: both repeated values are valid.
+        assertParseFailure(parser, validField + validInput, expectedMessage);
+        // EPs: an invalid value before or after a valid value still produces the duplicate-prefix error.
+        assertParseFailure(parser, invalidField + validInput, expectedMessage);
+        assertParseFailure(parser, validInput + invalidField, expectedMessage);
     }
 
     @Test
