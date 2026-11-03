@@ -52,6 +52,15 @@ public class RenameProjectCommand extends Command {
                 .filter(oldProject::equals).findFirst().orElseThrow();
         boolean isMerge = !oldProject.equals(newProject)
                 && contacts.stream().anyMatch(person -> person.getProjects().contains(newProject));
+        RenameResult result = renameContacts(contacts, isMerge);
+        model.setAddressBook(result.addressBook());
+        return new CommandResult(String.format(Locale.ROOT, MESSAGE_SUCCESS,
+                isMerge ? "Merged" : "Renamed", escapedName(savedOldProject), isMerge ? "into" : "to",
+                escapedName(newProject), result.changedCount()));
+    }
+
+    /** Builds and validates the complete replacement without modifying the model. */
+    private RenameResult renameContacts(List<Person> contacts, boolean isMerge) throws CommandException {
         List<Person> updatedContacts = new ArrayList<>();
         int changedCount = 0;
         for (Person person : contacts) {
@@ -69,11 +78,11 @@ public class RenameProjectCommand extends Command {
         }
         AddressBook replacement = new AddressBook();
         replacement.setPersons(updatedContacts);
-        model.setAddressBook(replacement);
-        return new CommandResult(String.format(Locale.ROOT, MESSAGE_SUCCESS,
-                isMerge ? "Merged" : "Renamed", escapedName(savedOldProject), isMerge ? "into" : "to",
-                escapedName(newProject), changedCount));
+        return new RenameResult(replacement, changedCount);
     }
+
+    /** Carries the validated replacement and its feedback count together. */
+    private record RenameResult(AddressBook addressBook, int changedCount) {}
 
     /** Escapes literal quotes and backslashes inside the message's quoted project names. */
     private static String escapedName(Project project) {
