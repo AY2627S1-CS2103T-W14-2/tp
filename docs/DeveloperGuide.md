@@ -674,7 +674,8 @@ rejecting missing, blank or repeated arguments and unexpected preamble. Values g
 `ParserUtil.parseProject`. Quotes and backslashes remain literal, as in `replaceproject`; a space followed
 by a recognised prefix is always a delimiter, even inside quotation marks.
 
-`RenameProjectCommand.execute` reads the full address book and validates a complete replacement before
+`RenameProjectCommand.execute` reads the full address book and delegates contact transformation to
+`renameContacts`, which returns the validated replacement and changed-contact count together, before
 changing the model. Case-insensitive `Project.equals` identifies memberships, while exact display strings
 identify actual changes. The replacement preserves contact details (including legacy values), contact order
 and unrelated project order. For merges, an existing destination association retains its position; the source
