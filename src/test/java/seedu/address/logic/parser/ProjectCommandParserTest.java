@@ -1,49 +1,34 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-
-import java.util.List;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidLaterIndex;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidProject;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertInvalidSelection;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertNormalizedProject;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertRepeatedIndices;
+import static seedu.address.logic.parser.ProjectParserTestUtil.assertSelectionOrder;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ProjectCommand;
-import seedu.address.model.project.Project;
 
 public class ProjectCommandParserTest {
     private final ProjectCommandParser parser = new ProjectCommandParser();
 
     @Test
     public void parse_validInput_normalizesProject() {
-        // EP: positive index and valid project name.
-        assertParseSuccess(parser, " 2 pr/ Team   Alpha ",
-                new ProjectCommand(Index.fromOneBased(2), new Project("Team Alpha")));
-        assertParseSuccess(parser, " 1 pr/" + "x".repeat(40),
-                new ProjectCommand(Index.fromOneBased(1), new Project("x".repeat(40))));
+        assertNormalizedProject(parser, ProjectCommand::new);
     }
 
     @Test
     public void parse_missingOrInvalidIndexOrPrefix_failure() {
-        // EP: required argument is missing, misplaced, or has an invalid index format.
-        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
-        for (String input : new String[] {"", "1", "pr/Orbital", "0 pr/Orbital", "-1 pr/Orbital",
-            "one pr/Orbital", "1.5 pr/Orbital", "2147483648 pr/Orbital",
-            "pr/Orbital 1"}) {
-            assertParseFailure(parser, input, expected);
-        }
+        assertInvalidSelection(parser, ProjectCommand.MESSAGE_USAGE);
     }
 
     @Test
     public void parse_invalidProject_failure() {
-        // EP: blank project name.
-        assertParseFailure(parser, "1 pr/   ", Project.MESSAGE_CONSTRAINTS);
-        // EP: overlong project name; boundary value: 41 characters (maximum is 40).
-        assertParseFailure(parser, "1 pr/" + "x".repeat(41), Project.MESSAGE_CONSTRAINTS);
-        // EP: project name contains a prohibited control character.
-        assertParseFailure(parser, "1 pr/Team\u0000Alpha", Project.MESSAGE_CONSTRAINTS);
+        assertInvalidProject(parser);
     }
 
     @Test
@@ -52,28 +37,20 @@ public class ProjectCommandParserTest {
         assertParseFailure(parser, "1 pr/Orbital pr/CS2103T",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_PROJECT));
     }
+
     @Test
     public void parse_multipleIndices_acceptsWhitespaceAndSelectionOrder() {
-        // EP: multiple distinct positive indices.
-        assertParseSuccess(parser, " 3  1\t2 pr/ Team   Alpha ",
-                new ProjectCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(1), Index.fromOneBased(2)),
-                        new Project("Team Alpha")));
+        assertSelectionOrder(parser, ProjectCommand::new);
     }
 
     @Test
     public void parse_invalidLaterIndex_rejected() {
-        // EP: selection contains an invalid index after a valid index.
-        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ProjectCommand.MESSAGE_USAGE);
-        for (String input : new String[] {"1 0", "1 -2", "1 word", "1 2.5", "1 2147483648"}) {
-            assertParseFailure(parser, input + " pr/Orbital", expected);
-        }
+        assertInvalidLaterIndex(parser, ProjectCommand.MESSAGE_USAGE);
     }
 
     @Test
     public void parse_repeatedIndices_identifiesRepeatedIndex() {
-        // EP: selection contains a duplicate index.
-        assertParseFailure(parser, "1 1 pr/Orbital", "Contact index 1 is repeated.");
-        assertParseFailure(parser, "3 2 1 2 pr/Orbital", "Contact index 2 is repeated.");
+        assertRepeatedIndices(parser);
     }
 
 }

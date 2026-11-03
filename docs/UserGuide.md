@@ -232,6 +232,10 @@ For an otherwise complete `add` command, omitting `pr/` reports `Project is requ
 required prefix or including unexpected text before the first prefix produces `Invalid command format!` with the
 command's usage. An empty `pr/` value produces a project-name validation error.
 
+For an otherwise complete `add` command, repeating `n/`, `p/`, `e/`, `tele/` or `pr/` produces a duplicate-prefix
+error, even if one of the repeated values is invalid. A later value does not replace an earlier one; remove
+the extra field and keep one valid value for each prefix.
+
 In `add`, a space followed by any `add` prefix (`n/`, `p/`, `e/`, `tele/`, `pr/`) or a retired prefix (`a/`,
 `t/`) starts a new field, even within a project name. For example, `pr/Team n/Beta` is rejected because `n/` is
 repeated, and `pr/Team a/b` is rejected because `a/` is retired. Prefixes without a space before them, such as in
