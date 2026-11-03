@@ -47,6 +47,11 @@ activate Command
 Command -> Model : getAddressBook()
 Model --> Command : all contacts
 Command -> Command : validate and build replacement
+note right of Command
+    Each changed contact is copied with person.withProjects(projects),
+    preserving its contact details, including legacy values.
+    Person lifelines are omitted.
+end note
 alt invalid source or no changes
     Command --> Logic : CommandException
 else rename or merge

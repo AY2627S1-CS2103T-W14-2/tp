@@ -20,6 +20,8 @@ deactivate ProjectCommand
 note over ProjectCommand, Model
     All indices and duplicate associations are checked
     before any contact is changed.
+    ProjectContactSelection.describeContacts formats conflicts
+    and batch success contacts in the original selection order.
 end note
 
 loop for each selected contact
@@ -32,7 +34,8 @@ end
 note over ProjectCommand, Model
     ProjectContactSelection.updateContacts builds every replacement
     via createUpdatedContact, then calls Model.setPerson for each.
-    The helper lifeline is omitted here.
+    createUpdatedContact uses original.withProjects(projects).
+    The helper and Person lifelines are omitted here.
 end note
 
 loop for each prepared replacement
