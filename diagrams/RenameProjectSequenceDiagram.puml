@@ -35,7 +35,9 @@ Parser --> Logic : command
 deactivate Parser
 Logic -> Model : getAddressBook()
 Model --> Logic : addressBook
-Logic -> Logic : before = new AddressBook(addressBook)
+note over Logic
+    before = new AddressBook(addressBook)
+end note
 Logic -> Model : getFilteredPersonPredicate()
 Model --> Logic : previousPredicate
 Logic -> SearchHistory : snapshot()
