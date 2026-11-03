@@ -1,29 +1,29 @@
 ---
   layout: default.md
-  title: "LinkUp v1.5 Release Notes"
+  title: "LinkUp v1.6 Release Notes"
   pageNav: 3
 ---
 
-# LinkUp v1.5
+# LinkUp v1.6
 
-LinkUp v1.5 improves reliability, command feedback, search consistency and usability following alpha testing.
+LinkUp v1.6 is the final release. It improves data safety, validation and display, and finalises the documentation.
 
 ## Improvements and fixes
 
-- **Flexible command casing.** Command words accept uppercase and mixed case, such as `FIND`, `FindProject` and `UNDO`. Prefixes remain case-sensitive.
-- **Clearer feedback.** Single-contact success messages show contact details, and adding a contact reports its index. Project feedback uses saved spelling and correctly escapes quotation marks in rename messages.
-- **More reliable project management.** Improved `renameproject` validation identifies the affected field. Projects containing literal `pr/` text can be removed correctly.
-- **Search and sorting fixes.** Project searches handle Greek sigma case variants correctly. Search panels refresh after case-only project changes. Numbers in contact names sort by value, so `Alex 2` precedes `Alex 10`.
-- **Improved input handling.** Repeated whitespace in contact names is normalised, email and Telegram validation is tightened, and commands exceeding 1,000 characters are rejected.
-- **Safer saving and recovery.** Failed saves restore the previous application state. Read-only commands no longer require saving contact data, and broken-file recovery avoids repeated backups.
-- **Better interface behaviour.** Long contact details wrap, interface sections can be resized, and typing returns focus to the command box.
-- **Updated branding and documentation.** LinkUp wording, icons, command explanations and developer diagrams have been refreshed.
+- **Safer saving.** If a save fails partway, the data file keeps its previous contents instead of being left empty.
+- **Stricter data file checks.** A data file with extra content after the JSON data, or with a repeated key, is treated as invalid and backed up instead of being partly loaded.
+- **More robust start-up.** Missing window settings fall back to the defaults, and LinkUp warns if it cannot create its log file.
+- **Tighter email validation.** Each dot-separated part of an email domain can have at most 63 characters.
+- **More consistent project matching.** Project names that differ only in letter case are recognised as the same project more reliably, including names with Greek letters.
+- **Clearer project errors.** Quotation marks and backslashes in project names are shown correctly in project-not-found messages.
+- **Better display.** Project tags no longer cover contact details or spill outside search results, and long project names in the search sections show in full in a tooltip.
+- **Updated documentation.** The User Guide now lists known limitations, and the guides and diagrams have been clarified.
 
 ## Getting started
 
 **Requirements:** Java 25 on Windows, macOS or Linux.
 
-1. Download `LinkUp.jar` from [this release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases/tag/v1.5).
+1. Download `LinkUp.jar` from [this release](https://github.com/AY2627S1-CS2103T-W14-2/tp/releases/tag/v1.6).
 2. Place it in a writable folder.
 3. Open a terminal in that folder and run:
 
@@ -49,6 +49,6 @@ Contact indices refer to the numbered main list. Check them again after sorting 
 
 - [User Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/UserGuide.html)
 - [Developer Guide](https://ay2627s1-cs2103t-w14-2.github.io/tp/DeveloperGuide.html)
-- [Full changelog since v1.4](https://github.com/AY2627S1-CS2103T-W14-2/tp/compare/v1.4...1b8653406afc9b049dd9e589227b352b366fc3eb)
+- [Full changelog since v1.5](https://github.com/AY2627S1-CS2103T-W14-2/tp/compare/v1.5...v1.6)
 
 LinkUp is based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) by the SE-EDU initiative.
