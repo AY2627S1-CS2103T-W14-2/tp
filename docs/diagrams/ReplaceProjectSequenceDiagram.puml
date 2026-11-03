@@ -20,12 +20,10 @@ activate Model
 Model --> Command : displayedContacts
 deactivate Model
 Command -> Command : resolve index; validateReplacement(original)
-activate Command
-Command --> Command : validated selection
-deactivate Command
 alt invalid index, missing old project, unchanged spelling or duplicate
     Command --> Logic : CommandException
 else valid replacement
+    Command --> Command : validated selection
     Command -> Command : createUpdatedContact(original, projectIndex)
     activate Command
     Command --> Command : updated

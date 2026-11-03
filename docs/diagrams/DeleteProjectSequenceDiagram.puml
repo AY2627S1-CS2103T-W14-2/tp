@@ -19,16 +19,22 @@ Command -> Model : getFilteredPersonList()
 activate Model
 Model --> Command : displayedContacts
 deactivate Model
-Command -> Command : copy list; resolve indices; validate all selections
-activate Command
-Command --> Command : validated selections
-deactivate Command
+note over Command, Model
+    ProjectContactSelection is omitted for simplicity.
+    getValidatedContacts(model) delegates selection to
+    ProjectContactSelection.selectContacts(model, indices).
+    ProjectContactSelection.updateContacts(...) invokes
+    the command's createUpdatedContact(...) callback for each original,
+    then calls Model.setPerson(...) for each replacement.
+end note
+Command -> Command : getValidatedContacts(model)
 alt invalid index or any missing association
     Command --> Logic : CommandException
 else all selections valid
+    Command --> Command : validated selections
     Command -> Model : getAddressBook()
     activate Model
-    Model --> Command : contacts (for stored project spelling)
+    Model --> Command : addressBook
     deactivate Model
     Command -> Command : build all replacements before mutation
     activate Command
