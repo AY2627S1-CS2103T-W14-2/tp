@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import seedu.address.commons.core.index.Index;
@@ -40,6 +41,18 @@ final class ProjectContactSelection {
             selected.add(displayed.get(index.getZeroBased()));
         }
         return selected;
+    }
+
+    /** Formats matching contacts in selection order using their original displayed indices. */
+    static List<String> describeContacts(List<Index> indices, List<Person> contacts, Predicate<Person> condition) {
+        List<String> descriptions = new ArrayList<>();
+        for (int i = 0; i < contacts.size(); i++) {
+            Person contact = contacts.get(i);
+            if (condition.test(contact)) {
+                descriptions.add(indices.get(i).getOneBased() + ": " + contact.getName());
+            }
+        }
+        return descriptions;
     }
 
     /** Builds every replacement before applying updates; callers must first validate their project rules. */

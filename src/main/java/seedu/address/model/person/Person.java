@@ -75,6 +75,11 @@ public class Person {
         return projects;
     }
 
+    /** Returns a new contact with the supplied projects, preserving all other fields exactly. */
+    public Person withProjects(List<Project> updatedProjects) {
+        return new Person(name, phone, email, telegramUsername, updatedProjects);
+    }
+
     /**
      * Returns true if this person and {@code otherPerson} cannot both be saved, because they share a phone number,
      * an email (ignoring case) or a non-empty Telegram username. Names and projects are never compared.

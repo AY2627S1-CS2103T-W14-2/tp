@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -11,6 +12,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -49,6 +51,28 @@ public class PersonTest {
     public void constructor_duplicateProjectsIgnoringCase_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
                 new PersonBuilder().withProjects("CS2103T", "cs2103t").build());
+    }
+
+    @Test
+    public void withProjects_legacyContact_preservesDetailsAndCopiesOrderedProjects() {
+        Person original = new PersonBuilder().withPhone("91234567").withStoredEmail("Alex@Example.COM")
+                .withStoredTelegramUsername("legacy_").withProjects("Original").build();
+        List<Project> projects = new ArrayList<>(List.of(new Project("Orbital"), new Project("CS2103T")));
+
+        Person updated = original.withProjects(projects);
+
+        // Legacy values must be retained verbatim rather than revalidated or normalised as new input.
+        assertSame(original.getName(), updated.getName());
+        assertSame(original.getPhone(), updated.getPhone());
+        assertSame(original.getEmail(), updated.getEmail());
+        assertSame(original.getTelegramUsername(), updated.getTelegramUsername());
+        assertEquals(projects, updated.getProjects());
+        assertEquals(List.of(new Project("Original")), original.getProjects());
+
+        // Mutating the caller's list cannot change the saved replacement or its project order.
+        projects.clear();
+        assertEquals(List.of(new Project("Orbital"), new Project("CS2103T")), updated.getProjects());
+        assertThrows(UnsupportedOperationException.class, () -> updated.getProjects().clear());
     }
 
     @Test
