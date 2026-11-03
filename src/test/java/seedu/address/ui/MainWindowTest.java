@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -48,6 +49,12 @@ public class MainWindowTest {
 
     @TempDir
     public Path temporaryFolder;
+
+    /** Hides every window on the JavaFX thread, even after a failed test, so later tests start clean. */
+    @AfterEach
+    public void hideWindows() throws Exception {
+        FxTestUtil.run(() -> List.copyOf(Window.getWindows()).forEach(Window::hide));
+    }
 
     @Test
     public void commands_updateFeedbackAndHelpAndSaveWindowSettings() throws Exception {
@@ -110,16 +117,12 @@ public class MainWindowTest {
     public void uiManager_startupMessage_shownInResultBox() throws Exception {
         FxTestUtil.run(() -> {
             Stage stage = new Stage();
-            try {
-                new UiManager(createLogic(new ModelManager()), temporaryFolder.resolve("contacts.json"),
-                        "Could not read the data file.").start(stage);
-                TextArea result = (TextArea) stage.getScene().lookup("#resultDisplay");
-                assertEquals("Could not read the data file.", result.getText());
-                // Long lines wrap, so every part of the message stays readable in a narrow window
-                assertTrue(result.isWrapText());
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
-            }
+            new UiManager(createLogic(new ModelManager()), temporaryFolder.resolve("contacts.json"),
+                    "Could not read the data file.").start(stage);
+            TextArea result = resultBox(stage);
+            assertEquals("Could not read the data file.", result.getText());
+            // Long lines wrap, so every part of the message stays readable in a narrow window
+            assertTrue(result.isWrapText());
         });
     }
 
@@ -178,15 +181,11 @@ public class MainWindowTest {
     public void minimumWindowSize_statusBarStaysInsideWindow() throws Exception {
         FxTestUtil.run(() -> {
             Stage stage = showMainWindow(new ModelManager(), MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
-            try {
-                Node statusBar = stage.getScene().lookup("#statusbarPlaceholder");
-                double statusBarBottom = statusBar.localToScene(statusBar.getLayoutBounds()).getMaxY();
-                // JavaFX pixel snapping can round the bottom edge outward at fractional display scaling.
-                assertTrue(statusBarBottom <= stage.getScene().getHeight() + 1.0,
-                        "Status bar bottom=" + statusBarBottom + ", scene height=" + stage.getScene().getHeight());
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
-            }
+            Node statusBar = stage.getScene().lookup("#statusbarPlaceholder");
+            double statusBarBottom = statusBar.localToScene(statusBar.getLayoutBounds()).getMaxY();
+            // JavaFX pixel snapping can round the bottom edge outward at fractional display scaling.
+            assertTrue(statusBarBottom <= stage.getScene().getHeight() + 1.0,
+                    "Status bar bottom=" + statusBarBottom + ", scene height=" + stage.getScene().getHeight());
         });
     }
 
@@ -197,17 +196,13 @@ public class MainWindowTest {
             model.addPerson(new PersonBuilder().withName(LONGEST_NAME).withEmail(LONG_EMAIL)
                     .withProjects(LONGEST_PROJECT_NAME).build());
             Stage stage = showMainWindow(model, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
-            try {
-                ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
-                // A label can hold its full text while part of it is drawn outside the list, so check its position.
-                for (Node label : persons.lookupAll(".label")) {
-                    assertTrue(rightEdge(label) <= rightEdge(persons), ((Label) label).getText() + " is cut off");
-                }
-                Label projectTag = (Label) persons.lookup("#projects").lookup(".label");
-                assertEquals("Project: " + LONGEST_PROJECT_NAME, projectTag.getTooltip().getText());
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            ListView<?> persons = contactList(stage);
+            // A label can hold its full text while part of it is drawn outside the list, so check its position.
+            for (Node label : persons.lookupAll(".label")) {
+                assertTrue(rightEdge(label) <= rightEdge(persons), ((Label) label).getText() + " is cut off");
             }
+            Label projectTag = (Label) persons.lookup("#projects").lookup(".label");
+            assertEquals("Project: " + LONGEST_PROJECT_NAME, projectTag.getTooltip().getText());
         });
     }
 
@@ -215,104 +210,113 @@ public class MainWindowTest {
     public void sectionDivider_moved_resizesResultBox() throws Exception {
         FxTestUtil.run(() -> {
             Stage stage = showMainWindow(new ModelManager(), DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
-            try {
-                Region resultBox = (Region) stage.getScene().lookup("#resultDisplayPlaceholder");
-                double initialHeight = resultBox.getHeight();
-                SplitPane sections = (SplitPane) stage.getScene().lookup("#mainSections");
-                sections.setDividerPosition(0, sections.getDividerPositions()[0] + DIVIDER_SHIFT);
-                layOut(stage);
-                assertTrue(resultBox.getHeight() > initialHeight);
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
-            }
+            Region resultBox = (Region) stage.getScene().lookup("#resultDisplayPlaceholder");
+            double initialHeight = resultBox.getHeight();
+            SplitPane sections = (SplitPane) stage.getScene().lookup("#mainSections");
+            sections.setDividerPosition(0, sections.getDividerPositions()[0] + DIVIDER_SHIFT);
+            layOut(stage);
+            assertTrue(resultBox.getHeight() > initialHeight);
         });
     }
 
     @Test
-    public void typing_focusOutsideCommandBox_goesToCommandBox() throws Exception {
+    public void typing_focusInContactList_goesToCommandBox() throws Exception {
         FxTestUtil.run(() -> {
-            Model model = new ModelManager();
-            model.addPerson(new PersonBuilder().build());
-            Stage stage = showMainWindow(model, DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
-            try {
-                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
-                ListView<?> persons = (ListView<?>) stage.getScene().lookup("#personListView");
-                TextArea result = (TextArea) stage.getScene().lookup("#resultDisplay");
+            Stage stage = showMainWindowWithOneContact();
+            TextField input = commandBox(stage);
+            // Clicking a contact moves focus to the list; typing there must still reach the command box.
+            contactList(stage).requestFocus();
+            type(contactList(stage), "l");
+            assertEquals("l", input.getText());
+            assertEquals(input, stage.getScene().getFocusOwner());
+            assertEquals(1, input.getCaretPosition());
+        });
+    }
 
-                // Clicking a contact moves focus to the list; typing there must still reach the command box.
-                persons.requestFocus();
-                type(persons, "l");
-                assertEquals("l", input.getText());
-                assertEquals(input, stage.getScene().getFocusOwner());
-                assertEquals(1, input.getCaretPosition());
+    @Test
+    public void typing_focusInResultBox_keepsExistingInput() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindowWithOneContact();
+            TextField input = commandBox(stage);
+            input.setText("l");
+            resultBox(stage).requestFocus();
+            type(resultBox(stage), "i");
+            assertEquals("li", input.getText());
+            assertEquals(input, stage.getScene().getFocusOwner());
+        });
+    }
 
-                // Input already in the command box is kept, and the read-only result box redirects too.
-                result.requestFocus();
-                type(result, "i");
-                assertEquals("li", input.getText());
-                assertEquals(input, stage.getScene().getFocusOwner());
+    @Test
+    public void typing_caretInsideInput_appendsAtEnd() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindowWithOneContact();
+            TextField input = commandBox(stage);
+            input.requestFocus();
+            input.setText("lis");
+            input.positionCaret(1);
+            // Focus changes can reset the caret, so the character goes to the end of the input.
+            contactList(stage).requestFocus();
+            type(contactList(stage), "t");
+            assertEquals("list", input.getText());
+            assertEquals(input.getLength(), input.getCaretPosition());
+        });
+    }
 
-                // A command being edited in the middle gets the character at the end, because focus
-                // changes can reset the caret.
-                input.requestFocus();
-                input.setText("lis");
-                input.positionCaret(1);
-                persons.requestFocus();
-                type(persons, "t");
-                assertEquals("list", input.getText());
-                assertEquals(input.getLength(), input.getCaretPosition());
+    @Test
+    public void typing_shortcutOrControlKey_staysOutOfCommandBox() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindowWithOneContact();
+            TextField input = commandBox(stage);
+            ListView<?> persons = contactList(stage);
+            input.setText("list");
+            persons.requestFocus();
+            // Shortcuts (Ctrl, Alt or Cmd held down), control keys such as Enter, and events without a
+            // character are left alone.
+            type(persons, "c", KeyCode.CONTROL);
+            type(persons, "c", KeyCode.ALT);
+            type(persons, "c", KeyCode.META);
+            type(persons, "\r");
+            type(persons, "");
+            assertEquals("list", input.getText());
+            assertEquals(persons, stage.getScene().getFocusOwner());
+        });
+    }
 
-                // Shortcuts (Ctrl, Alt or Cmd held down), control keys such as Enter, and events without a
-                // character are left alone.
-                persons.requestFocus();
-                type(persons, "c", KeyCode.CONTROL);
-                type(persons, "c", KeyCode.ALT);
-                type(persons, "c", KeyCode.META);
-                type(persons, "\r");
-                type(persons, "");
-                assertEquals("list", input.getText());
-                assertEquals(persons, stage.getScene().getFocusOwner());
-
-                // Full flow: click a contact, type a whole command and press Enter.
-                input.clear();
-                persons.requestFocus();
-                type(persons, "l");
-                "ist".chars().forEach(character -> type(input, Character.toString(character)));
-                input.fireEvent(new ActionEvent());
-                assertEquals("Listed all contacts.", result.getText());
-                assertEquals("", input.getText());
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
-            }
+    @Test
+    public void typing_wholeCommandThenEnter_runsCommand() throws Exception {
+        FxTestUtil.run(() -> {
+            Stage stage = showMainWindowWithOneContact();
+            TextField input = commandBox(stage);
+            contactList(stage).requestFocus();
+            type(contactList(stage), "l");
+            "ist".chars().forEach(character -> type(input, Character.toString(character)));
+            input.fireEvent(new ActionEvent());
+            assertEquals("Listed all contacts.", resultBox(stage).getText());
+            assertEquals("", input.getText());
         });
     }
 
     @Test
     public void projectCommand_windowOpen_tagsStayAbovePhone() throws Exception {
         FxTestUtil.run(() -> {
-            Model model = new ModelManager();
-            model.addPerson(new PersonBuilder().build());
-            Stage stage = showMainWindow(model, DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
-            try {
-                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
-                for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
-                    enter(input, "project 1 pr/Tag " + tagNumber);
-                    layOut(stage);
-                }
-                Node tags = stage.getScene().lookup("#projects");
-                assertTrue(lowestTagEdge(tags) <= topEdge(stage.getScene().lookup("#phone")));
-            } finally {
-                List.copyOf(Window.getWindows()).forEach(Window::hide);
+            Stage stage = showMainWindowWithOneContact();
+            for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
+                enter(commandBox(stage), "project 1 pr/Tag " + tagNumber);
+                layOut(stage);
             }
+            Node tags = stage.getScene().lookup("#projects");
+            assertTrue(lowestTagEdge(tags) <= topEdge(stage.getScene().lookup("#phone")));
         });
     }
 
     @Test
-    public void projectCommand_searchResultShowing_tagsStayInsideSearchPanels() throws Exception {
-        FxTestUtil.run(() -> {
-            assertTagsStayInsideSearchPanels(DEFAULT_WINDOW_WIDTH);
-            assertTagsStayInsideSearchPanels(MIN_WINDOW_WIDTH);
-        });
+    public void projectCommand_searchResultAtDefaultWidth_tagsStayInsideSearchPanels() throws Exception {
+        FxTestUtil.run(() -> assertTagsStayInsideSearchPanels(DEFAULT_WINDOW_WIDTH));
+    }
+
+    @Test
+    public void projectCommand_searchResultAtMinimumWidth_tagsStayInsideSearchPanels() throws Exception {
+        FxTestUtil.run(() -> assertTagsStayInsideSearchPanels(MIN_WINDOW_WIDTH));
     }
 
     /** Adds tags to a contact while it is a search result, then checks both panels reserved enough height. */
@@ -320,20 +324,16 @@ public class MainWindowTest {
         Model model = new ModelManager();
         model.addPerson(new PersonBuilder().withName("Alex Yeoh").build());
         Stage stage = showMainWindow(model, width, MIN_WINDOW_HEIGHT);
-        try {
-            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
-            enter(input, "find Alex");
+        TextField input = commandBox(stage);
+        enter(input, "find Alex");
+        layOut(stage);
+        for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
+            enter(input, "project 1 pr/Tag " + tagNumber);
             layOut(stage);
-            for (int tagNumber = 1; tagNumber <= TAGS_FILLING_TWO_ROWS; tagNumber++) {
-                enter(input, "project 1 pr/Tag " + tagNumber);
-                layOut(stage);
-            }
-            for (String panel : List.of("#recentFindListView", "#mostSearchedDetails")) {
-                Node tags = stage.getScene().lookup(panel).lookup("#projects");
-                assertTrue(lowestTagEdge(tags) <= bottomEdge(tags), panel + " at width " + width);
-            }
-        } finally {
-            List.copyOf(Window.getWindows()).forEach(Window::hide);
+        }
+        for (String panel : List.of("#recentFindListView", "#mostSearchedDetails")) {
+            Node tags = stage.getScene().lookup(panel).lookup("#projects");
+            assertTrue(lowestTagEdge(tags) <= bottomEdge(tags), panel + " at width " + width);
         }
     }
 
@@ -350,6 +350,25 @@ public class MainWindowTest {
         window.show();
         layOut(stage);
         return stage;
+    }
+
+    /** Shows a main window of the default width whose contact list holds one contact. */
+    private Stage showMainWindowWithOneContact() {
+        Model model = new ModelManager();
+        model.addPerson(new PersonBuilder().build());
+        return showMainWindow(model, DEFAULT_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+    }
+
+    private static TextField commandBox(Stage stage) {
+        return (TextField) stage.getScene().lookup("#commandTextField");
+    }
+
+    private static ListView<?> contactList(Stage stage) {
+        return (ListView<?>) stage.getScene().lookup("#personListView");
+    }
+
+    private static TextArea resultBox(Stage stage) {
+        return (TextArea) stage.getScene().lookup("#resultDisplay");
     }
 
     private static double rightEdge(Node node) {
