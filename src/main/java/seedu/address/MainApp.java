@@ -34,7 +34,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.5";
+    public static final String VERSION = "V1.6";
 
     static final String MESSAGE_BACKUP_FAILED = "LinkUp could not load %1$s, and could not back it up (%2$s).\n\n"
             + "LinkUp will not start, so that the file is not overwritten. Copy the file somewhere safe, "
@@ -89,7 +89,7 @@ public class MainApp extends Application {
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book,
-     * but only after the unreadable file has been backed up.
+     * but only after the unreadable file, if it still exists, has been backed up.
      *
      * @throws IOException if the unreadable data file could not be backed up.
      */
@@ -129,8 +129,8 @@ public class MainApp extends Application {
     }
 
     /**
-     * Explains that {@code dataFile} could not be read and names its {@code backup}, if one was made,
-     * so that users know their contacts can still be recovered.
+     * Explains that {@code dataFile} could not be read and, if a backup was created, names {@code backup}
+     * so that users know where their original data is preserved.
      */
     static String createUnreadableDataFileMessage(Path dataFile, Optional<Path> backup) {
         String backupSentence = backup
