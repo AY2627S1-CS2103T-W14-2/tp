@@ -32,7 +32,7 @@ public record ContactConflict(Field field, String value, Person existingPerson) 
     }
 
     /**
-     * Every field must be present and not null.
+     * Creates a conflict, requiring every field to be non-null.
      */
     public ContactConflict {
         requireAllNonNull(field, value, existingPerson);
